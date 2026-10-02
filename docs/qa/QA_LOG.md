@@ -474,3 +474,41 @@ SIDEKICK, red, in a window that's otherwise blue again. Design: docs/superpowers
   version's pop-ups). EditMode 71/71; PlayMode 87/88 — the one failure is `CameraTests.FixedAngleCamera_KeepsBothTargetsInFrame`
   (hero 1–4% from the frame edge at 25 m apart; it depends on the editor's Game view shape and fails at 16:9 too). It is
   untouched by this work and is being looked at separately.
+
+## Follow-up: "the game is broken" — Play ran a QA scene; the HUD over the walk
+**Report (owner):** only the opening played, at about 10x speed, and then the game didn't work.
+
+**Root cause:** the editor had been left on `Scenes/QA_Opening.unity`, the opening-scrub QA scene, last built for the
+3-second replay version. Its Play fast-forwards the opening on a manual clock, takes three shots and exits play mode. The
+Editor.log shows the owner's Play press running the scrub (`short3_00…02`) right after the last QA run. `Main`, the only
+scene in the build, was fine.
+
+**Fixed:**
+- *`QaSceneGuard` (editor):* when a play session ends on a `QA_*` scene, the editor reopens `Main`, so Play plays the
+  game. It runs in the EnteredEditMode callback, because `EditorApplication.delayCall` never fires while the editor sits
+  in the background.
+- *The HUD over the walk* (found while checking the build): the chapter and its HUD are built before the opening. The old
+  opening sat on opaque black; the 3D walk shows through the overlay, so Sir Callum's bar, "YOU HERO's SIDEKICK" and the
+  skill slots were drawn over the street in the editor and the build. `UIRoot.ShowGameLayers` now hides the World, Hud
+  and Windows layers for the opening and brings them back with the first picks. QA captures had missed it: the opening
+  camera only renders its own layer, so the overlay's borrowed camera space was culled from captures. `QaCapture` now
+  lets the capture camera see the UI's layer.
+- *A ghost in the black pre-roll* (found in build screenshots): the class window and ~30 error pop-ups, drawn at the
+  warm-up alpha, stacked up to 45/255 on black. An opaque cover now sits over the warm-up during the pre-roll; the
+  shaders still warm, and the pre-roll measures 0/255.
+
+**Verified:**
+- *Editor, `Main`, real time:* the opening at audio speed (~41 s); the two-press skip; picks by clicking through the
+  EventSystem; WASD; the chapter's camera, sun and fog back. Hero death → end screen → RESTORE · CHAPTER START; PLAY
+  AGAIN → the 3-second version → picks. 0 errors.
+- *macOS build (1280x720 windowed, `-hs-shots`):* the pre-roll is black, the walk has no HUD, then the storm, the blue
+  window with the red name, and the picker with the HUD. Avg 231 fps; hitches only behind the pre-roll (2.2 s, 1.0 s);
+  0 exceptions.
+- *Tests:* new `OpeningTests.The_Opening_Hands_Over_To_A_Playable_Chapter` covers the player's path (not AutoPlay): no
+  HUD over the street, picks by click, camera and sun back, D moves the sidekick. It fails without the HUD fix (HUD alpha
+  1.0) and when the opening isn't torn down. EditMode 71/71; PlayMode 89/89 with the camera-framing fix from its own
+  session (still uncommitted), otherwise 88/89 (the known `CameraTests` failure).
+
+**QA tooling:** `Tools/HS/QA/Live *` (`LiveProbe`) gives status, a capture, a click through the EventSystem, held keys,
+flow jumps and a non-blocking play (the MCP play call blocks until it times out at 60 s). Player flags
+`-hs-shots "6;12" -hs-shots-dir <dir>` (`QaShots`).

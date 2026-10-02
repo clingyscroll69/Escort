@@ -18,8 +18,11 @@ namespace HS.QA
             var prevActive = RenderTexture.active;
             RenderTexture.active = rt;
             GL.Clear(true, true, Color.black);
-            // Overlay canvases aren't drawn by cameras: borrow camera space for this one render so the UI is captured.
+            // Overlay canvases aren't drawn by cameras: borrow camera space for this one render so the UI is captured
+            // (and let the camera see the UI's layer: the opening's camera sees only its street, which hid the HUD from
+            // captures while it was on the player's screen).
             var overlays = new System.Collections.Generic.List<Canvas>();
+            int mask = cam.cullingMask;
             foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
                 if (!c.isRootCanvas || c.renderMode != RenderMode.ScreenSpaceOverlay) continue;
@@ -27,10 +30,12 @@ namespace HS.QA
                 c.renderMode = RenderMode.ScreenSpaceCamera;
                 c.worldCamera = cam;
                 c.planeDistance = cam.nearClipPlane + 0.05f;
+                cam.cullingMask |= 1 << c.gameObject.layer;
             }
             cam.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             cam.Render();
+            cam.cullingMask = mask;
             foreach (var c in overlays) c.renderMode = RenderMode.ScreenSpaceOverlay;
             RenderTexture.active = rt;
             var tex = new Texture2D(w, h, TextureFormat.RGB24, false);

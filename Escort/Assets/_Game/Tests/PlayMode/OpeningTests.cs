@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using HS.Core;
 using HS.Flow;
@@ -8,7 +9,11 @@ using HS.Skills;
 using HS.UI;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace HS.Tests
 {
@@ -312,6 +317,92 @@ namespace HS.Tests
             StringAssert.DoesNotContain("HERO", Plain(hud.SidekickLabel), "glyphs while it changes");
             hud.TickSwap(1f);
             Assert.AreEqual("YOU  CALLUM's SIDEKICK", Plain(hud.SidekickLabel));
+        }
+
+        /// <summary>Click the middle of a UI element through the EventSystem: whatever is drawn on top there takes it.</summary>
+        static void Click(string name)
+        {
+            var target = Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None)
+                .FirstOrDefault(r => r.name == name && r.gameObject.activeInHierarchy);
+            Assert.IsNotNull(target, name + " is on screen");
+            var ped = new PointerEventData(EventSystem.current)
+            {
+                position = RectTransformUtility.WorldToScreenPoint(null, target.TransformPoint(target.rect.center)),
+                button = PointerEventData.InputButton.Left,
+            };
+            var hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(ped, hits);
+            Assert.IsNotEmpty(hits, name + " takes clicks");
+            Assert.IsTrue(hits[0].gameObject.transform.IsChildOf(target), $"{name} is under {hits[0].gameObject.name}");
+            ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, ped, ExecuteEvents.pointerClickHandler);
+        }
+
+        /// <summary>The most opaque thing the HUD draws on screen (alpha inherited through its canvas groups).</summary>
+        static float HudAlpha()
+        {
+            float a = 0f;
+            foreach (var g in UIRoot.Instance.Hud.GetComponentsInChildren<Graphic>())
+                if (g.isActiveAndEnabled) a = Mathf.Max(a, g.canvasRenderer.GetInheritedAlpha() * g.color.a);
+            return a;
+        }
+
+        [UnityTest]
+        public IEnumerator The_Opening_Hands_Over_To_A_Playable_Chapter()
+        {
+            // The player's path (no AutoPlay): the whole opening, the first two picks by clicking, then the road with the
+            // controls live and the chapter's own camera and sun.
+            var sun = new GameObject("TestSun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            RenderSettings.sun = sun;
+            RunState.Runs = 0; // a first run gets the whole opening
+            var flow = new GameObject("GameFlow").AddComponent<GameFlow>();
+            yield return null;
+            var opening = Object.FindAnyObjectByType<OpeningView>();
+            Assert.AreEqual(GameFlow.State.Opening, flow.Current);
+            Assert.IsNotNull(opening);
+            Assert.IsFalse(opening.Short);
+            opening.ManualClock = true;
+            RunTo(opening, 5f);
+            yield return null;
+            Assert.AreEqual("OpeningCamera", Camera.main.name, "the walk is seen through the walker's eyes");
+            Assert.AreEqual(0f, HudAlpha(), 1e-3f, "no game HUD over the street");
+            RunTo(opening, 999f);
+            yield return null;
+            Assert.Greater(HudAlpha(), 0.9f, "the HUD is back with the first picks");
+            Assert.IsFalse(opening, "the opening is gone");
+            Assert.IsNull(GameObject.Find("OpeningStreet"), "and its street with it");
+            Assert.AreEqual(flow.Chapter.Camera.Camera, Camera.main, "the chapter's camera is back");
+            Assert.IsTrue(Camera.main.enabled);
+            Assert.IsTrue(sun.enabled);
+            Assert.AreEqual(sun, RenderSettings.sun);
+
+            foreach (var name in new[] { "Skill_pocket_sand", "Skill_pocket_sand", "Skill_crossbow", "Skill_crossbow", "Continue" })
+            {
+                Click(name);
+                yield return null; // the picker rebuilds its rows on each click
+            }
+            Assert.AreEqual(GameFlow.State.Chapter, flow.Current, "SET OUT ON THE OLD ROAD");
+            Assert.IsFalse(SimLoop.Instance.Paused);
+            var skills = flow.Chapter.Sidekick.GetComponent<SidekickSkills>();
+            Assert.AreEqual(1, skills.System.RankOf("pocket_sand"));
+            Assert.AreEqual(1, skills.System.RankOf("crossbow"));
+
+            // WASD moves the sidekick (a test keyboard, so the real one can't interfere)
+            var kb = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                var sk = flow.Chapter.Sidekick.transform;
+                float x0 = sk.position.x;
+                InputSystem.QueueStateEvent(kb, new KeyboardState(Key.D));
+                yield return new WaitForSecondsRealtime(0.6f);
+                InputSystem.QueueStateEvent(kb, new KeyboardState());
+                yield return null;
+                Assert.Greater(sk.position.x - x0, 1f, "D moves the sidekick right");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(kb);
+            }
         }
 
         [UnityTest]

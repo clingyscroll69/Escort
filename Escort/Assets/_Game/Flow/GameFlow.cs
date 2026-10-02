@@ -49,7 +49,8 @@ namespace HS.Flow
         HeroAgent Hero => Chapter.Hero;
         SidekickAgent Sk => Chapter.Sidekick;
 
-        /// <summary>Player-build automation: -hs-autoplay &lt;build&gt; -hs-seed N -hs-perf &lt;json&gt; -hs-quit (QA perf runs).</summary>
+        /// <summary>Player-build automation: -hs-autoplay &lt;build&gt; -hs-seed N -hs-perf &lt;json&gt; -hs-quit (QA perf runs);
+        /// -hs-shots "6;12" -hs-shots-dir &lt;dir&gt; (screenshots at real seconds).</summary>
         void ReadCommandLine()
         {
             var args = System.Environment.GetCommandLineArgs();
@@ -68,11 +69,17 @@ namespace HS.Flow
                     case "-hs-seed": int.TryParse(next, out Seed); break;
                     case "-hs-perf": gameObject.AddComponent<HS.QA.PerfProbe>().OutPath = next; break;
                     case "-hs-quit": _quitAtEnd = true; break;
+                    case "-hs-shots":
+                        Shots().At = Array.ConvertAll((next ?? "").Split(';'), s => float.Parse(s, System.Globalization.CultureInfo.InvariantCulture));
+                        break;
+                    case "-hs-shots-dir": Shots().Dir = next; break;
                 }
             }
         }
 
         bool _quitAtEnd;
+
+        HS.QA.QaShots Shots() => TryGetComponent<HS.QA.QaShots>(out var s) ? s : gameObject.AddComponent<HS.QA.QaShots>();
 
         void Start()
         {

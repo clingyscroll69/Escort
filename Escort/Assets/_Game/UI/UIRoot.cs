@@ -57,6 +57,25 @@ namespace HS.UI
             if (Instance == this) Instance = null;
         }
 
+        /// <summary>
+        /// The game's own layers (bubbles, HUD, System notices) on or off: a cutscene that shows its own 3D world through
+        /// the overlay hides them meanwhile (canvas groups only: nothing under them is disabled).
+        /// </summary>
+        public void ShowGameLayers(bool on)
+        {
+            foreach (var layer in new[] { World, Hud, Windows })
+            {
+                if (!layer.TryGetComponent<CanvasGroup>(out var g))
+                {
+                    if (on) continue; // never hidden (and this may be the UI being torn down)
+                    g = layer.gameObject.AddComponent<CanvasGroup>();
+                }
+                g.alpha = on ? 1f : 0f;
+                g.blocksRaycasts = on;
+                g.interactable = on;
+            }
+        }
+
         /// <summary>World position → anchored position in a full-screen layer (null when behind the camera).</summary>
         public bool WorldToLayer(Vector3 world, RectTransform layer, out Vector2 local)
         {

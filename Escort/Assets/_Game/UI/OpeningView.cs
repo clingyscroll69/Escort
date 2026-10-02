@@ -34,7 +34,8 @@ namespace HS.UI
         const int StepsBefore = 6384, TrackPos = 72, TrackLength = 223;
         /// <summary>
         /// Hidden UI isn't drawn at alpha 0, so its first frame compiled the masked-UI shader variants mid-walk (a 316 ms
-        /// stall in the player build). Drawn at an invisible alpha, that happens behind the black pre-roll instead.
+        /// stall in the player build). Drawn at a tiny alpha, that happens during the black pre-roll instead, under an
+        /// opaque cover: dozens of overlapping pop-ups at this alpha still added up to a visible ghost on black.
         /// </summary>
         public const float WarmAlpha = 0.004f;
 
@@ -79,6 +80,7 @@ namespace HS.UI
         public float EndsAt => _endAt;
 
         bool _short;
+        UIRoot _root;
         int _warm;
         float _pre, _real, _t, _prevT, _skipArmedUntil = -1f;
         double _dsp0, _lastDsp = -1;
@@ -88,7 +90,7 @@ namespace HS.UI
         ClassRoll _roll;
 
         OpeningStreet _street;
-        Image _black, _white, _glare, _wash, _progress;
+        Image _black, _cover, _white, _glare, _wash, _progress;
         TextMeshProUGUI _foot, _steps, _elapsed, _remain;
         RectTransform[] _cards;
         CanvasGroup[] _cardGroups;
@@ -97,6 +99,7 @@ namespace HS.UI
         {
             var go = UIKit.Stretch(root.Overlay, "Opening").gameObject;
             var v = go.AddComponent<OpeningView>();
+            v._root = root;
             v._short = shortVersion;
             v.Plan();
             v.Build();
@@ -116,10 +119,14 @@ namespace HS.UI
             // the first frame, so its shaders compile during the pre-roll.
             _black = UIKit.Image(transform, "Black", null, new Color(0.01f, 0.01f, 0.02f, 1f), false);
             _black.raycastTarget = true; // nothing behind the opening takes clicks
+            // The chapter (and its HUD) is built before the opening; the walk shows the street through this overlay, so
+            // the game's HUD, bubbles and notices stand down until the opening is over.
+            _root.ShowGameLayers(false);
             _street = OpeningStreet.Build(_short);
             if (!_short) BuildPhone(_street.PhoneScreen);
             _wash = UIKit.Image(transform, "Flood", null, new Color(1f, 0.97f, 0.9f, 0f), false);
             _roll = new ClassRoll((RectTransform)transform, _short, _sys0);
+            _cover = UIKit.Image(transform, "PreRollCover", null, new Color(0.01f, 0.01f, 0.02f, 1f), false); // over the warm-up
             if (!_short) _endAt = _roll.EndAt;
             _foot = UIKit.Text(transform, "Foot", "", UIKit.Mono, 22, new Color(1f, 1f, 1f, 0.45f), TextAlignmentOptions.Bottom);
             _foot.rectTransform.offsetMin = new Vector2(0f, 40f);
@@ -313,6 +320,7 @@ namespace HS.UI
             var a = AudioDirector.Instance;
             if (skipped && a != null) a.StopCutscene();
             DropStreet();
+            _root.ShowGameLayers(true);
             Done?.Invoke();
             Destroy(gameObject);
         }
@@ -320,6 +328,7 @@ namespace HS.UI
         void OnDestroy()
         {
             DropStreet();
+            if (_root != null) _root.ShowGameLayers(true);
             if (Current == Phase.Done) return;
             var a = AudioDirector.Instance;
             if (a != null) a.StopCutscene();
@@ -357,6 +366,7 @@ namespace HS.UI
             // black: the pre-roll, a fade into the street, then nothing until the System window
             float fade = _short ? Smooth(0f, 0.1f, t) : Smooth(0f, 0.8f, t);
             _black.color = new Color(0.01f, 0.01f, 0.02f, !started || t >= cut ? 1f : 1f - fade);
+            _cover.enabled = !started;
             float flood = !started || t >= cut ? 0f : _short ? 0.85f * Mathf.Pow(Mathf.Clamp01(t / ShortFlash), 2f)
                 : 0.92f * Mathf.Pow(Smooth(OpeningStreet.FloodFrom, CutAt, t), 2.2f);
             _wash.color = new Color(1f, 0.97f, 0.9f, flood);
