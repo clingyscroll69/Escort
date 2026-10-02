@@ -1,0 +1,82 @@
+   0.25 START seed=1 hero=Callum stage=S0
+   2.00 SHOT ch1_rap_01_t002.png rule=follow_route hp=260/260
+   3.52 RULE follow_route -> threshold_pause
+   5.03 RULE threshold_pause -> follow_route
+   5.47 RULE follow_route -> callum_challenge
+   5.47 BARK callum: You there! Face me, and fight with honour.
+   5.47 DUEL start vs Room0_wagon_camp_brute_0
+   5.47 RAPPORT offer unseen_assist +3 (Room0_wagon_camp_turncoat_3) offered=3 earned=0 pen=0 rate=0 %
+   5.48 RULE callum_challenge -> callum_salute
+   6.18 SHOT ch1_rap_02_duel_Room0_wagon_camp_brute_0.png rule=callum_salute hp=260/260
+   6.70 RULE callum_salute -> callum_fight
+   7.30 BARK callum: To the narrows! One at a time!
+   7.30 RULE callum_fight -> callum_fallback
+   7.62 SHOT ch1_rap_03_rule_callum_fallback.png rule=callum_fallback hp=260/260
+   8.10 RULE callum_fallback -> callum_fight
+   8.87 HIT Room0_wagon_camp_thug_1 -> Callum 14 (melee)
+   9.43 HIT Callum -> Room0_wagon_camp_brute_0 26 (sword)
+   9.68 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  10.68 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  10.83 HIT Callum -> Room0_wagon_camp_brute_0 26 (sword)
+  11.90 HIT Room0_wagon_camp_thug_1 -> Callum 14 (melee)
+  12.30 HIT Callum -> Room0_wagon_camp_brute_0 52 (riposte)
+  12.30 BARK callum: Parried!
+  12.77 HIT Callum -> Room0_wagon_camp_brute_0 26 (sword)
+  13.57 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  13.65 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  13.83 HIT Callum -> Room0_wagon_camp_brute_0 26 (sword)
+  15.10 HIT Callum -> Room0_wagon_camp_brute_0 14 (sword)
+  15.10 DEATH Room0_wagon_camp_brute_0 by Callum (sword)
+  15.12 DUEL end vs Room0_wagon_camp_brute_0: TargetDied
+  15.12 RULE callum_fight -> callum_challenge
+  15.12 DUEL start vs Room0_wagon_camp_thug_1
+  15.13 RULE callum_challenge -> callum_salute
+  15.60 HIT Room0_wagon_camp_thug_1 -> Callum 14 (melee)
+  15.83 SHOT ch1_rap_04_duel_Room0_wagon_camp_thug_1.png rule=callum_salute hp=162/260
+  16.15 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  16.35 RULE callum_salute -> callum_fight
+  16.80 HIT Callum -> Room0_wagon_camp_thug_1 26 (sword)
+  17.00 SHOT ch1_rap_05_t017.png rule=callum_fight hp=148/260
+  17.45 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  18.03 HIT Callum -> Room0_wagon_camp_thug_1 26 (sword)
+  18.83 HIT Callum -> Room0_wagon_camp_thug_1 28 (riposte)
+  18.83 DEATH Room0_wagon_camp_thug_1 by Callum (riposte)
+  18.83 BARK callum: Too slow.
+  18.85 DUEL end vs Room0_wagon_camp_thug_1: TargetDied
+  18.85 RULE callum_fight -> callum_challenge
+  18.85 DUEL start vs Room0_wagon_camp_thug_2
+  18.87 RULE callum_challenge -> callum_salute
+  19.05 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  19.57 SHOT ch1_rap_06_duel_Room0_wagon_camp_thug_2.png rule=callum_salute hp=120/260
+  19.77 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  20.08 RULE callum_salute -> callum_fight
+  20.48 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  20.53 HIT Callum -> Room0_wagon_camp_thug_2 26 (sword)
+  21.33 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  21.60 HIT Callum -> Room0_wagon_camp_thug_2 26 (sword)
+  22.12 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  22.40 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  22.67 HIT Callum -> Room0_wagon_camp_thug_2 26 (sword)
+  23.45 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  23.47 HIT Room0_wagon_camp_thug_2 -> Callum 14 (melee)
+  23.73 DEATH Room0_wagon_camp_thug_2 by Callum (sword)
+  23.75 DUEL end vs Room0_wagon_camp_thug_2: TargetDied
+  23.75 RULE callum_fight -> callum_challenge
+  23.75 BARK callum: I am Callum of the Code. Draw, and be judged.
+  23.75 DUEL start vs Room0_wagon_camp_turncoat_3
+  23.77 RULE callum_challenge -> callum_salute
+  24.47 SHOT ch1_rap_07_duel_Room0_wagon_camp_turncoat_3.png rule=callum_salute hp=22/260
+  24.78 HIT Room0_wagon_camp_turncoat_3 -> Callum 14 (melee)
+  24.98 RULE callum_salute -> callum_fight
+  25.43 HIT Callum -> Room0_wagon_camp_turncoat_3 26 (sword)
+  26.18 HIT Callum -> Room0_wagon_camp_turncoat_3 52 (riposte)
+  26.18 BARK callum: Mind your guard!
+  26.18 RAPPORT offer averted_cheat +4 (Room0_wagon_camp_turncoat_3 fake surrender) offered=7 earned=0 pen=0 rate=0 %
+  26.20 RULE callum_fight -> callum_wait_unready
+  26.52 SHOT ch1_rap_08_rule_callum_wait_unready.png rule=callum_wait_unready hp=8/260
+  28.60 DEATH Callum by Room0_wagon_camp_turncoat_3 (cheap_shot)
+  28.60 RAPPORT close averted_cheat 0 (surrender ended: Engaged) offered=7 earned=0 pen=0 rate=0 %
+  28.62 END hero died
+  28.62 RAPPORT-SUMMARY offered=7/60 earned=0 penalties=0 (raw 0) rate=0.0 %
+  28.62 SUMMARY hero hp=0 honor=100 sidekick hp=80 enemies: Dead=3 Dormant=4 Hidden=2 Engaged=1 fps~84
+  28.62 SHOT ch1_rap_09_end.png rule=callum_wait_unready hp=0/260

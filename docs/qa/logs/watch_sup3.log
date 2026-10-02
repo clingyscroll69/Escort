@@ -1,0 +1,196 @@
+   0.25 START seed=3 hero=Callum stage=S0
+   0.25 BATCH dynamic renderers=19 frozen-in-static-batch=0
+   0.50 BOT to search
+   1.90 BOT channel
+   2.00 SHOT sup3_01_t002.png rule=follow_route hp=260/260
+   2.68 SYSTEM A TRAVELLER'S PACK
+<size=80%>Half a loaf, a map with the crossroads circled, and a note: 'Don't stop for the man in the road.'</size>
+   2.72 BOT follow
+   2.95 BOT close on the ambush
+   3.38 RAPPORT offer averted_cheat +4 (Room0_crossroads_shrine_ambusher_1 ambush) offered=4 earned=0 pen=0 rate=0 %
+   3.80 RAPPORT offer averted_cheat +4 (Room0_crossroads_shrine_ambusher_2 ambush) offered=8 earned=0 pen=0 rate=0 %
+   4.52 RULE follow_route -> callum_challenge
+   4.52 BARK callum: You there! Face me, and fight with honour.
+   4.52 DUEL start vs Room0_crossroads_shrine_thug_0
+   4.52 STONE Chapter/StoneAnchor -> Active
+   4.52 RAPPORT offer unseen_assist +3 (Room0_crossroads_shrine_turncoat_3) offered=11 earned=0 pen=0 rate=0 %
+   4.53 RULE callum_challenge -> callum_salute
+   5.75 RULE callum_salute -> callum_fight
+   5.93 SHOT sup3_02_duel_Room0_crossroads_shrine_thug_0.png rule=callum_fight hp=260/260
+   6.18 BOT follow
+   6.33 RAPPORT penalty caught -3 (pocket_sand) offered=11 earned=0 pen=3 rate=0 %
+   6.33 CAUGHT pocket_sand Major stone=False honor=80
+   6.33 BARK callum: What was that?! We do not fight like thieves!
+   6.33 SABOTAGE pocket_sand Major victim=Room0_crossroads_shrine_ambusher_1
+   6.33 RAPPORT offer unseen_assist +3 (Room0_crossroads_shrine_ambusher_1) offered=14 earned=0 pen=3 rate=0 %
+   6.33 RAPPORT capture averted_cheat +4 (Room0_crossroads_shrine_ambusher_1 ambush | flushed out before the ambush) offered=14 earned=4 pen=3 rate=7 %
+   6.33 RAPPORT close unseen_assist 0 (Room0_crossroads_shrine_ambusher_1 | already credited) offered=14 earned=4 pen=3 rate=7 %
+   7.05 HIT Callum -> Room0_crossroads_shrine_thug_0 26 (sword)
+   7.85 HIT Callum -> Room0_crossroads_shrine_thug_0 52 (riposte)
+   8.32 DEATH Room0_crossroads_shrine_thug_0 by Callum (sword)
+   8.33 DUEL end vs Room0_crossroads_shrine_thug_0: TargetDied
+   8.33 RULE callum_fight -> callum_challenge
+   8.33 DUEL start vs Room0_crossroads_shrine_turncoat_3
+   8.35 RULE callum_challenge -> callum_salute
+   9.57 RULE callum_salute -> callum_fight
+   9.77 SHOT sup3_03_duel_Room0_crossroads_shrine_turncoat_3.png rule=callum_fight hp=242/260
+  10.02 HIT Callum -> Room0_crossroads_shrine_turncoat_3 26 (sword)
+  11.08 HIT Callum -> Room0_crossroads_shrine_turncoat_3 26 (sword)
+  12.15 HIT Callum -> Room0_crossroads_shrine_turncoat_3 26 (sword)
+  12.15 RAPPORT offer averted_cheat +4 (Room0_crossroads_shrine_turncoat_3 fake surrender) offered=18 earned=4 pen=3 rate=6 %
+  12.17 CLIP etiquette by StoneAnchor intel=0
+  12.17 RULE callum_fight -> callum_wait_unready
+  12.17 BARK callum: You yield? Then stay down, and I'll stay my hand.
+  12.80 SHOT sup3_04_rule_callum_wait_unready.png rule=callum_wait_unready hp=206/260
+  14.05 BOT close on the false surrender
+  14.17 BOT sand the false surrender
+  14.18 BOT follow
+  14.47 RAPPORT penalty caught -6 (pocket_sand) offered=18 earned=4 pen=5.4 rate=0 %
+  14.47 CAUGHT pocket_sand Major stone=False honor=60
+  14.47 BARK callum: Sand? SAND? Have you no shame?
+  14.47 RAPPORT capture averted_cheat +4 (Room0_crossroads_shrine_turncoat_3 fake surrender | sand on the false surrender) offered=18 earned=8 pen=5.4 rate=14 %
+  14.47 RAPPORT close unseen_assist 0 (Room0_crossroads_shrine_turncoat_3 | already credited) offered=18 earned=8 pen=5.4 rate=14 %
+  14.47 SABOTAGE pocket_sand Major victim=Room0_crossroads_shrine_ambusher_1
+  15.17 BARK callum: Go, and sin no more.
+  15.17 DUEL end vs Room0_crossroads_shrine_turncoat_3: Abandoned
+  15.18 RULE callum_wait_unready -> callum_challenge
+  15.18 BARK callum: I am Callum of the Code. Draw, and be judged.
+  15.18 DUEL start vs Room0_crossroads_shrine_ambusher_1
+  15.20 RULE callum_challenge -> callum_salute
+  16.42 CLIP etiquette by StoneAnchor intel=1
+  16.42 RULE callum_salute -> callum_wait_unready
+  16.42 BARK callum: Rise. I'll not strike a man who can't see.
+  16.62 SHOT sup3_05_duel_Room0_crossroads_shrine_ambusher_1.png rule=callum_wait_unready hp=197/260
+  17.48 RULE callum_wait_unready -> callum_fight
+  17.93 HIT Callum -> Room0_crossroads_shrine_ambusher_1 26 (sword)
+  18.63 HIT Callum -> Room0_crossroads_shrine_ambusher_1 44 (riposte)
+  18.63 DEATH Room0_crossroads_shrine_ambusher_1 by Callum (riposte)
+  18.65 DUEL end vs Room0_crossroads_shrine_ambusher_1: TargetDied
+  18.65 RULE callum_fight -> callum_challenge
+  18.65 DUEL start vs Room0_crossroads_shrine_ambusher_2
+  18.65 RAPPORT offer unseen_assist +3 (Room0_crossroads_shrine_ambusher_2) offered=21 earned=8 pen=6.3 rate=8 %
+  18.65 RAPPORT close averted_cheat 0 (Room0_crossroads_shrine_ambusher_2 ambush | the ambush landed) offered=21 earned=8 pen=6.3 rate=8 %
+  18.67 RULE callum_challenge -> callum_salute
+  19.88 RULE callum_salute -> callum_fight
+  20.08 SHOT sup3_06_duel_Room0_crossroads_shrine_ambusher_2.png rule=callum_fight hp=188/260
+  20.33 HIT Callum -> Room0_crossroads_shrine_ambusher_2 26 (sword)
+  21.40 HIT Callum -> Room0_crossroads_shrine_ambusher_2 26 (sword)
+  22.47 HIT Callum -> Room0_crossroads_shrine_ambusher_2 18 (sword)
+  22.47 DEATH Room0_crossroads_shrine_ambusher_2 by Callum (sword)
+  22.47 RAPPORT close unseen_assist 0 (Room0_crossroads_shrine_ambusher_2 | resolved without you) offered=21 earned=8 pen=6.3 rate=8 %
+  22.48 BARK callum: "A knight's word is his shield; a knight's shield is his word."
+  22.48 ROOM 0 cleared
+  22.48 DUEL end vs Room0_crossroads_shrine_ambusher_2: TargetDied
+  22.48 RULE callum_fight -> follow_route
+  23.55 RULE follow_route -> threshold_pause
+  24.48 STONE Chapter/StoneAnchor -> Dormant
+  25.07 RULE threshold_pause -> follow_route
+  30.30 ROOM 1 entered
+  33.42 RULE follow_route -> threshold_pause
+  34.93 RULE threshold_pause -> follow_route
+  35.37 RULE follow_route -> callum_challenge
+  35.37 BARK callum: One of you. Me. Fairly. Now.
+  35.37 DUEL start vs Room1_wagon_camp_brute_0
+  35.37 RAPPORT offer unseen_assist +3 (Room1_wagon_camp_turncoat_3) offered=24 earned=8 pen=7.2 rate=3 %
+  35.38 RULE callum_challenge -> callum_salute
+  36.60 RULE callum_salute -> callum_fight
+  37.20 BARK callum: To the narrows! One at a time!
+  37.20 RULE callum_fight -> callum_fallback
+  38.02 RULE callum_fallback -> callum_fight
+  39.37 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  40.75 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  42.02 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  43.32 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  44.92 HIT Callum -> Room1_wagon_camp_brute_0 52 (riposte)
+  44.92 BARK callum: Parried!
+  45.38 HIT Callum -> Room1_wagon_camp_brute_0 14 (sword)
+  45.38 DEATH Room1_wagon_camp_brute_0 by Callum (sword)
+  45.40 DUEL end vs Room1_wagon_camp_brute_0: TargetDied
+  45.40 RULE callum_fight -> callum_challenge
+  45.40 BARK callum: You there! Face me, and fight with honour.
+  45.40 DUEL start vs Room1_wagon_camp_thug_1
+  45.42 RULE callum_challenge -> callum_salute
+  46.63 RULE callum_salute -> callum_fight
+  47.08 HIT Callum -> Room1_wagon_camp_thug_1 26 (sword)
+  48.32 HIT Callum -> Room1_wagon_camp_thug_1 26 (sword)
+  49.62 HIT Callum -> Room1_wagon_camp_thug_1 26 (sword)
+  50.02 BARK callum: Back — make them come single file!
+  50.02 RULE callum_fight -> callum_fallback
+  51.10 BOT to bandage
+  51.35 RULE callum_fallback -> callum_fight
+  51.65 BOT follow
+  52.65 DEATH Room1_wagon_camp_thug_1 by Callum (sword)
+  52.67 DUEL end vs Room1_wagon_camp_thug_1: TargetDied
+  52.67 RULE callum_fight -> callum_challenge
+  52.67 BARK callum: I am Callum of the Code. Draw, and be judged.
+  52.67 DUEL start vs Room1_wagon_camp_thug_2
+  52.68 RULE callum_challenge -> callum_salute
+  53.90 RULE callum_salute -> callum_fight
+  53.97 HIT Callum -> Room1_wagon_camp_thug_2 52 (riposte)
+  54.43 HIT Callum -> Room1_wagon_camp_thug_2 26 (sword)
+  55.50 DEATH Room1_wagon_camp_thug_2 by Callum (sword)
+  55.52 DUEL end vs Room1_wagon_camp_thug_2: TargetDied
+  55.52 RULE callum_fight -> callum_challenge
+  55.52 DUEL start vs Room1_wagon_camp_turncoat_3
+  55.53 RULE callum_challenge -> callum_salute
+  56.75 RULE callum_salute -> callum_fight
+  57.20 HIT Callum -> Room1_wagon_camp_turncoat_3 26 (sword)
+  58.27 HIT Callum -> Room1_wagon_camp_turncoat_3 26 (sword)
+  59.33 HIT Callum -> Room1_wagon_camp_turncoat_3 26 (sword)
+  59.33 RAPPORT offer averted_cheat +4 (Room1_wagon_camp_turncoat_3 fake surrender) offered=28 earned=8 pen=8.4 rate=0 %
+  59.35 RULE callum_fight -> callum_wait_unready
+  59.35 BARK callum: A yield is a yield. On your knees, then.
+  59.37 BOT close on the false surrender
+  59.50 BOT sand the false surrender
+  59.52 BOT to bandage
+  59.80 RAPPORT penalty caught -3 (pocket_sand) offered=28 earned=8 pen=8.4 rate=0 %
+  59.80 CAUGHT pocket_sand Major stone=False honor=55
+  59.80 BARK callum: I saw that. The Code saw that.
+  59.80 RAPPORT capture averted_cheat +4 (Room1_wagon_camp_turncoat_3 fake surrender | sand on the false surrender) offered=28 earned=12 pen=8.4 rate=13 %
+  59.80 RAPPORT close unseen_assist 0 (Room1_wagon_camp_turncoat_3 | already credited) offered=28 earned=12 pen=8.4 rate=13 %
+  59.80 SABOTAGE pocket_sand Major victim=Room1_wagon_camp_turncoat_3
+  60.17 BOT bandage
+  60.20 BOT channel
+  62.35 BARK callum: Your life is your own. Spend it better.
+  62.35 DUEL end vs Room1_wagon_camp_turncoat_3: Abandoned
+  62.37 ROOM 1 cleared
+  62.37 RULE callum_wait_unready -> follow_route
+  63.15 BOT to bandage
+  64.25 BOT bandage
+  64.27 BOT channel
+  64.57 BOT to bandage
+  65.68 BOT bandage
+  65.70 BOT channel
+  65.98 BOT to bandage
+  67.15 BOT bandage
+  67.17 BOT channel
+  67.45 BOT to bandage
+  68.62 BOT bandage
+  68.63 BOT channel
+  68.75 ROOM 2 entered
+  68.92 BOT to bandage
+  70.08 BOT bandage
+  70.10 BOT channel
+  70.38 BOT to bandage
+  71.55 BOT bandage
+  71.57 BOT channel
+  71.60 RULE follow_route -> callum_challenge
+  71.60 BARK callum: One of you. Me. Fairly. Now.
+  71.60 DUEL start vs Room2_toll_gate_thug_3
+  71.60 STONE Chapter/StoneAnchor -> Active
+  71.60 RAPPORT offer unseen_assist +3 (Room2_toll_gate_crossbowman_1) offered=31 earned=12 pen=9.3 rate=9 %
+  71.60 RAPPORT offer unseen_assist +3 (Room2_toll_gate_crossbowman_2) offered=34 earned=12 pen=10.2 rate=5 %
+  71.62 RULE callum_challenge -> callum_salute
+  72.83 RULE callum_salute -> callum_fight
+  72.95 HIT Room2_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+  73.08 BOT follow
+  73.57 HIT Callum -> Room2_toll_gate_thug_3 26 (sword)
+  74.37 HIT Callum -> Room2_toll_gate_thug_3 52 (riposte)
+  74.73 DEATH Callum by Room2_toll_gate_brute_0 (melee)
+  74.75 FLOW -> End stage=S0 rate=5 % xp=200
+  74.75 RAPPORT close unseen_assist 0 (Room2_toll_gate_crossbowman_1 | he fell) offered=34 earned=12 pen=10.2 rate=5 %
+  74.75 RAPPORT close unseen_assist 0 (Room2_toll_gate_crossbowman_2 | he fell) offered=34 earned=12 pen=10.2 rate=5 %
+  76.73 STONE Chapter/StoneAnchor -> Dormant
+ 110.77 END hero died
+ 110.77 RAPPORT-SUMMARY offered=34/60 earned=12 penalties=10.2 (raw 12) rate=5.3 %
+ 110.77 SUMMARY hero hp=0 honor=70 sidekick hp=80 enemies: Spared=2 Dead=6 Engaged=4 fps~45

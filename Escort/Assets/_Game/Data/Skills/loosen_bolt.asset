@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feb689143d5f44fdb8e9a106852681a9, type: 3}
+  m_Name: loosen_bolt
+  m_EditorClassIdentifier: Game.Runtime::HS.Skills.SkillDefinition
+  id: loosen_bolt
+  displayName: Loosen Bolt
+  family: 0
+  type: 0
+  uses: 'Kneel at a marked prop to arm it (2 armed at once; rank 2: 3). An armed
+    prop collapses when you ping it or when the hero walks past it, heavily damaging
+    everything in its area.'
+  icon: loosen_bolt
+  implemented: 1
+  capstone: 0
+  cooldown:
+  - 1
+  - 1
+  valueA:
+  - 2
+  - 3
+  valueB:
+  - 1.5
+  - 1.2
+  dishonor: 2

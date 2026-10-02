@@ -1,0 +1,26 @@
+{
+    "name": "Game.Editor",
+    "rootNamespace": "HS.EditorTools",
+    "references": [
+        "Game.Runtime",
+        "Game.Agent.Editor",
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
+        "Unity.Cinemachine.Editor",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

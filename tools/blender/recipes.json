@@ -1,0 +1,393 @@
+{
+  "_doc": "Character recipes. Blender uses outfit/sex/hair/drop/add_parts/scale/neck_cut; tools/recolor_textures.py uses outfit_tex + recolor; Unity CharacterPrefabBuilder uses skin/hair_color/eye_color/props.",
+  "Sidekick": {
+    "role": "player",
+    "outfit": "Female_Peasant",
+    "sex": "Female",
+    "hair": [
+      "Hair_Buns"
+    ],
+    "scale": 0.96,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 40,
+        "to_sat": 0.8,
+        "val_mul": 1.1
+      }
+    ],
+    "hair_color": [
+      0.36,
+      0.22,
+      0.14
+    ],
+    "eye_color": [
+      0.35,
+      0.55,
+      0.45
+    ],
+    "props": {
+      "hand_r": "Knife"
+    },
+    "skin_variant": "fair"
+  },
+  "SidekickM": {
+    "role": "player-alt",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_SimpleParted"
+    ],
+    "scale": 0.95,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 40,
+        "to_sat": 0.8,
+        "val_mul": 1.1
+      }
+    ],
+    "hair_color": [
+      0.12,
+      0.09,
+      0.07
+    ],
+    "eye_color": [
+      0.3,
+      0.2,
+      0.12
+    ],
+    "props": {
+      "hand_r": "Knife"
+    },
+    "skin_variant": "medium"
+  },
+  "Callum": {
+    "role": "hero",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_SimpleParted"
+    ],
+    "scale": 1.06,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 222,
+        "to_sat": 0.62,
+        "val_mul": 1.05
+      }
+    ],
+    "hair_color": [
+      0.78,
+      0.6,
+      0.34
+    ],
+    "eye_color": [
+      0.3,
+      0.45,
+      0.75
+    ],
+    "props": {
+      "hand_r": "Sword",
+      "hand_l": "Shield"
+    },
+    "trim": {
+      "Male_Ranger_Head_Hood": {
+        "z_max": 1.52
+      }
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "mirror_parts": [
+      "Male_Ranger_Acc_Pauldron"
+    ],
+    "skin_variant": "fair"
+  },
+  "Thug": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Buzzed",
+      "Hair_Beard"
+    ],
+    "scale": 1.0,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 2,
+        "to_sat": 0.68,
+        "val_mul": 0.85
+      }
+    ],
+    "hair_color": [
+      0.16,
+      0.1,
+      0.07
+    ],
+    "eye_color": [
+      0.25,
+      0.18,
+      0.12
+    ],
+    "props": {
+      "hand_r": "Club"
+    },
+    "skin_variant": "tan"
+  },
+  "Brute": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Beard"
+    ],
+    "add_parts": [
+      "Male_Ranger_Acc_Pauldron"
+    ],
+    "scale": 1.14,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 6,
+        "to_sat": 0.6,
+        "val_mul": 0.68
+      }
+    ],
+    "hair_color": [
+      0.45,
+      0.2,
+      0.1
+    ],
+    "eye_color": [
+      0.2,
+      0.15,
+      0.1
+    ],
+    "props": {
+      "hand_r": "Axe"
+    },
+    "skin_variant": "deep"
+  },
+  "Crossbowman": {
+    "role": "enemy",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_Beard"
+    ],
+    "scale": 1.0,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 356,
+        "to_sat": 0.72,
+        "val_mul": 0.9
+      }
+    ],
+    "hair_color": [
+      0.2,
+      0.14,
+      0.1
+    ],
+    "eye_color": [
+      0.25,
+      0.2,
+      0.15
+    ],
+    "props": {
+      "hand_r": "Crossbow"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "skin_variant": "medium"
+  },
+  "Turncoat": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Buzzed",
+      "Hair_Long"
+    ],
+    "scale": 0.98,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 12,
+        "to_sat": 0.35,
+        "val_mul": 0.75
+      }
+    ],
+    "hair_color": [
+      0.1,
+      0.08,
+      0.06
+    ],
+    "eye_color": [
+      0.2,
+      0.3,
+      0.2
+    ],
+    "props": {
+      "hand_r": "Dagger"
+    },
+    "skin_variant": "fair"
+  },
+  "Ambusher": {
+    "role": "enemy",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [],
+    "scale": 0.98,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 70,
+        "to_sat": 0.45,
+        "val_mul": 0.6
+      }
+    ],
+    "hair_color": [
+      0.1,
+      0.1,
+      0.1
+    ],
+    "eye_color": [
+      0.3,
+      0.3,
+      0.2
+    ],
+    "props": {
+      "hand_r": "Dagger"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "skin_variant": "deep"
+  },
+  "Archer": {
+    "role": "enemy",
+    "outfit": "Female_Ranger",
+    "sex": "Female",
+    "hair": [],
+    "scale": 1.0,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 272,
+        "to_sat": 0.35,
+        "val_mul": 0.5
+      }
+    ],
+    "hair_color": [
+      0.08,
+      0.06,
+      0.05
+    ],
+    "eye_color": [
+      0.2,
+      0.2,
+      0.2
+    ],
+    "props": {
+      "hand_r": "Crossbow"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Female_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.25,
+        "to": "M_Undershirt"
+      }
+    ],
+    "skin_variant": "tan"
+  },
+  "Ashgrave": {
+    "role": "boss",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_Long",
+      "Hair_Beard"
+    ],
+    "scale": 1.09,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 272,
+        "to_sat": 0.5,
+        "val_mul": 0.6
+      }
+    ],
+    "hair_color": [
+      0.55,
+      0.55,
+      0.58
+    ],
+    "eye_color": [
+      0.6,
+      0.55,
+      0.3
+    ],
+    "props": {
+      "hand_r": "DarkSword",
+      "chest": "Pendant"
+    },
+    "trim": {
+      "Male_Ranger_Head_Hood": {
+        "z_max": 1.52
+      }
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "mirror_parts": [
+      "Male_Ranger_Acc_Pauldron"
+    ],
+    "skin_variant": "pale"
+  }
+}

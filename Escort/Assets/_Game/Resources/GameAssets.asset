@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cec5e93a885894820938f9b2642af522, type: 3}
+  m_Name: GameAssets
+  m_EditorClassIdentifier: Game.Runtime::HS.Core.GameAssets
+  hero: {fileID: 2828504975165712460, guid: 1062389338fdb4192982deefb43fa81c, type: 3}
+  sidekick: {fileID: 1406803984772922516, guid: 04b8cd9a24472455182bf78d76198eb0, type: 3}
+  roomModules:
+  - {fileID: 1893182167208204256, guid: 622a0a42dd1804faeac89e9355601dd0, type: 3}
+  - {fileID: 8959255301305841503, guid: 1480d1c28cdb8471eab8e7c827f57423, type: 3}
+  - {fileID: 1033814204683261449, guid: 3f252b0fa0ce94060a6c69f1187daae1, type: 3}
+  - {fileID: 8758383936096356331, guid: c0eb14e25f10f441790d878099a71240, type: 3}
+  startCap: {fileID: 2565406475390565912, guid: d61ffa3dc0f944171a17ee1a272e1bd5, type: 3}
+  endCap: {fileID: 6994372652283867513, guid: 9f5ac72f03ae04a338153ea3d36d4a47, type: 3}
+  campfire: {fileID: 5689191470066184679, guid: 7071fdfdfaa524ca1be234ac7456f865, type: 3}
+  boss: {fileID: 4380705681841747152, guid: 8294620e5c3024a13ad05d8c700a8331, type: 3}
+  enemies:
+  - id: thug
+    prefab: {fileID: 4978382061849828129, guid: c025541f153df4632905aba483c1110b, type: 3}
+  - id: brute
+    prefab: {fileID: 7181630655883313752, guid: 5dd69e16b11584cc5859f9ee559b809d, type: 3}
+  - id: crossbowman
+    prefab: {fileID: 7608791566098536437, guid: 2185f63d9c5d044e1ae25e9991299352, type: 3}
+  - id: turncoat
+    prefab: {fileID: 3074208219174186515, guid: e0ba0c422529c4c7f89a53f3e643e62a, type: 3}
+  - id: ambusher
+    prefab: {fileID: 6168280754216781995, guid: f18a4c5aa09b843f8ac894fee11611b4, type: 3}
+  - id: archer
+    prefab: {fileID: 2258511670446075465, guid: 71d0f6da417684131b5af041c3cc1fdb, type: 3}
+  - id: ashgrave
+    prefab: {fileID: 4666745564200112433, guid: 13096d9c1738f4a068c29d6162e6d787, type: 3}

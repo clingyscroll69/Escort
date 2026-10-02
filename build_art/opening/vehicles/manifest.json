@@ -1,0 +1,196 @@
+{
+  "models": {
+    "Truck": {
+      "file": "fbx/Truck.fbx",
+      "tris": 44249,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "Grille",
+        "Horn"
+      ],
+      "materials": [
+        "MV_Accent",
+        "MV_Badge",
+        "MV_Black",
+        "MV_Box",
+        "MV_BoxFrame",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Marker",
+        "MV_Mirror",
+        "MV_Paint",
+        "MV_Plate",
+        "MV_Rim",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_Tire"
+      ],
+      "notes": "Hero cab-over box truck, 7.6 m. Children: Body (static), Wheel_FL/FR (front singles), Wheel_RL/RR (rear duals, one object per side). Locators: HL_L/HL_R headlamp lens centres, Grille centre, Horn between the roof air horns. Interior (dash, wheel, seats, driver) is visible through MV_Glass, which must render transparent. Nose-dive: pitch Body about the rear axle (y = 5.35 m) or the root."
+    }
+  },
+  "materials": {
+    "MV_Paint": {
+      "color": "#F2F2EE",
+      "texture": null,
+      "emission": null,
+      "note": "Truck cab + roof deflector paint (white)."
+    },
+    "MV_Accent": {
+      "color": "#D9442E",
+      "texture": null,
+      "emission": null,
+      "note": "Truck red accent stripe, tow hooks."
+    },
+    "MV_Black": {
+      "color": "#1E2024",
+      "texture": null,
+      "emission": null,
+      "note": "Black trim: grille, gaskets, visor, steps, flares, mirror housings, chassis, tyre wells."
+    },
+    "MV_Chrome": {
+      "color": "#C9CED4",
+      "texture": null,
+      "emission": null,
+      "note": "Chrome: bumper, grille surround, air horns, mirror arms, handles, hub caps, lug nuts."
+    },
+    "MV_Glass": {
+      "color": "#FFFFFF",
+      "texture": "T_V_GlassReflect.png",
+      "emission": null,
+      "note": "Window glass. Colour + opacity come from the texture (RGBA, alpha 0.55-0.95): render transparent so the interior shows; each pane is UV 0-1.",
+      "transparent": true
+    },
+    "MV_Mirror": {
+      "color": "#B9CAD6",
+      "texture": null,
+      "emission": null,
+      "note": "Mirror glass (bright cool grey)."
+    },
+    "MV_HeadLamp": {
+      "color": "#FFF6E2",
+      "texture": null,
+      "emission": {
+        "color": "#FFF4D6",
+        "intensity": 4
+      },
+      "note": "Headlamp / fog lamp lenses (on in the cutscene)."
+    },
+    "MV_Signal": {
+      "color": "#FF9A1A",
+      "texture": null,
+      "emission": {
+        "color": "#FF9A1A",
+        "intensity": 0.6
+      },
+      "note": "Amber turn-signal lenses; low glow when idle, raise to ~3 to blink."
+    },
+    "MV_Marker": {
+      "color": "#FFB02E",
+      "texture": null,
+      "emission": {
+        "color": "#FFA526",
+        "intensity": 2.5
+      },
+      "note": "Amber clearance / side marker lamps (lit)."
+    },
+    "MV_TailLamp": {
+      "color": "#C4161C",
+      "texture": null,
+      "emission": {
+        "color": "#FF2B1F",
+        "intensity": 2
+      },
+      "note": "Red tail lamps (lit); raise to ~5 for brake."
+    },
+    "MV_LensClear": {
+      "color": "#E2E7EA",
+      "texture": null,
+      "emission": null,
+      "note": "Clear reverse / plate lamp lenses (unlit)."
+    },
+    "MV_Plate": {
+      "color": "#FFFFFF",
+      "texture": "T_V_Plates.png",
+      "emission": null,
+      "note": "Licence plates: 2x4 atlas of 512x256 cells, each plate face UV-maps one cell."
+    },
+    "MV_Badge": {
+      "color": "#FFFFFF",
+      "texture": "T_V_Badge.png",
+      "emission": null,
+      "note": "TENSEI grille badge (chrome letters on a dark plate), UV 0-1."
+    },
+    "MV_Box": {
+      "color": "#FFFFFF",
+      "texture": "T_V_TruckLivery.png",
+      "emission": null,
+      "note": "Truck box panels. Each side face is UV 0-1 (text reads correctly on both sides); front/roof sample white; the cab-door DF badges sample the emblem disc of the same texture."
+    },
+    "MV_BoxFrame": {
+      "color": "#B3B8BD",
+      "texture": null,
+      "emission": null,
+      "note": "Aluminium: box corner posts, rails, roll-up door, fuel tank, side guards."
+    },
+    "MV_Tire": {
+      "color": "#27282C",
+      "texture": null,
+      "emission": null,
+      "note": "Tyre rubber."
+    },
+    "MV_Rim": {
+      "color": "#ECECE6",
+      "texture": null,
+      "emission": null,
+      "note": "White-painted steel truck rims."
+    },
+    "MV_Driver": {
+      "color": "#17181B",
+      "texture": null,
+      "emission": null,
+      "note": "Dim driver silhouette (keep dark / unlit-ish)."
+    },
+    "MV_Interior": {
+      "color": "#34373C",
+      "texture": null,
+      "emission": null,
+      "note": "Cab / car interior: dashboard, seats, inner shell walls."
+    }
+  },
+  "draft_copy": [
+    {
+      "where": "Truck box sides (T_V_TruckLivery.png)",
+      "text": "DESTINY FREIGHT"
+    },
+    {
+      "where": "Truck box sides (T_V_TruckLivery.png)",
+      "text": "Always on time."
+    },
+    {
+      "where": "Truck box sides, lower rear (T_V_TruckLivery.png)",
+      "text": "No. 4649"
+    },
+    {
+      "where": "Truck box emblem + cab-door badges",
+      "text": "DF"
+    },
+    {
+      "where": "Truck grille badge (T_V_Badge.png)",
+      "text": "TENSEI"
+    },
+    {
+      "where": "Licence plates (T_V_Plates.png)",
+      "text": "CITY / TK 4649 (truck), KN 3021 (sedan), MR 1188 (hatchback), CITY TAXI / TX 7012 (taxi), VN 5530 (van), SV 9047 (SUV); spares HB 2290, SD 6408"
+    },
+    {
+      "where": "Taxi roof sign (T_V_TaxiSign.png)",
+      "text": "TAXI"
+    }
+  ],
+  "conventions": "Front faces -Y in Blender (+Z in Unity). Root origin = ground, centre of width, frontmost point of the front bumper. L/R = vehicle's own left/right (L = Blender +X = Unity -X). Wheels: origin at hub centre, spin axis = Blender X (Unity X). Locator empties carry the root orientation (forward = vehicle forward). Exported per spec \u00a75 settings."
+}

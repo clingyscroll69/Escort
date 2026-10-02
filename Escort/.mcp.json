@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mcp-unity": {
+      "command": "node",
+      "args": [
+        "Library/PackageCache/com.gamelovers.mcp-unity@382a43a30f4d/Server~/build/index.js"
+      ],
+      "env": {
+        "MCP_UNITY_SETTINGS_PATH": "/Users/sapnagoel/Documents/coding/Game/Escort/ProjectSettings/McpUnitySettings.json",
+        "MCP_UNITY_AUTH_TOKEN_PATH": "/Users/sapnagoel/Documents/coding/Game/Escort/Library/McpUnity/bridge-token"
+      }
+    }
+  }
+}

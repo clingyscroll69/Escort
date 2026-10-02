@@ -1,0 +1,83 @@
+   0.25 START seed=2 hero=Callum stage=S0
+   0.25 BATCH dynamic renderers=19 frozen-in-static-batch=0
+   0.50 BOT follow
+   0.65 BOT to search
+   2.00 SHOT shad2_01_t002.png rule=follow_route hp=260/260
+   3.22 BOT channel
+   3.25 RULE follow_route -> callum_challenge
+   3.25 BARK callum: You there! Face me, and fight with honour.
+   3.25 DUEL start vs Room0_toll_gate_turncoat_3
+   3.25 STONE Chapter/StoneAnchor -> Active
+   3.25 RAPPORT offer unseen_assist +3 (Room0_toll_gate_crossbowman_1) offered=3 earned=0 pen=0 rate=0 %
+   3.25 RAPPORT offer unseen_assist +3 (Room0_toll_gate_crossbowman_2) offered=6 earned=0 pen=0 rate=0 %
+   3.25 RAPPORT offer unseen_assist +3 (Room0_toll_gate_turncoat_3) offered=9 earned=0 pen=0 rate=0 %
+   3.27 RULE callum_challenge -> callum_salute
+   4.00 SYSTEM SMUGGLER'S STRONGBOX
+<size=80%>Tolls collected: nine silver. Tolls paid to 'the collector': eight. Someone upstream is keeping accounts.</size>
+   4.03 BOT to a quiet angle
+   4.48 RULE callum_salute -> callum_fight
+   4.60 HIT Room0_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+   4.67 SHOT shad2_02_duel_Room0_toll_gate_turncoat_3.png rule=callum_fight hp=244/260
+   5.20 HIT Callum -> Room0_toll_gate_turncoat_3 26 (sword)
+   5.83 BOT unseen crossbow
+   5.85 BOT to a quiet angle
+   5.95 HIT Callum -> Room0_toll_gate_turncoat_3 52 (riposte)
+   5.95 RAPPORT offer averted_cheat +4 (Room0_toll_gate_turncoat_3 fake surrender) offered=13 earned=0 pen=0 rate=0 %
+   5.97 CLIP etiquette by StoneAnchor intel=0
+   5.97 RULE callum_fight -> callum_wait_unready
+   5.97 BARK callum: You yield? Then stay down, and I'll stay my hand.
+   6.00 BOT close on the false surrender
+   6.15 RAPPORT penalty caught -3 (crossbow) offered=13 earned=0 pen=3 rate=0 %
+   6.15 CAUGHT crossbow Major stone=False honor=80
+   6.15 BARK callum: What was that?! We do not fight like thieves!
+   6.15 HIT Sidekick -> Room0_toll_gate_crossbowman_2 38 (crossbow)
+   6.18 BOT to a quiet angle
+   6.42 HIT Room0_toll_gate_brute_0 -> Callum 18 (melee)
+   6.60 SHOT shad2_03_rule_callum_wait_unready.png rule=callum_wait_unready hp=226/260
+   6.83 BOT follow
+   7.00 RAPPORT penalty caught -6 (pocket_sand) offered=13 earned=0 pen=3.9 rate=0 %
+   7.00 CAUGHT pocket_sand Major stone=False honor=60
+   7.00 BARK callum: Sand? SAND? Have you no shame?
+   7.00 SABOTAGE pocket_sand Major victim=Room0_toll_gate_crossbowman_2
+   8.15 HIT Room0_toll_gate_brute_0 -> Callum 18 (melee)
+   8.37 CLIP treachery by StoneAnchor intel=1
+   8.37 HIT Room0_toll_gate_turncoat_3 -> Callum 66 (cheap_shot)
+   8.37 BARK callum: My sword arm — no matter. I have another.
+   8.37 WOUND +SwordArmStrain on Callum
+   8.37 BARK callum: Treachery!
+   8.37 RAPPORT close averted_cheat 0 (Room0_toll_gate_turncoat_3 fake surrender | surrender ended: Engaged) offered=13 earned=0 pen=3.9 rate=0 %
+   8.40 BOT behind a flanker
+   8.77 RULE callum_wait_unready -> callum_fight
+   8.88 HIT Room0_toll_gate_turncoat_3 -> Callum 11 (melee)
+   9.07 BOT knife a flanker
+   9.13 HIT Room0_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+   9.18 RAPPORT penalty caught -6 (knife) offered=13 earned=0 pen=3.9 rate=0 %
+   9.18 CAUGHT knife Minor stone=False honor=52
+   9.18 BARK callum: Let a man finish his own fight.
+   9.18 RULE callum_fight -> callum_wait_unready
+   9.22 BOT follow
+   9.80 SHOT shad2_04_rule_callum_wait_unready.png rule=callum_wait_unready hp=115/260
+   9.88 HIT Room0_toll_gate_brute_0 -> Callum 18 (melee)
+  10.03 BOT to a quiet angle
+  11.58 HIT Room0_toll_gate_turncoat_3 -> Callum 66 (cheap_shot)
+  11.58 WOUND +SwordArmStrain on Callum
+  11.58 BARK callum: A knife in the back — of course.
+  11.98 RULE callum_wait_unready -> callum_fight
+  12.02 DEATH Room0_toll_gate_turncoat_3 by Callum (sword)
+  12.02 RAPPORT close unseen_assist 0 (Room0_toll_gate_turncoat_3 | resolved without you) offered=13 earned=0 pen=3.9 rate=0 %
+  12.03 DUEL end vs Room0_toll_gate_turncoat_3: TargetDied
+  12.03 RAPPORT offer wound_treated +2 (wounded after the duel) offered=15 earned=0 pen=4.5 rate=0 %
+  12.03 RULE callum_fight -> callum_challenge
+  12.03 BARK callum: I am Callum of the Code. Draw, and be judged.
+  12.03 DUEL start vs Room0_toll_gate_brute_0
+  12.05 RULE callum_challenge -> callum_salute
+  12.08 HIT Room0_toll_gate_brute_0 -> Callum 31 (heavy)
+  12.08 DEATH Callum by Room0_toll_gate_brute_0 (heavy)
+  12.10 FLOW -> End stage=S0 rate=0 % xp=50
+  12.10 RAPPORT close unseen_assist 0 (Room0_toll_gate_crossbowman_1 | he fell) offered=15 earned=0 pen=4.5 rate=0 %
+  12.10 RAPPORT close unseen_assist 0 (Room0_toll_gate_crossbowman_2 | he fell) offered=15 earned=0 pen=4.5 rate=0 %
+  12.10 RAPPORT close wound_treated 0 (wounded after the duel | he fell) offered=15 earned=0 pen=4.5 rate=0 %
+  14.08 STONE Chapter/StoneAnchor -> Dormant
+  48.10 END hero died
+  48.10 RAPPORT-SUMMARY offered=15/60 earned=0 penalties=4.5 (raw 15) rate=0.0 %
+  48.10 SUMMARY hero hp=0 honor=52 sidekick hp=80 enemies: Dormant=6 Engaged=3 Dead=1 Hidden=2 fps~86

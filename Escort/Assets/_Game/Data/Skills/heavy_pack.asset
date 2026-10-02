@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feb689143d5f44fdb8e9a106852681a9, type: 3}
+  m_Name: heavy_pack
+  m_EditorClassIdentifier: Game.Runtime::HS.Skills.SkillDefinition
+  id: heavy_pack
+  displayName: Heavy Pack
+  family: 2
+  type: 1
+  uses: +2 item capacity.
+  icon: heavy_pack
+  implemented: 0
+  capstone: 0
+  cooldown:
+  - 0
+  - 0
+  valueA:
+  - 0
+  - 0
+  valueB:
+  - 0
+  - 0
+  dishonor: 0

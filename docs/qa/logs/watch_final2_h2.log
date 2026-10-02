@@ -1,0 +1,383 @@
+   0.25 START seed=2 hero=Callum stage=S0
+   0.25 BATCH dynamic renderers=19 frozen-in-static-batch=0
+   0.50 BOT follow
+   0.65 BOT to search
+   2.00 SHOT final2_h2_01_t002.png rule=follow_route hp=260/260
+   2.97 BOT channel
+   3.25 RULE follow_route -> callum_challenge
+   3.25 BARK callum: You there! Face me, and fight with honour.
+   3.25 DUEL start vs Room0_toll_gate_turncoat_3
+   3.25 STONE Chapter/StoneAnchor -> Active
+   3.25 RAPPORT offer unseen_assist +3 (Room0_toll_gate_crossbowman_1) offered=3 earned=0 pen=0 rate=0 %
+   3.25 RAPPORT offer unseen_assist +3 (Room0_toll_gate_crossbowman_2) offered=6 earned=0 pen=0 rate=0 %
+   3.27 RULE callum_challenge -> callum_salute
+   3.67 SYSTEM SMUGGLER'S STRONGBOX
+<size=80%>Tolls collected: nine silver. Tolls paid to 'the collector': eight. Someone upstream is keeping accounts.</size>
+   3.70 BOT follow
+   4.48 RULE callum_salute -> callum_fight
+   4.60 HIT Room0_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+   4.68 SHOT final2_h2_02_duel_Room0_toll_gate_turncoat_3.png rule=callum_fight hp=244/260
+   5.20 HIT Callum -> Room0_toll_gate_turncoat_3 26 (sword)
+   5.95 HIT Callum -> Room0_toll_gate_turncoat_3 52 (riposte)
+   5.95 RAPPORT offer averted_cheat +4 (Room0_toll_gate_turncoat_3 fake surrender) offered=10 earned=0 pen=0 rate=0 %
+   5.97 CLIP etiquette by StoneAnchor intel=0
+   5.97 RULE callum_fight -> callum_wait_unready
+   5.97 BARK callum: You yield? Then stay down, and I'll stay my hand.
+   6.00 BOT close on the false surrender
+   6.17 BOT sand the false surrender
+   6.18 BOT follow
+   6.42 HIT Room0_toll_gate_brute_0 -> Callum 18 (melee)
+   6.45 RAPPORT penalty caught -3 (pocket_sand) offered=10 earned=0 pen=3 rate=0 %
+   6.45 RAPPORT offer covered_lapse +2 (caught: pocket_sand) offered=12 earned=0 pen=3 rate=0 %
+   6.45 CAUGHT pocket_sand Major stone=False honor=80
+   6.45 BARK callum: What was that?! We do not fight like thieves!
+   6.45 RAPPORT capture averted_cheat +4 (Room0_toll_gate_turncoat_3 fake surrender | sand on the false surrender) offered=12 earned=4 pen=3 rate=8 %
+   6.45 SABOTAGE pocket_sand Major victim=Room0_toll_gate_brute_0
+   6.45 BARK sidekick: That? The wind, sir. Terrible gusts on this road.
+   6.45 BARK callum: ...Very well. Perhaps I misjudged.
+   6.45 RAPPORT capture covered_lapse +2 (caught: pocket_sand | cover story) offered=12 earned=6 pen=3 rate=25 %
+   6.45 RAPPORT refund caught +3 (covered) offered=12 earned=6 pen=0 rate=50 %
+   6.47 BOT cover story
+   6.52 BOT follow
+   6.62 SHOT final2_h2_03_rule_callum_wait_unready.png rule=callum_wait_unready hp=226/260
+   8.97 BARK callum: Go, and sin no more.
+   8.97 DUEL end vs Room0_toll_gate_turncoat_3: Abandoned
+   8.98 RULE callum_wait_unready -> callum_challenge
+   8.98 BARK callum: I am Callum of the Code. Draw, and be judged.
+   8.98 DUEL start vs Room0_toll_gate_brute_0
+   9.00 RULE callum_challenge -> callum_salute
+   9.13 HIT Room0_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+  10.22 RULE callum_salute -> callum_fight
+  10.42 SHOT final2_h2_04_duel_Room0_toll_gate_brute_0.png rule=callum_fight hp=210/260
+  10.67 HIT Callum -> Room0_toll_gate_brute_0 26 (sword)
+  11.00 SHOT final2_h2_05_t011.png rule=callum_fight hp=210/260
+  11.62 HIT Callum -> Room0_toll_gate_brute_0 52 (riposte)
+  12.08 HIT Callum -> Room0_toll_gate_brute_0 26 (sword)
+  13.15 HIT Callum -> Room0_toll_gate_brute_0 26 (sword)
+  13.68 HIT Room0_toll_gate_crossbowman_1 -> Callum 16 (bolt)
+  13.68 BARK callum: Come down and face me, coward!
+  14.10 HIT Room0_toll_gate_brute_0 -> Callum 18 (melee)
+  14.17 BOT to a quiet angle
+  14.22 HIT Callum -> Room0_toll_gate_brute_0 26 (sword)
+  15.28 HIT Callum -> Room0_toll_gate_brute_0 14 (sword)
+  15.28 DEATH Room0_toll_gate_brute_0 by Callum (sword)
+  15.30 DUEL end vs Room0_toll_gate_brute_0: TargetDied
+  15.30 RULE callum_fight -> follow_route
+  15.33 BOT follow
+  15.52 RULE follow_route -> threshold_pause
+  17.03 RULE threshold_pause -> follow_route
+  17.30 STONE Chapter/StoneAnchor -> Dormant
+  20.23 SHOT final2_h2_06_t020.png rule=follow_route hp=176/260
+  22.83 ROOM 1 entered
+  23.68 SHOT final2_h2_07_room1_enter.png rule=follow_route hp=260/260
+  25.95 RULE follow_route -> threshold_pause
+  27.47 RULE threshold_pause -> follow_route
+  27.90 RULE follow_route -> callum_challenge
+  27.90 BARK callum: One of you. Me. Fairly. Now.
+  27.90 DUEL start vs Room1_wagon_camp_brute_0
+  27.90 RAPPORT offer unseen_assist +3 (Room1_wagon_camp_crossbowman_3) offered=15 earned=6 pen=0 rate=40 %
+  27.92 RULE callum_challenge -> callum_salute
+  27.93 BOT to a quiet angle
+  29.13 RULE callum_salute -> callum_fight
+  29.22 HIT Room1_wagon_camp_crossbowman_3 -> Callum 16 (bolt)
+  29.23 SHOT final2_h2_08_t029.png rule=callum_fight hp=244/260
+  29.40 SHOT final2_h2_09_duel_Room1_wagon_camp_brute_0.png rule=callum_fight hp=244/260
+  29.73 BARK callum: To the narrows! One at a time!
+  29.73 RULE callum_fight -> callum_fallback
+  30.35 SHOT final2_h2_10_rule_callum_fallback.png rule=callum_fallback hp=244/260
+  30.55 RULE callum_fallback -> callum_fight
+  30.73 BOT unseen pocket_sand
+  30.75 BOT behind a flanker
+  31.03 RAPPORT penalty caught -3 (pocket_sand) offered=15 earned=6 pen=3 rate=20 %
+  31.03 RAPPORT offer covered_lapse +2 (caught: pocket_sand) offered=17 earned=6 pen=3 rate=18 %
+  31.03 CAUGHT pocket_sand Major stone=False honor=72
+  31.03 BARK callum: Sand? SAND? Have you no shame?
+  31.03 SABOTAGE pocket_sand Major victim=Room1_wagon_camp_crossbowman_3
+  31.03 BARK sidekick: A rabbit. An enormous, violent rabbit.
+  31.03 BARK callum: Hm. The wind, you say.
+  31.03 RAPPORT capture covered_lapse +2 (caught: pocket_sand | cover story) offered=17 earned=8 pen=3 rate=29 %
+  31.03 RAPPORT refund caught +3 (covered) offered=17 earned=8 pen=0 rate=47 %
+  31.05 BOT cover story
+  31.07 BOT behind a flanker
+  31.32 HIT Room1_wagon_camp_thug_1 -> Callum 11 (melee)
+  31.53 BOT knife a flanker
+  31.68 BOT evade
+  31.90 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  32.13 BOT behind a flanker
+  32.50 BOT knife a flanker
+  32.65 BOT evade
+  32.92 BOT behind a flanker
+  33.15 BOT evade
+  33.27 HIT Callum -> Room1_wagon_camp_brute_0 52 (riposte)
+  33.53 HIT Room1_wagon_camp_thug_2 -> Callum 11 (melee)
+  33.73 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  33.95 BOT behind a flanker
+  34.12 BOT follow
+  34.23 BOT behind a flanker
+  34.72 BOT follow
+  34.80 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  35.57 BOT behind a flanker
+  35.67 BOT evade
+  35.75 HIT Room1_wagon_camp_brute_0 -> Callum 18 (melee)
+  35.87 HIT Callum -> Room1_wagon_camp_brute_0 26 (sword)
+  36.05 HIT Room1_wagon_camp_thug_2 -> Callum 11 (melee)
+  36.17 BOT behind a flanker
+  36.93 HIT Callum -> Room1_wagon_camp_brute_0 14 (sword)
+  36.93 DEATH Room1_wagon_camp_brute_0 by Callum (sword)
+  36.95 DUEL end vs Room1_wagon_camp_brute_0: TargetDied
+  36.95 RULE callum_fight -> callum_challenge
+  36.95 BARK callum: You there! Face me, and fight with honour.
+  36.95 DUEL start vs Room1_wagon_camp_thug_2
+  36.95 STONE Chapter/StoneAnchor -> Active
+  36.97 RULE callum_challenge -> callum_salute
+  37.10 BOT follow
+  37.63 HIT Room1_wagon_camp_thug_2 -> Callum 11 (melee)
+  37.77 BOT behind a flanker
+  38.18 RULE callum_salute -> callum_fight
+  38.25 SHOT final2_h2_11_t038.png rule=callum_fight hp=182/260
+  38.50 SHOT final2_h2_12_duel_Room1_wagon_camp_thug_2.png rule=callum_fight hp=182/260
+  38.63 HIT Callum -> Room1_wagon_camp_thug_2 26 (sword)
+  38.73 BOT to a quiet angle
+  38.88 HIT Room1_wagon_camp_thug_1 -> Callum 11 (melee)
+  39.43 HIT Callum -> Room1_wagon_camp_thug_2 46 (riposte)
+  39.43 DEATH Room1_wagon_camp_thug_2 by Callum (riposte)
+  39.45 DUEL end vs Room1_wagon_camp_thug_2: TargetDied
+  39.45 RULE callum_fight -> callum_challenge
+  39.45 DUEL start vs Room1_wagon_camp_thug_1
+  39.47 RULE callum_challenge -> callum_salute
+  40.47 HIT Room1_wagon_camp_thug_1 -> Callum 11 (melee)
+  40.50 BOT unseen pocket_sand
+  40.52 BOT follow
+  40.68 RULE callum_salute -> callum_fight
+  40.80 UNSEEN pocket_sand
+  40.80 RAPPORT capture unseen_assist +3 (Room1_wagon_camp_crossbowman_3 | pocket_sand) offered=17 earned=11 pen=0 rate=65 %
+  40.80 SABOTAGE pocket_sand Major victim=Room1_wagon_camp_crossbowman_3
+  40.87 SHOT final2_h2_13_duel_Room1_wagon_camp_thug_1.png rule=callum_fight hp=160/260
+  41.13 HIT Callum -> Room1_wagon_camp_thug_1 26 (sword)
+  41.93 HIT Room1_wagon_camp_thug_1 -> Callum 11 (melee)
+  42.20 HIT Callum -> Room1_wagon_camp_thug_1 26 (sword)
+  43.00 HIT Room1_wagon_camp_thug_1 -> Callum 11 (melee)
+  43.27 HIT Callum -> Room1_wagon_camp_thug_1 20 (sword)
+  43.27 DEATH Room1_wagon_camp_thug_1 by Callum (sword)
+  43.28 DUEL end vs Room1_wagon_camp_thug_1: TargetDied
+  43.28 RULE callum_fight -> follow_route
+  45.28 STONE Chapter/StoneAnchor -> Dormant
+  47.25 SHOT final2_h2_14_t047.png rule=follow_route hp=138/260
+  48.18 BOT to search
+  48.67 ROOM 2 entered
+  49.20 SHOT final2_h2_15_room2_enter.png rule=follow_route hp=260/260
+  49.30 RAPPORT offer averted_cheat +4 (Room2_crossroads_shrine_ambusher_1 ambush) offered=21 earned=11 pen=0 rate=52 %
+  49.35 BOT scout the ambush
+  49.72 RAPPORT offer averted_cheat +4 (Room2_crossroads_shrine_ambusher_2 ambush) offered=25 earned=11 pen=0 rate=44 %
+  52.65 BOT follow
+  52.77 RULE follow_route -> callum_challenge
+  52.77 BARK callum: I am Callum of the Code. Draw, and be judged.
+  52.77 DUEL start vs Room2_crossroads_shrine_thug_0
+  52.77 STONE Chapter/StoneAnchor -> Active
+  52.77 RAPPORT offer unseen_assist +3 (Room2_crossroads_shrine_crossbowman_3) offered=28 earned=11 pen=0 rate=39 %
+  52.78 RULE callum_challenge -> callum_salute
+  52.80 BOT to a quiet angle
+  54.00 RULE callum_salute -> callum_fight
+  54.18 SHOT final2_h2_16_duel_Room2_crossroads_shrine_thug_0.png rule=callum_fight hp=260/260
+  54.60 BOT scout the ambush
+  55.03 BOT flush the ambush
+  55.05 BOT follow
+  55.30 HIT Callum -> Room2_crossroads_shrine_thug_0 26 (sword)
+  55.33 RAPPORT penalty caught -3 (pocket_sand) offered=28 earned=11 pen=3 rate=29 %
+  55.33 RAPPORT offer covered_lapse +2 (caught: pocket_sand) offered=30 earned=11 pen=3 rate=27 %
+  55.33 CAUGHT pocket_sand Major stone=False honor=64
+  55.33 BARK callum: I saw that. The Code saw that.
+  55.33 SABOTAGE pocket_sand Major victim=Room2_crossroads_shrine_ambusher_1
+  55.33 BARK sidekick: He tripped over his own guilty conscience, I expect.
+  55.33 BARK callum: I shall choose to believe you.
+  55.33 RAPPORT capture covered_lapse +2 (caught: pocket_sand | cover story) offered=30 earned=13 pen=3 rate=33 %
+  55.33 RAPPORT refund caught +3 (covered) offered=30 earned=13 pen=0 rate=43 %
+  55.33 RAPPORT offer unseen_assist +3 (Room2_crossroads_shrine_ambusher_1) offered=33 earned=13 pen=0 rate=39 %
+  55.33 RAPPORT capture averted_cheat +4 (Room2_crossroads_shrine_ambusher_1 ambush | flushed out before the ambush) offered=33 earned=17 pen=0 rate=52 %
+  55.33 RAPPORT close unseen_assist 0 (Room2_crossroads_shrine_ambusher_1 | already credited) offered=33 earned=17 pen=0 rate=52 %
+  55.35 BOT cover story
+  55.38 BOT follow
+  56.10 HIT Callum -> Room2_crossroads_shrine_thug_0 52 (riposte)
+  56.25 SHOT final2_h2_17_t056.png rule=callum_fight hp=260/260
+  56.57 DEATH Room2_crossroads_shrine_thug_0 by Callum (sword)
+  56.58 DUEL end vs Room2_crossroads_shrine_thug_0: TargetDied
+  56.58 RULE callum_fight -> callum_challenge
+  56.58 DUEL start vs Room2_crossroads_shrine_ambusher_1
+  56.60 RULE callum_challenge -> callum_salute
+  57.82 CLIP etiquette by StoneAnchor intel=0
+  57.82 RULE callum_salute -> callum_wait_unready
+  57.82 BARK callum: Rise. I'll not strike a man who can't see.
+  58.02 SHOT final2_h2_18_duel_Room2_crossroads_shrine_ambusher_1.png rule=callum_wait_unready hp=260/260
+  58.35 RULE callum_wait_unready -> callum_fight
+  59.47 HIT Callum -> Room2_crossroads_shrine_ambusher_1 26 (sword)
+  60.17 HIT Room2_crossroads_shrine_ambusher_1 -> Callum 11 (melee)
+  60.53 HIT Callum -> Room2_crossroads_shrine_ambusher_1 26 (sword)
+  61.23 HIT Callum -> Room2_crossroads_shrine_ambusher_1 18 (riposte)
+  61.23 DEATH Room2_crossroads_shrine_ambusher_1 by Callum (riposte)
+  61.25 DUEL end vs Room2_crossroads_shrine_ambusher_1: TargetDied
+  61.25 RULE callum_fight -> follow_route
+  62.72 RULE follow_route -> threshold_pause
+  63.25 STONE Chapter/StoneAnchor -> Dormant
+  63.28 BOT scout the ambush
+  63.65 BOT flush the ambush
+  63.67 BOT follow
+  63.95 UNSEEN pocket_sand
+  63.95 SABOTAGE pocket_sand Major victim=Room2_crossroads_shrine_ambusher_2
+  63.95 RULE threshold_pause -> callum_challenge
+  63.95 BARK callum: One of you. Me. Fairly. Now.
+  63.95 DUEL start vs Room2_crossroads_shrine_ambusher_2
+  63.95 STONE Chapter/StoneAnchor -> Active
+  63.95 RAPPORT capture averted_cheat +4 (Room2_crossroads_shrine_ambusher_2 ambush | flushed out before the ambush) offered=33 earned=21 pen=0 rate=64 %
+  63.97 RULE callum_challenge -> callum_salute
+  65.18 CLIP etiquette by StoneAnchor intel=1
+  65.18 RULE callum_salute -> callum_wait_unready
+  65.18 BARK callum: Get your feet under you. I'll wait.
+  65.25 SHOT final2_h2_19_t065.png rule=callum_wait_unready hp=249/260
+  65.40 SHOT final2_h2_20_duel_Room2_crossroads_shrine_ambusher_2.png rule=callum_wait_unready hp=249/260
+  66.97 RULE callum_wait_unready -> callum_fight
+  68.52 HIT Callum -> Room2_crossroads_shrine_ambusher_2 26 (sword)
+  69.22 HIT Callum -> Room2_crossroads_shrine_ambusher_2 44 (riposte)
+  69.22 DEATH Room2_crossroads_shrine_ambusher_2 by Callum (riposte)
+  69.22 BARK callum: Parried!
+  69.23 DUEL end vs Room2_crossroads_shrine_ambusher_2: TargetDied
+  69.23 RULE callum_fight -> threshold_pause
+  69.52 RULE threshold_pause -> follow_route
+  71.23 STONE Chapter/StoneAnchor -> Dormant
+  73.53 FLOW -> Camp stage=S0 rate=64 % xp=100
+  73.53 SYSTEM Rest: you are both rested.
+  73.53 RULE none -> idle
+  73.53 RAPPORT close unseen_assist 0 (Room0_toll_gate_crossbowman_1 | resolved without you) offered=33 earned=21 pen=0 rate=64 %
+  73.53 RAPPORT close unseen_assist 0 (Room0_toll_gate_crossbowman_2 | resolved without you) offered=33 earned=21 pen=0 rate=64 %
+  73.53 RAPPORT close unseen_assist 0 (Room2_crossroads_shrine_crossbowman_3 | resolved without you) offered=33 earned=21 pen=0 rate=64 %
+  74.13 BARK callum: Sit. The fire's big enough for two.
+  74.25 SHOT final2_h2_21_t074.png rule=idle hp=260/260
+  77.28 SHOT final2_h2_22_camp.png rule=idle hp=260/260
+  78.33 BARK callum: "Strike the ready. Spare the yielded. Never the back." My father's words. Tonight they feel lighter.
+  82.53 BARK callum: You were... useful today. I noticed.
+  83.25 SHOT final2_h2_23_t083.png rule=idle hp=260/260
+  86.75 THOUGHT Was that a compliment?
+  89.30 FLOW -> Duel stage=S1 rate=64 % xp=100
+  89.30 RULE idle -> follow_route
+  89.58 BARK ashgrave: Sir Callum. Single combat, by the old terms: no aid, no interference.
+  89.85 RULE follow_route -> threshold_pause
+  91.37 RULE threshold_pause -> follow_route
+  92.25 SHOT final2_h2_24_t092.png rule=follow_route hp=260/260
+  92.50 BARK callum: Agreed. ...Stay near the edge, though. Just in case.
+  93.20 RULE follow_route -> idle
+  95.28 BARK ashgrave: Then salute, and let the gallery judge.
+  97.28 RULE idle -> callum_challenge
+  97.28 BARK callum: You there! Face me, and fight with honour.
+  97.28 DUEL start vs Lord Ashgrave
+  97.28 STONE Chapter/StoneAnchor -> Active
+  97.28 RAPPORT offer unseen_assist +3 (GalleryArcher_0) offered=36 earned=21 pen=0 rate=58 %
+  97.28 RAPPORT offer unseen_assist +3 (GalleryArcher_1) offered=39 earned=21 pen=0 rate=54 %
+  97.28 RAPPORT offer unseen_assist +3 (GalleryArcher_2) offered=42 earned=21 pen=0 rate=50 %
+  97.30 BOT to the stone
+  97.30 RULE callum_challenge -> callum_salute
+  98.52 RULE callum_salute -> callum_fight
+  98.70 SHOT final2_h2_25_duel_Lord Ashgrave.png rule=callum_fight hp=260/260
+  99.03 HIT Callum -> Lord Ashgrave 52 (riposte)
+  99.50 HIT Callum -> Lord Ashgrave 26 (sword)
+ 100.37 BOT break the stone
+ 100.57 HIT Callum -> Lord Ashgrave 26 (sword)
+ 101.25 SHOT final2_h2_26_t101.png rule=callum_fight hp=260/260
+ 101.35 STONE Chapter/StoneAnchor -> Broken
+ 101.35 THOUGHT That's one less pair of eyes.
+ 101.35 DEATH StoneAnchor by Sidekick (knife)
+ 101.38 BOT follow
+ 101.63 HIT Callum -> Lord Ashgrave 26 (sword)
+ 102.70 HIT Callum -> Lord Ashgrave 26 (sword)
+ 103.77 HIT Callum -> Lord Ashgrave 26 (sword)
+ 105.13 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 105.13 BARK callum: Too slow.
+ 105.60 HIT Callum -> Lord Ashgrave 26 (sword)
+ 106.67 HIT Callum -> Lord Ashgrave 26 (sword)
+ 107.73 HIT Callum -> Lord Ashgrave 26 (sword)
+ 108.80 HIT Callum -> Lord Ashgrave 26 (sword)
+ 109.87 HIT Callum -> Lord Ashgrave 26 (sword)
+ 110.25 SHOT final2_h2_27_t110.png rule=callum_fight hp=215/260
+ 111.23 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 111.70 HIT Callum -> Lord Ashgrave 26 (sword)
+ 112.77 HIT Callum -> Lord Ashgrave 26 (sword)
+ 113.83 HIT Callum -> Lord Ashgrave 26 (sword)
+ 114.90 HIT Callum -> Lord Ashgrave 26 (sword)
+ 115.97 HIT Callum -> Lord Ashgrave 26 (sword)
+ 117.30 BARK ashgrave: Do you hear the gallery, Sir Callum? They came to see a knight die properly.
+ 117.33 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 117.33 BARK callum: Mind your guard!
+ 117.80 HIT Callum -> Lord Ashgrave 26 (sword)
+ 118.87 HIT Callum -> Lord Ashgrave 26 (sword)
+ 119.25 SHOT final2_h2_28_t119.png rule=callum_fight hp=188/260
+ 119.93 HIT Callum -> Lord Ashgrave 26 (sword)
+ 121.00 HIT Callum -> Lord Ashgrave 26 (sword)
+ 122.07 HIT Callum -> Lord Ashgrave 26 (sword)
+ 122.30 BARK ashgrave: Now!
+ 122.32 BOT to a quiet angle
+ 123.43 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 123.73 BARK callum: Archers! Then I'll fight with my guard up.
+ 123.73 HIT GalleryArcher_1 -> Callum 21 (arrow)
+ 123.90 HIT Callum -> Lord Ashgrave 26 (sword)
+ 124.97 HIT Callum -> Lord Ashgrave 26 (sword)
+ 125.00 BOT unseen pocket_sand
+ 125.02 BOT follow
+ 125.28 RAPPORT penalty caught -3 (pocket_sand) offered=42 earned=21 pen=3 rate=43 %
+ 125.28 RAPPORT offer covered_lapse +2 (caught: pocket_sand) offered=44 earned=21 pen=3 rate=41 %
+ 125.28 CAUGHT pocket_sand Major stone=False honor=56
+ 125.28 BARK callum: We swore no aid! Stand down!
+ 125.28 SABOTAGE pocket_sand Major victim=GalleryArcher_0
+ 125.28 BARK sidekick: Loose rocks everywhere. Very old road.
+ 125.28 BARK callum: ...Very well. Perhaps I misjudged.
+ 125.28 RAPPORT capture covered_lapse +2 (caught: pocket_sand | cover story) offered=44 earned=23 pen=3 rate=45 %
+ 125.28 RAPPORT refund caught +3 (covered) offered=44 earned=23 pen=0 rate=52 %
+ 125.30 BOT cover story
+ 125.32 BOT follow
+ 126.03 HIT Callum -> Lord Ashgrave 26 (sword)
+ 127.10 HIT Callum -> Lord Ashgrave 26 (sword)
+ 128.17 HIT Callum -> Lord Ashgrave 26 (sword)
+ 128.25 SHOT final2_h2_29_t128.png rule=callum_fight hp=96/260
+ 129.53 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 129.53 BARK callum: Parried!
+ 130.00 HIT Callum -> Lord Ashgrave 26 (sword)
+ 131.07 HIT Callum -> Lord Ashgrave 26 (sword)
+ 132.13 HIT Callum -> Lord Ashgrave 26 (sword)
+ 133.00 BOT to a quiet angle
+ 133.20 HIT Callum -> Lord Ashgrave 26 (sword)
+ 134.27 HIT Callum -> Lord Ashgrave 26 (sword)
+ 135.63 HIT Callum -> Lord Ashgrave 52 (riposte)
+ 136.10 HIT Callum -> Lord Ashgrave 26 (sword)
+ 136.47 BOT unseen pocket_sand
+ 136.48 BOT follow
+ 136.77 RAPPORT penalty caught -6 (pocket_sand) offered=44 earned=23 pen=6 rate=39 %
+ 136.77 RAPPORT offer covered_lapse +2 (caught: pocket_sand) offered=46 earned=23 pen=6 rate=37 %
+ 136.77 CAUGHT pocket_sand Major stone=False honor=48
+ 136.77 BARK callum: No aid — I gave my word!
+ 136.77 SABOTAGE pocket_sand Major victim=GalleryArcher_0
+ 137.17 HIT Callum -> Lord Ashgrave 26 (sword)
+ 137.25 SHOT final2_h2_30_t137.png rule=callum_fight hp=44/260
+ 137.65 HIT GalleryArcher_2 -> Sidekick 21 (arrow)
+ 138.23 HIT Callum -> Lord Ashgrave 26 (sword)
+ 139.30 HIT Callum -> Lord Ashgrave 26 (sword)
+ 140.37 DEATH Lord Ashgrave by Callum (sword)
+ 140.38 BARK callum: A rigged duel, and still we stand. Hm. We.
+ 140.38 FLOW -> End stage=S1 rate=37 % xp=100
+ 140.38 RAPPORT close unseen_assist 0 (GalleryArcher_0 | the run ended) offered=46 earned=23 pen=6 rate=37 %
+ 140.38 RAPPORT close unseen_assist 0 (GalleryArcher_1 | the run ended) offered=46 earned=23 pen=6 rate=37 %
+ 140.38 RAPPORT close unseen_assist 0 (GalleryArcher_2 | the run ended) offered=46 earned=23 pen=6 rate=37 %
+ 140.38 RAPPORT close covered_lapse 0 (caught: pocket_sand | the run ended) offered=46 earned=23 pen=6 rate=37 %
+ 140.38 DUEL end vs Lord Ashgrave: TargetDied
+ 140.38 RULE callum_fight -> idle
+ 140.40 BOT to bandage
+ 141.08 BOT bandage
+ 141.10 BOT channel
+ 144.12 BOT follow
+ 146.25 SHOT final2_h2_31_t146.png rule=idle hp=23/260
+ 153.10 BOT to bandage
+ 153.80 BOT bandage
+ 153.82 BOT channel
+ 155.25 SHOT final2_h2_32_t155.png rule=idle hp=49/260
+ 156.83 BOT follow
+ 164.25 SHOT final2_h2_33_t164.png rule=idle hp=89/260
+ 164.48 END done
+ 164.48 RAPPORT-SUMMARY offered=46/60 earned=23 penalties=6 (raw 6) rate=37.0 %
+ 164.48 SUMMARY hero hp=89 honor=48 sidekick hp=69 enemies: Dead=8 Engaged=7 Spared=1 fps~17
+ 164.48 SHOT final2_h2_34_end.png rule=idle hp=89/260

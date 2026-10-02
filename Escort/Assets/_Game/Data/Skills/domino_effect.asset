@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feb689143d5f44fdb8e9a106852681a9, type: 3}
+  m_Name: domino_effect
+  m_EditorClassIdentifier: Game.Runtime::HS.Skills.SkillDefinition
+  id: domino_effect
+  displayName: Domino Effect
+  family: 5
+  type: 0
+  uses: Chain-trigger every armed prop in the room.
+  icon: domino_effect
+  implemented: 0
+  capstone: 1
+  cooldown:
+  - 0
+  - 0
+  valueA:
+  - 0
+  - 0
+  valueB:
+  - 0
+  - 0
+  dishonor: 0
