@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using HS.Core;
 using HS.Flow;
+using HS.Opening;
 using HS.Skills;
 using HS.UI;
 using NUnit.Framework;
@@ -31,7 +32,7 @@ namespace HS.Tests
         public void TearDown()
         {
             foreach (var a in Object.FindObjectsByType<Agent>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (a) Object.DestroyImmediate(a.gameObject);
-            foreach (var n in new[] { "Chapter", "OpportunityDirector", "StoneSystem", "UIRoot", "CameraRig", "Encounters", "Main Camera", "GameFlow", "AudioDirector" })
+            foreach (var n in new[] { "OpeningStreet", "Chapter", "OpportunityDirector", "StoneSystem", "UIRoot", "CameraRig", "Encounters", "Main Camera", "GameFlow", "AudioDirector", "TestSun" })
             {
                 var g = GameObject.Find(n);
                 if (g) Object.DestroyImmediate(g);
@@ -116,14 +117,127 @@ namespace HS.Tests
             Assert.AreEqual("CLASS: HERO's SIDEKICK", shown[shown.Count - 1]);
             Assert.Greater(shown.Count - hero, 3, "red glyphs cycle before it settles");
             float total = OpeningView.PreRoll + v.Elapsed;
-            Assert.That(total, Is.InRange(32f, 42f), "about 40 seconds (GDD §8)");
+            Assert.That(total, Is.InRange(36f, 44f), "about 40 seconds (GDD §8; 41 s with the longer spin and the storm)");
+        }
+
+        [Test]
+        public void The_Street_Plays_Out_On_The_Audio_Cues()
+        {
+            var v = Make(false);
+            RunTo(v, 3f);
+            var st = v.Street;
+            Assert.IsNotNull(st, "the walk is a 3D street");
+            Assert.IsFalse(st.WalkSignal, "the red hand while the cross street still has traffic");
+            Assert.IsFalse(st.TruckVisible, "no truck yet");
+            RunTo(v, OpeningStreet.WalkAt + 0.1f);
+            Assert.IsTrue(st.WalkSignal, "WALK as the crossing ticks speed up");
+            RunTo(v, OpeningStreet.FlashAt + 0.1f);
+            Assert.IsFalse(st.WalkSignal, "flashing hand for the rest of the crossing");
+            RunTo(v, OpeningStreet.TruckAt + 0.5f);
+            Assert.IsTrue(st.TruckVisible);
+            float far = st.TruckFront;
+            Assert.Less(st.HeadYaw, 10f, "still looking at the phone");
+            RunTo(v, OpeningView.LookUpAt + 0.6f);
+            Assert.Less(st.TruckFront, far, "it's coming");
+            Assert.Greater(st.HeadYaw, 60f, "the walker looks right, into it");
+            Assert.AreEqual(OpeningStreet.TruckLane, st.EyeStreet.z, 0.5f, "and has stopped dead in its lane");
+            RunTo(v, OpeningView.CutAt - 0.02f);
+            Assert.AreEqual(OpeningStreet.TruckEndGap, st.TruckFront - st.EyeStreet.x, 0.4f, "the grille fills the frame on the cut");
+        }
+
+        [Test]
+        public void The_Street_Hands_The_Chapter_Its_World_Back()
+        {
+            var cam = new GameObject("Main Camera") { tag = "MainCamera" }.AddComponent<Camera>();
+            var sun = new GameObject("TestSun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            RenderSettings.sun = sun;
+            float fogEnd = RenderSettings.fogEndDistance = 140f;
+            var v = Make(false);
+            RunTo(v, 5f);
+            Assert.IsFalse(cam.enabled, "the chapter's camera stands down during the walk");
+            Assert.IsFalse(sun.enabled, "and its sun");
+            Assert.AreNotEqual(fogEnd, RenderSettings.fogEndDistance, "the street has its own haze");
+            Assert.AreEqual("OpeningCamera", Camera.main.name);
+            RunTo(v, OpeningView.CutAt + 0.05f);
+            Assert.IsNull(v.Street, "gone with the cut to white");
+            Assert.IsTrue(cam.enabled);
+            Assert.IsTrue(sun.enabled);
+            Assert.AreEqual(sun, RenderSettings.sun);
+            Assert.AreEqual(fogEnd, RenderSettings.fogEndDistance, 1e-3f);
+        }
+
+        [Test]
+        public void The_Wired_Earphones_Run_From_The_Phone_To_The_Ears()
+        {
+            var v = Make(false);
+            RunTo(v, 6f);
+            var cable = v.Street.Cable;
+            Assert.IsNotNull(cable);
+            Assert.Less(Vector3.Distance(cable.Start, v.Street.Jack), 0.01f, "plugged into the phone");
+            var head = v.Street.Head;
+            Assert.Less(Vector3.Distance(cable.EndL, head.TransformPoint(cable.EarL)), 0.01f, "left earbud in");
+            Assert.Less(Vector3.Distance(cable.EndR, head.TransformPoint(cable.EarR)), 0.01f, "right earbud in");
+            Assert.IsTrue(v.PhoneVisible);
+        }
+
+        [Test]
+        public void The_Reel_Spins_Five_Seconds_Through_Dozens_Of_Classes()
+        {
+            var v = Make(false);
+            var roll = v.Roll;
+            float reelAt = OpeningView.SystemAt + ClassRoll.ReelAt;
+            Assert.AreEqual(ClassRoll.ReelLength, roll.HeroAt - reelAt, 0.01f, "about five seconds of spin");
+            RunTo(v, reelAt);
+            var names = new HashSet<string>();
+            while (v.Elapsed < roll.HeroAt - 0.01f)
+            {
+                v.Advance(1f / 60f);
+                names.Add(Plain(v.ClassLine));
+            }
+            Assert.GreaterOrEqual(ClassRoll.Classes.Length, 60);
+            Assert.Greater(names.Count, 45, "the eye sees dozens of classes fly by");
+            Assert.IsFalse(names.Contains("CLASS: HERO's SIDEKICK"));
+            RunTo(v, roll.HeroAt + 0.5f);
+            StringAssert.Contains("#F2C14E", v.ClassLine, "HERO lands in gold");
+        }
+
+        [Test]
+        public void The_Error_Storms_The_Margins_Then_Clears_To_Blue()
+        {
+            var v = Make(false);
+            var roll = v.Roll;
+            RunTo(v, roll.ErrorAt + 0.1f);
+            Assert.AreEqual(1f, roll.Redness, 1e-3f, "the window goes red");
+            int peak = 0;
+            while (v.Elapsed < roll.RecoverAt)
+            {
+                v.Advance(1f / 30f);
+                peak = Mathf.Max(peak, roll.PopupsShown);
+            }
+            Assert.GreaterOrEqual(peak, 25, "a storm of error pop-ups");
+            float stormLength = roll.RecoverAt - roll.ErrorAt;
+            Assert.That(stormLength, Is.InRange(5f, 6f));
+            var window = roll.WindowRect;
+            for (int i = 0; i < roll.PopupTotal; i++)
+            {
+                var r = roll.PopupRect(i);
+                Assert.IsFalse(r.Overlaps(window), $"pop-up {i} stays in the side margins");
+                Assert.That(Mathf.Abs(r.center.x), Is.GreaterThan(window.width / 2f), $"pop-up {i} is left or right of the window");
+            }
+            Assert.That(roll.SettleAt - roll.RecoverAt, Is.InRange(2.5f, 3.5f), "about three seconds to clear");
+            RunTo(v, roll.SettleAt + 0.05f);
+            Assert.AreEqual(0, roll.PopupsShown, "all closed");
+            Assert.AreEqual(0f, roll.Redness, 1e-3f, "the window is back to System blue");
+            Assert.AreEqual("CLASS: HERO's SIDEKICK", Plain(v.ClassLine));
+            StringAssert.Contains("#FF564A", v.ClassLine, "the class itself stays red");
         }
 
         [Test]
         public void Later_Runs_Get_The_Three_Second_Version()
         {
             var v = Make(true);
-            bool done = false, flashed = false, settled = false;
+            bool done = false, flashed = false, settled = false, popped = false;
             v.Done += () => done = true;
             RunTo(v, 0f);
             while (!done)
@@ -132,10 +246,12 @@ namespace HS.Tests
                 if (done) break;
                 flashed |= v.WhiteAlpha >= 1f;
                 settled |= Plain(v.ClassLine) == "CLASS: HERO's SIDEKICK";
+                popped |= v.Roll.PopupsShown > 0;
                 Assert.IsFalse(v.PhoneVisible);
             }
             Assert.IsTrue(flashed, "the horn sting and the flash, as a callback");
             Assert.IsTrue(settled);
+            Assert.IsTrue(popped, "a few error pop-ups even in the short version");
             Assert.LessOrEqual(v.Elapsed, OpeningView.ShortLength + 0.05f);
         }
 

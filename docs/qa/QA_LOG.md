@@ -413,3 +413,64 @@ version of the reports called the opening done; they shouldn't have.
    frozen for good → it falls back to real time after 0.3 s without audio (test).
 
 Totals: EditMode 71/71, PlayMode 83/83.
+
+## Opening v2 (owner feedback): the street, the truck, the glitch
+**Asked for:** a dynamic first beat with an actual road, a crosswalk, wired earphones plugged into the phone and an
+actual truck model (keep the phone); a faster, longer class spin (~5 s, many more classes) landing on a gold HERO; an
+error with pop-up windows filling the empty sides (5–6 s, some unreadable glyphs) that clear over ~3 s into HERO's
+SIDEKICK, red, in a window that's otherwise blue again. Design: docs/superpowers/specs/2026-10-01-opening-street-design.md.
+
+**Built:**
+- *Assets (headless Blender + PIL, three parallel modelling passes, all self-made):* a cab-over box truck ("TENSEI",
+  DESTINY FREIGHT livery, 43.5k tris, separate wheels, headlight locators) and five cars; 16 buildings (four detailed
+  corners — DAILY GRIND café, 24/7 MART, PHARMACY, DINER — eight mid-block shopfronts with fake interiors, four towers);
+  the street kit (signal masts, pedestrian heads with countdown, lamps, bus shelter with a HERO SUMMONER ad, hydrants,
+  news boxes, café furniture, bike rack, manholes, drains, pigeons); the phone in a posed UBC hand with an ochre hoodie
+  sleeve, and wired earphone parts. `tools/blender/opening_*.py`, `tools/opening_*_textures.py`; staging in
+  `build_art/opening`, imported by `Tools/HS/Build/Opening Assets` (`OpeningAssetsBuilder`: manifests → HS/Toon
+  materials, transparent glass, `Resources/OpeningAssets`, "Opening" layer). Road textures: `tools/make_street_textures.py`.
+- *`OpeningStreet`:* procedural road, sidewalks with rounded curb returns, curb ramps with tactile paving, zebra
+  crossings on all four legs, lane markings; a first-person walk timed to the audio's cues (footfall bob, glance up when
+  the light turns WALK at 7 s, cars on the audio's passes, a van that waits for its green, pigeons that scatter, steam,
+  the truck running its red, braking with a nose dive and tyre smoke); its own camera, sun, sky, fog and grade (rack
+  focus, motion blur on the whip-pan, chromatic aberration, lens distortion and a flood into the cut). The chapter's
+  cameras and sun stand down and are restored at the cut.
+- *`EarphoneCable`:* a Y-shaped verlet cable from the phone's jack to the ears, drawn as tubes.
+- *`ClassRoll`:* the slot reel (69 classes, ~22/s, slowing ticks, gold landing with sparkles), the error storm (32
+  pop-ups in the margins: titles, codes, rotting text, glyph noise, jolts, flicker) and the recovery; the short version
+  gets a scaled-down storm. The lock screen moved onto the 3D phone ("EARBUDS" → "HEADPHONES").
+
+**QA tooling:** `HS.QA.OpeningScrub` + `tools/opening_scrub.py` capture exact opening times (`walk*`, `climax1_*`,
+`roll*`, `short*` shots); `Tools/Agent/Inspect Model Hierarchy`; `Tools/Agent/Inspect Game View`.
+
+**Defects found and fixed:**
+1. Pop-ups waiting to spawn showed as ghosts: alpha 0.004 becomes ~13/255 on black in linear space → the invisible
+   warm-up draw happens only behind the black pre-roll.
+2. A QA capture replayed the previous shot: a pooled render target kept old pixels when a render failed → fresh, cleared
+   target per shot.
+3. Black frames near the truck: its headlight spots sat on the lens geometry (the locators carry the import's root turn,
+   so they pointed down), overflowed half precision, and bloom spread the NaN over the frame → beams aimed in street
+   space 0.3 m ahead of the lens; HS/Toon output clamped.
+4. Kit models stood on end, then faced backwards: the import keeps a 90° X turn on the root (placement now keeps it) and
+   kit fronts face −Z (turned 180°).
+5. Signals looked lit in every colour (lens colours show in daylight) → unlit lenses go dark; the WALK and hand icons
+   share a panel, so the unlit one is clipped away and both are double-sided.
+6. The pedestrian head we watch sat behind a mast pole → moved to the open end of the crossing.
+7. The earphone cable vanished behind the hand and below the frame → more slack, a hoodie-deep chest, a thicker
+   outlined cable and a slightly lower gaze; it now hangs in a loop in view.
+8. The replay version resolved HERO's SIDEKICK mid-storm (fixed offsets inverted in a sub-second storm) → timings scale
+   with each phase.
+9. Player hitches on first use (3.5 s when the first car with glass passed, ~1 s at the whip-pan, smaller ones when the
+   climax effects switched on) → the pre-roll now looks every way with every car, the lit truck, pigeons mid-flap, smoke,
+   every signal state and the climax's post effects in front of the lens, and the chapter's camera keeps rendering under
+   it until the song starts.
+
+**Results:**
+- *Player build (macOS, 1920x1080 windowed, `docs/qa/perf_opening_v2.json`):* avg 7.7 ms (129 fps), p99 17.3 ms; the
+  only hitches are at startup behind the black pre-roll (world build 2.2 s, warm-up 1.2 s); 0 exceptions; the flow hands
+  over to the skill picker with the chapter's camera and HUD restored (`flowop_*`).
+- *Tests:* `OpeningTests` 13 (new: the street's cues, the chapter's world handed back, the earphones from jack to ears,
+  the 5 s spin through dozens of classes, the storm in the margins clearing to blue with the name red; the replay
+  version's pop-ups). EditMode 71/71; PlayMode 87/88 — the one failure is `CameraTests.FixedAngleCamera_KeepsBothTargetsInFrame`
+  (hero 1–4% from the frame edge at 25 m apart; it depends on the editor's Game view shape and fails at 16:9 too). It is
+  untouched by this work and is being looked at separately.

@@ -42,6 +42,11 @@ namespace HS.Opening
         public Vector3 EyeStreet { get; private set; }
         public float HeadYaw { get; private set; }
         public float HeadPitch { get; private set; }
+        /// <summary>The wired earphones (null in the replay version).</summary>
+        public EarphoneCable Cable => _cable;
+        /// <summary>Where the plug is (world), for checking the cable stays on it.</summary>
+        public Vector3 Jack => _cableStart != null ? _cableStart.position : _phoneRig != null ? _phoneRig.position : Vector3.zero;
+        public Transform Head => _head;
 
         int _layer;
         bool _short, _disposed;
@@ -101,15 +106,15 @@ namespace HS.Opening
             for (int i = 0; i < t.childCount; i++) SetLayer(t.GetChild(i), layer);
         }
 
-        /// <summary>The chapter's cameras and suns stand down; its ambient, fog and sky are kept for Dispose.</summary>
+        /// <summary>
+        /// The chapter's suns stand down; its ambient, fog and sky are kept for Dispose. Its cameras keep rendering under
+        /// ours through the black pre-roll (so their shaders are compiled before the cut hands the screen back) and stand
+        /// down when the walk begins (<see cref="BeginWalk"/>).
+        /// </summary>
         void TakeOver()
         {
             foreach (var c in FindObjectsByType<Camera>(FindObjectsSortMode.None))
-                if (c.enabled)
-                {
-                    c.enabled = false;
-                    _disabledCams.Add(c);
-                }
+                if (c.enabled) _disabledCams.Add(c);
             foreach (var l in FindObjectsByType<Light>(FindObjectsSortMode.None))
                 if (l.enabled && l.type == LightType.Directional)
                 {
@@ -216,6 +221,74 @@ namespace HS.Opening
             _lens.intensity.Override(0f);
             SetLayer(vgo.transform, _layer >= 0 ? _layer : 0);
             Camera.cullingMask = 1 << _layer;
+        }
+
+        /// <summary>The song starts: the chapter's cameras stop drawing under ours; the warm-up's smoke is cleared.</summary>
+        public void BeginWalk()
+        {
+            foreach (var c in _disabledCams) if (c != null) c.enabled = false;
+            if (_tyreSmoke != null) _tyreSmoke.Clear(true);
+        }
+
+        /// <summary>How many pre-roll frames <see cref="WarmUp"/> takes.</summary>
+        public const int WarmViews = 8;
+
+        /// <summary>
+        /// Behind the black pre-roll, frame by frame: look every way with everything that will ever be on screen in front
+        /// of the lens (the lit truck, every car, pigeons mid-flap, smoke, every signal state, the climax's post effects),
+        /// so each material, shader variant and pipeline state is built now rather than the first time it appears.
+        /// In the player that was a 3.5 s freeze when the first car with glass drove past and ~1 s at the whip-pan.
+        /// </summary>
+        public void WarmUp(int view)
+        {
+            float[] yaws = { 0f, 86f, 180f, -90f, 45f, -45f, 135f, 10f };
+            float[] pitches = { -8f, 3f, -8f, -8f, -12f, -12f, -8f, -55f };
+            int i = Mathf.Clamp(view, 0, WarmViews - 1);
+            _body.localPosition = new Vector3(WalkX, Curb + Eye, 4f);
+            _head.localRotation = Quaternion.Euler(-pitches[i], yaws[i], 0f);
+            var flat = Vector3.ProjectOnPlane(_head.forward, Vector3.up).normalized;
+            if (flat.sqrMagnitude < 1e-4f) flat = Vector3.forward;
+            var right = Vector3.Cross(Vector3.up, flat);
+            Vector3 Ahead(float d, float side) => new Vector3(WalkX, 0f, 4f) + flat * d + right * side;
+            if (_truck != null)
+            {
+                _truck.gameObject.SetActive(true);
+                _truck.localPosition = Ahead(16f, 0f);
+                foreach (var l in _headlights) l.intensity = 400f;
+            }
+            for (int k = 0; k < _movers.Count; k++)
+            {
+                var m = _movers[k];
+                m.T.gameObject.SetActive(true);
+                m.T.localPosition = Ahead(8f + 3f * k, k % 2 == 0 ? -3.5f : 3.5f);
+            }
+            for (int k = 0; k < _pigeons.Count; k++)
+            {
+                var p = _pigeons[k];
+                p.T.gameObject.SetActive(true);
+                p.T.localPosition = Ahead(3f + 0.5f * k, -1f + 0.5f * k) + Vector3.up * 1.4f;
+                Flap(p, 1f, 0.02f * k);
+            }
+            if (_tyreSmoke != null)
+            {
+                _tyreSmoke.transform.localPosition = Ahead(6f, 0f);
+                _tyreSmoke.Emit(12);
+                _tyreSmoke.Simulate(0.02f, true, false, false);
+            }
+            SetLamps(_pedHand, true);
+            SetLamps(_pedWalk, true);
+            SetLamps(_nsRed, true);
+            SetLamps(_nsAmber, true);
+            SetLamps(_nsGreen, true);
+            SetLamps(_ewRed, true);
+            SetLamps(_ewAmber, true);
+            SetLamps(_ewGreen, true);
+            foreach (var cd in _countdowns) cd.text = "9";
+            _motion.intensity.value = 0.3f;
+            _lens.intensity.value = -0.1f;
+            _chroma.intensity.value = 0.3f;
+            _grade.postExposure.value = 0.6f;
+            _dof.focusDistance.value = 2f;
         }
 
         /// <summary>The chapter gets its world back (cameras, sun, ambient, fog, sky) and the street is destroyed.</summary>

@@ -85,7 +85,9 @@ Short (replay) version, 3 s: truck flash → window → HERO → a few pop-ups �
   level (z = 0). Export with
   `bpy.ops.export_scene.fbx(filepath=…, use_selection=True, object_types={'MESH','EMPTY'}, apply_unit_scale=True,
   apply_scale_options='FBX_SCALE_ALL', axis_forward='-Z', axis_up='Y', mesh_smooth_type='FACE', use_mesh_modifiers=True,
-  add_leaf_bones=False)`. In Unity the front faces +Z.
+  add_leaf_bones=False)`. In Unity (Art/Opening import rule) the model keeps a 90° X turn on its root and its front
+  faces **−Z**; Blender X stays Unity X. Child locators inherit the root's turn, so runtime code works in the kit's own
+  frame (root rotation × inverse of the prefab root's rotation) rather than trusting a locator's axes.
 - Hierarchies: one root empty per FBX named after the asset; parts that animate are separate child objects with their
   origin at the pivot (e.g. wheels at the hub centre, spin axis = Blender X). Locators are empties.
 - Normals: smooth by angle (~35°) so curved parts are smooth and hard edges stay crisp. Apply scale/rotation before export.

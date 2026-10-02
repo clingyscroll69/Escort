@@ -493,10 +493,10 @@ All bosses share Phase 3, the Mirror: the Curator becomes a Stage 0 copy of your
 
 ## 8. Narrative and cutscenes
 
-**Opening cutscene (about 40s, UI and audio only):**
-1. The walk, earbuds and a royalty-free song. A horn rises, the song cuts, white screen.
-2. The status window: `CLASS:` rolls through *Barista, Tax Auditor, Dark Lord, Hero* and settles on **HERO**. Player thought: "YES. I finally get to be the hero."
-3. A **red error box** appears. **Red glyphs** cycle through it. They settle with **'s SIDEKICK** appended: **HERO's SIDEKICK**.
+**Opening cutscene (about 41s):**
+1. The walk, in first person: a city sidewalk at 7:52 on a March morning, the phone's lock screen in your hand, wired earphones and a royalty-free song. The light turns to WALK and you step onto the zebra crossing, still reading. A horn rises; you look up into a cab-over truck's grille and headlights; the song cuts; white screen. (3D street, built at runtime from the opening kits: see docs/superpowers/specs/2026-10-01-opening-street-design.md.)
+2. The status window: `CLASS:` spins like a slot machine through ~70 classes for about 5 s, slowing through *Barista, Tax Auditor, Dark Lord*, and lands on **HERO** in gold. Player thought: "YES. I finally get to be the hero."
+3. The error: the window turns red, **red glyphs** cycle through the class, and **error pop-ups** pile up in the empty margins either side for 5–6 s (some readable, some pure glyph noise). Over about 3 s they close one by one, the window goes back to System blue, and the class settles on **HERO's SIDEKICK**, which stays red.
 4. When you first meet the hero, "HERO" quietly swaps for his name.
 5. Later runs use a 3-second version.
 

@@ -58,6 +58,13 @@ namespace HS.Agent
             AgentBridge.Write("inspect.json", sb.ToString());
         }
 
+        [MenuItem("Tools/Agent/Inspect Game View")]
+        public static void InspectGameView()
+        {
+            var size = UnityEditor.Handles.GetMainGameViewSize();
+            AgentBridge.Write("inspect.json", $"[\"game view {size.x}x{size.y} aspect={size.x / size.y:F3}\"]");
+        }
+
         /// <summary>Every transform of model assets as imported (local pos/rot/scale) plus overall bounds. Args {"paths":"..."}</summary>
         [MenuItem("Tools/Agent/Inspect Model Hierarchy")]
         public static void InspectModelHierarchy()

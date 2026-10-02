@@ -192,17 +192,17 @@ namespace HS.UI
             _head.rectTransform.offsetMax = new Vector2(-32f, -24f);
             _head.maxVisibleCharacters = 0;
 
-            // "CLASS:" then the reel's slot, like a slot machine's window
-            var label = UIKit.Rect(_window, "Label", new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(300f, 90f), new Vector2(-172f, -24f));
-            _label = UIKit.Text(label, "T", "CLASS:", UIKit.Mono, 60, UIKit.SystemCyan, TextAlignmentOptions.Right);
-            _label.textWrappingMode = TextWrappingModes.NoWrap;
-            // sparkles burst from behind the slot when HERO lands (built first so the slot hides their start)
+            // sparkles burst from behind the label and the slot when HERO lands
             for (int i = 0; i < _sparks.Length; i++)
             {
                 float size = 7f + 11f * Hash(i, 21);
                 _sparks[i] = UIKit.Rect(_window, "Spark" + i, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(size, size), new Vector2(150f, -24f));
                 _sparkImgs[i] = UIKit.Image(_sparks[i], "Pip", UIKit.Pip, new Color(1f, 0.85f, 0.4f, 0f), false);
             }
+            // "CLASS:" then the reel's slot, like a slot machine's window
+            var label = UIKit.Rect(_window, "Label", new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(300f, 90f), new Vector2(-172f, -24f));
+            _label = UIKit.Text(label, "T", "CLASS:", UIKit.Mono, 60, UIKit.SystemCyan, TextAlignmentOptions.Right);
+            _label.textWrappingMode = TextWrappingModes.NoWrap;
             _slot = UIKit.Rect(_window, "Slot", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(600f, 150f), new Vector2(150f, -24f));
             UIKit.Image(_slot, "Bg", UIKit.Panel, new Color(0.01f, 0.03f, 0.07f, 1f));
             _reel = UIKit.Stretch(_slot, "Reel", 6f);
@@ -447,9 +447,11 @@ namespace HS.UI
             row.color = Color.white;
             // The tail grows as unreadable glyphs while the storm rages, then resolves letter by letter, left to right.
             int seed = Mathf.FloorToInt(t * 26f);
-            int grown = Mathf.FloorToInt(Tail.Length * Smooth(ErrorAt + 0.2f, RecoverAt - 0.6f, t) + 0.0001f);
+            // proportional to the phases, so the 3-second version's sub-second storm keeps the same shape
+            float storm = RecoverAt - ErrorAt, recover = SettleAt - RecoverAt;
+            int grown = Mathf.FloorToInt(Tail.Length * Smooth(ErrorAt + 0.04f * storm, RecoverAt - 0.11f * storm, t) + 0.0001f);
             int resolved = t >= SettleAt ? Tail.Length
-                : Mathf.FloorToInt(Tail.Length * Mathf.InverseLerp(RecoverAt + 0.3f, SettleAt - 0.25f, t));
+                : Mathf.FloorToInt(Tail.Length * Mathf.InverseLerp(RecoverAt + 0.1f * recover, SettleAt - 0.085f * recover, t));
             _sb.Clear();
             bool heroGlitch = t < RecoverAt && Hash(seed, 3) < 0.18f;
             _sb.Append(heroGlitch ? "H" + Glyphs[(seed * 5) % Glyphs.Length] + "RO" : "HERO");

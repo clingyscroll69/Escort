@@ -49,8 +49,11 @@ namespace HS.Opening
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-        /// <summary>Lead points nearest the splitter/remote, for the little props riding on the cable.</summary>
-        public Vector3 SplitterPos => _m[MainN - 1];
+        /// <summary>Where the cable starts (world): it should sit on the phone's plug.</summary>
+        public Vector3 Start => _root.TransformPoint(_m[0]);
+        /// <summary>Where the leads end (world): they should sit in the ears.</summary>
+        public Vector3 EndL => _root.TransformPoint(_l[LeadN - 1]);
+        public Vector3 EndR => _root.TransformPoint(_r[LeadN - 1]);
 
         /// <param name="jack">World position where the cable leaves the plug.</param>
         /// <param name="jackDir">World direction out of the plug.</param>

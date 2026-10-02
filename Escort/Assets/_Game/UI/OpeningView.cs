@@ -79,6 +79,7 @@ namespace HS.UI
         public float EndsAt => _endAt;
 
         bool _short;
+        int _warm;
         float _pre, _real, _t, _prevT, _skipArmedUntil = -1f;
         double _dsp0, _lastDsp = -1;
         float _dspStill;
@@ -251,10 +252,12 @@ namespace HS.UI
             if (Current == Phase.PreRoll)
             {
                 // The world builds and its shaders warm up behind black during the first frames (a one-off hitch of
-                // ~1–2 s in the player build): count only smooth frames.
+                // ~1–2 s in the player build): count only smooth frames. The street looks every way first.
                 _pre += Mathf.Min(dt, 0.05f);
-                if (_pre >= PreRoll) Begin();
+                if (_pre >= PreRoll && _warm >= OpeningStreet.WarmViews) Begin();
                 Render();
+                if (_street != null && _warm < OpeningStreet.WarmViews) _street.WarmUp(_warm);
+                _warm++;
                 return;
             }
             _prevT = _t;
@@ -282,6 +285,7 @@ namespace HS.UI
         {
             Current = _short ? Phase.White : Phase.Walk;
             _t = _prevT = 0f;
+            if (_street != null) _street.BeginWalk();
             var a = AudioDirector.Instance;
             if (a == null || ManualClock) return;
             const double lead = 0.1; // schedule slightly ahead so every voice starts on its exact sample
