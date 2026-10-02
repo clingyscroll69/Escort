@@ -38,7 +38,7 @@ MAT_DEFS = [
     ('MV_Black', '#1E2024', None, None, 'Black trim: grille, gaskets, visor, steps, flares, mirror housings, chassis, tyre wells.'),
     ('MV_Chrome', '#C9CED4', None, None, 'Chrome: bumper, grille surround, air horns, mirror arms, handles, hub caps, lug nuts.'),
     ('MV_Glass', '#FFFFFF', 'T_V_GlassReflect.png', None,
-     'Window glass. Colour + opacity come from the texture (RGBA, alpha 0.55-0.95): render transparent so the '
+     'Window glass. Colour + opacity come from the texture (RGBA, alpha ~0.4 low to ~0.9 in the sky band and highlight streak): render transparent so the '
      'interior shows; each pane is UV 0-1.'),
     ('MV_Mirror', '#B9CAD6', None, None, 'Mirror glass (bright cool grey).'),
     ('MV_HeadLamp', '#FFF6E2', None, {'color': '#FFF4D6', 'intensity': 4}, 'Headlamp / fog lamp lenses (on in the cutscene).'),
@@ -62,7 +62,7 @@ MAT_DEFS = [
      'Lit TAXI roof sign faces (texture is also the emission map).'),
     ('MV_TaxiChecker', '#FFFFFF', 'T_V_Checker.png', None, 'Taxi checker band; texture tiles in U (wrap = repeat).'),
     ('MV_CarRim', '#A9AFB6', None, None, 'Car alloy wheels.'),
-    ('MV_Interior', '#34373C', None, None, 'Cab / car interior: dashboard, seats, inner shell walls.'),
+    ('MV_Interior', '#4A4E55', None, None, 'Cab / car interior: dashboard, seats, inner shell walls.'),
 ]
 MAT_NAMES = [m[0] for m in MAT_DEFS]
 MI = {n: i for i, n in enumerate(MAT_NAMES)}
@@ -605,7 +605,7 @@ def tire_profile(W, R, rb=0.245, tread_base=None):
 
 def tire(mb, W, R, x0=0.0, segs=32, blocks=30, rb=0.245, block_h=0.016):
     """Tyre around the X axis centred at x = x0, with two staggered rows of tread blocks."""
-    tb = R - block_h + 0.004
+    tb = R - block_h - 0.0015
     prof = [(r, x + x0) for (r, x) in tire_profile(W, R, rb, tread_base=tb)]
     mb.lathe('MV_Tire', prof, None, segs=segs, axis='X', phase=math.pi / segs)
     hw = W / 2 - 0.022
@@ -615,7 +615,11 @@ def tire(mb, W, R, x0=0.0, segs=32, blocks=30, rb=0.245, block_h=0.016):
     for row, (xc, off) in enumerate(((x0 + 0.006 + bw / 2, 0.0), (x0 - 0.006 - bw / 2, 0.5))):
         for i in range(blocks):
             a = 360.0 * (i + off) / blocks
-            mb.box('MV_Tire', (bw, block_h + 0.003, blen), RX(a) @ T(xc, rc, 0))
+            fs = mb.box('MV_Tire', (bw, block_h + 0.003, blen), RX(a) @ T(xc, rc, 0))
+            ca = math.radians(a)
+            radial = Vector((0, math.cos(ca), math.sin(ca)))
+            hidden = [f for f in fs if f.normal.dot(radial) < -0.9]
+            bmesh.ops.delete(mb.bm, geom=hidden, context='FACES_ONLY')
 
 
 def hand_holes(mb, mat, n, r_c, x_face, slope, rx=0.028, ry=0.016, phase=0.0):
@@ -1633,6 +1637,539 @@ def _truck():
 
 
 BUILDERS['Truck'] = _truck
+
+
+# ============================================================================================ CARS
+def kf(keys, y):
+    """Piecewise-linear keyframes [(y, value)]."""
+    if y <= keys[0][0]:
+        return keys[0][1]
+    for (y0, v0), (y1, v1) in zip(keys, keys[1:]):
+        if y <= y1:
+            return v0 + (v1 - v0) * (y - y0) / (y1 - y0)
+    return keys[-1][1]
+
+
+def car_half(sp, y, push=0.0):
+    """Half cross-section (x, z) at station y, bottom centre -> roof centre (11 rows, 10 bands):
+    0 underbody, 1 rocker, 2-6 door skin (4 = checker band), 7 side glass, 8 roof rail / A-pillar, 9 roof / screen."""
+    zb, zm, zbe, zt = kf(sp['zb'], y), kf(sp['zm'], y), kf(sp['zbelt'], y), kf(sp['ztop'], y)
+    wb, wt = kf(sp['wb'], y), kf(sp['wt'], y)
+    zs = zbe - 0.035
+    zc0, zc1 = zm + (zs - zm) * 0.25, zm + (zs - zm) * 0.75
+    k = clamp((zt - zbe) / 0.30, 0.15, 1.0)
+    return [(0.0, zb), (wb - 0.07, zb), (wb - 0.015 - push, zb + 0.07), (wb - push, zm), (wb - 0.006 - push, zc0),
+            (wb - 0.012 - push, zc1), (wb - 0.02 - push, zs), (wb - 0.045, zbe), (wt + 0.01, zt - 0.075 * k),
+            (wt - 0.08, zt - 0.012 * k), (0.0, zt)]
+
+
+def car_ring(sp, y, push=0.0):
+    h = car_half(sp, y, push)
+    return [(x, y, z) for (x, z) in h] + [(-x, y, z) for (x, z) in h[9:0:-1]]
+
+
+def car_stations(sp):
+    L = sp['L']
+    ys = set()
+    for key in ('zb', 'zm', 'zbelt', 'ztop', 'wb', 'wt'):
+        ys.update(y for y, _ in sp[key])
+    for a, b in [sp['windshield']] + ([sp['rear_window']] if sp.get('rear_window') else []) + sp['side_windows'] + \
+            sp.get('bpillars', []) + ([sp['checker']] if sp.get('checker') else []):
+        ys.update((a, b))
+    seams = sp.get('seams', [])
+    ys = sorted(y for y in ys if 0.0 <= y <= L and all(abs(y - s0) > 0.012 for s0 in seams))
+    out = []
+    for y in ys:
+        if not out or y - out[-1][0] > 0.006:
+            out.append((y, 0.0, None))
+    for i, s0 in enumerate(seams):
+        out += [(s0 - 0.0045, 0.0, i), (s0 - 0.003, 0.004, i), (s0 + 0.003, 0.004, i), (s0 + 0.0045, 0.0, i)]
+    out.sort(key=lambda t: t[0])
+    return out
+
+
+def in_spans(y, spans):
+    return any(a < y < b for a, b in spans)
+
+
+def car_shell(name, sp):
+    """Closed lofted body -> wheel-well pockets -> window faces removed -> solidified (inner walls MV_Interior)."""
+    st = car_stations(sp)
+    paint = sp['paint']
+    mb = MB()
+    rings = [car_ring(sp, y, push) for (y, push, tag) in st]
+    faces = mb.loft(paint, rings)
+    uvl = mb.uv
+    n = 20
+    ws = [sp['windshield']] + ([sp['rear_window']] if sp.get('rear_window') else [])
+    for kk in range(len(st) - 1):
+        ym = (st[kk][0] + st[kk + 1][0]) / 2
+        seam = st[kk][2] is not None and st[kk][2] == st[kk + 1][2]
+        for i in range(n):
+            band = i if i < 10 else 19 - i
+            f = faces[kk * n + i]
+            mat = paint
+            if band <= 1:
+                mat = 'MV_Black'
+            elif 2 <= band <= 6 and seam:
+                mat = 'MV_Black'
+            elif band == 4 and sp.get('checker') and in_spans(ym, [sp['checker']]):
+                mat = 'MV_TaxiChecker'
+                zc = f.calc_center_median().z
+                for loop in f.loops:
+                    loop[uvl].uv = (loop.vert.co.y / 0.32, 0.0 if loop.vert.co.z < zc else 1.0)
+            elif band == 7:
+                if in_spans(ym, sp['side_windows']):
+                    mat = 'MV_Glass'
+                elif in_spans(ym, sp.get('bpillars', [])):
+                    mat = 'MV_Black'
+            elif band == 9 and in_spans(ym, ws):
+                mat = 'MV_Glass'
+            f.material_index = MI[mat]
+    body = mb_to_object(name + '_shell', mb)
+    cutters = []
+    for ay in (sp['fa'], sp['ra']):
+        for s in (1, -1):
+            cmb = MB()
+            cmb.cyl('MV_Black', sp['R'] + 0.035, 0.45, T(s * (sp['hw'] - 0.07), ay, sp['R']), segs=28, axis='X')
+            co = mb_to_object('wcut', cmb)
+            cutters.append(co)
+            add_boolean(body, co)
+    apply_modifiers(body)
+    for co in cutters:
+        delete_object(co)
+    # open the windows
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    glass = [f for f in bm.faces if f.material_index == MI['MV_Glass']]
+    bmesh.ops.delete(bm, geom=glass, context='FACES')
+    bm.to_mesh(body.data)
+    bm.free()
+    sol = body.modifiers.new('solid', 'SOLIDIFY')
+    sol.thickness = 0.02
+    sol.offset = -1.0
+    sol.use_even_offset = True
+    sol.use_rim = True
+    sol.material_offset = 99
+    sol.material_offset_rim = 99
+    apply_modifiers(body)
+    return body, st
+
+
+def car_glass(mb, sp, st):
+    """Glass panes rebuilt from the analytic loft, 1 cm inside the outer skin; each pane UV 0-1."""
+    uvl = mb.uv
+
+    def pane(spans_band_side):
+        quads = []
+        for (y0, y1), band, side in spans_band_side:
+            for kk in range(len(st) - 1):
+                ya, yb = st[kk][0], st[kk + 1][0]
+                if not (y0 - 1e-6 <= ya and yb <= y1 + 1e-6):
+                    continue
+                ha, hb = car_half(sp, ya, st[kk][1]), car_half(sp, yb, st[kk + 1][1])
+                q = [(ha[band], ya), (ha[band + 1], ya), (hb[band + 1], yb), (hb[band], yb)]
+                quads.append([(side * x, y, z) for ((x, z), y) in q])
+        return quads
+
+    def emit(quads, inward, uaxis, vaxis):
+        pts = [Vector(p) for q in quads for p in q]
+        us = [p.dot(uaxis) for p in pts]
+        vs = [p.dot(vaxis) for p in pts]
+        u0, u1, v0, v1 = min(us), max(us), min(vs), max(vs)
+        for q in quads:
+            qv = [Vector(p) + inward for p in q]
+            uv = [((p.dot(uaxis) - u0) / (u1 - u0), (p.dot(vaxis) - v0) / (v1 - v0)) for p in qv]
+            if (Vector(q[1]) - Vector(q[0])).cross(Vector(q[3]) - Vector(q[0])).length < 1e-7:
+                # degenerate corner quad -> triangle
+                qv, uv = qv[1:], uv[1:]
+            mb.face('MV_Glass', [tuple(p) for p in qv], -inward, uv)
+
+    for side in (1, -1):
+        for span in sp['side_windows']:
+            q = pane([(span, 7, side)])
+            if q:
+                emit(q, Vector((-0.01 * side, 0, 0)), Vector((0, side, 0)), Vector((0, 0, 1)))
+    for span, sgn in ((sp['windshield'], -1), (sp.get('rear_window'), 1)):
+        if not span:
+            continue
+        q = pane([(span, 9, 1), (span, 9, -1)])
+        a = Vector(q[0][0])
+        nrm = Vector((0, sgn * 0.6, 1)).normalized()
+        emit(q, -nrm * 0.01, Vector((1, 0, 0)) * (-sgn), Vector((0, 0, 1)))
+
+
+def fascia_frame(x, z, rear, L):
+    if rear:
+        return frame((x, L, z), (-1, 0, 0), (0, 0, 1))
+    return frame((x, 0.0, z), (1, 0, 0), (0, 0, 1))
+
+
+def uv_local(face, uvl, fr, rect=(0, 0, 1, 1)):
+    inv = fr.inverted()
+    loc = [inv @ l.vert.co for l in face.loops]
+    xs, ys = [p.x for p in loc], [p.y for p in loc]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    for l, p in zip(face.loops, loc):
+        u, v = (p.x - x0) / (x1 - x0), (p.y - y0) / (y1 - y0)
+        l[uvl].uv = (rect[0] + (rect[2] - rect[0]) * u, rect[1] + (rect[3] - rect[1]) * v)
+
+
+def lamp(mb, fr, w, h, r, lens_mat, inner=None):
+    """Black housing + lens block on a fascia frame (local x, y = h, z = outward)."""
+    mb.prism('MV_Black', rrect2d(w, h, r, 2), -0.05, 0.008, fr)
+    p = mb.prism('MV_Chrome', rrect2d(w - 0.022, h - 0.022, max(r - 0.01, 0.005), 2), -0.02, 0.013, fr)
+    p['top'].material_index = MI[lens_mat]
+    if inner:
+        for (dx, iw, mat) in inner:
+            q = mb.prism('MV_Chrome', rrect2d(iw, h - 0.04, 0.008, 2, cx=dx), 0.0, 0.016, fr)
+            q['top'].material_index = MI[mat]
+
+
+def car_details(mb, sp):
+    uvl = mb.uv
+    L, paint = sp['L'], sp['paint']
+    f = sp['front']
+    r = sp['rear']
+    cell = PLATE_CELLS[sp['name']]
+    for s in (1, -1):
+        hx, hz, hw_, hh = f['hl']
+        lamp(mb, fascia_frame(s * hx, hz, False, L), hw_, hh, 0.03, 'MV_HeadLamp',
+             inner=[(s * (hw_ / 2 - 0.035), 0.04, 'MV_Signal')])
+        tx, tz, tw_, th = r['tl']
+        lamp(mb, fascia_frame(s * tx, tz, True, L), tw_, th, 0.025, 'MV_TailLamp',
+             inner=[(-s * (tw_ / 2 - 0.05), 0.06, 'MV_LensClear'), (s * (tw_ / 2 - 0.03), 0.035, 'MV_Signal')])
+    # grille + chrome surround + bars
+    gw, gz, gh = f['grille']
+    fr = fascia_frame(0, gz, False, L)
+    mb.prism('MV_Black', rrect2d(gw, gh, 0.03, 3), -0.05, 0.006, fr)
+    mb.ring_prism('MV_Chrome', rrect2d(gw + 0.03, gh + 0.03, 0.04, 3), rrect2d(gw - 0.01, gh - 0.01, 0.025, 3), -0.01,
+                  0.014, fr)
+    for k in range(f.get('bars', 2)):
+        hgt = -gh / 2 + gh * (k + 1) / (f.get('bars', 2) + 1)
+        mb.box('MV_Black', (gw - 0.04, 0.016, 0.014), fr @ T(0, hgt, 0.012))
+    # lower intake / bumper lips
+    iw, iz, ih = f['intake']
+    mb.prism('MV_Black', rrect2d(iw, ih, 0.025, 3), -0.05, 0.008, fascia_frame(0, iz, False, L))
+    lw, lz = f['lip']
+    mb.box('MV_Black', (lw, 0.12, 0.05), T(0, 0.05, lz))
+    rw, rz = r['lip']
+    mb.box('MV_Black', (rw, 0.12, 0.06), T(0, L - 0.05, rz))
+    # plates
+    for rear, pz in ((False, f['plate_z']), (True, r['plate_z'])):
+        fr = fascia_frame(0, pz, rear, L)
+        mb.prism('MV_Black', rrect2d(0.35, 0.18, 0.012, 2), -0.02, 0.004, fr)
+        p = mb.prism('MV_Black', rrect2d(0.33, 0.165, 0.01, 2), 0.0, 0.009, fr)
+        p['top'].material_index = MI['MV_Plate']
+        uv_local(p['top'], uvl, fr, plate_rect(cell))
+    # door handles
+    for y in sp['handles']:
+        for s in (1, -1):
+            x = kf(sp['wb'], y) - 0.012
+            mb.box('MV_Chrome', (0.024, 0.13, 0.022), T(s * x, y, kf(sp['zbelt'], y) - 0.075))
+    if r.get('garnish'):
+        tx, tz, tw_, th = r['tl']
+        gw = 2 * (tx - tw_ / 2) - 0.02
+        mb.box('MV_Chrome', (gw, 0.014, 0.035), T(0, L + 0.005, tz))
+    # exhaust tip
+    mb.cyl('MV_Chrome', 0.03, 0.10, T(0.45, L - 0.03, kf(sp['zb'], L) + 0.03), segs=10, axis='Y')
+    if sp.get('extras'):
+        sp['extras'](mb, sp)
+
+
+def car_mirrors(mb, sp):
+    my, mz = sp['mirror']
+    big = sp['name'] == 'Van'
+    for s in (1, -1):
+        wb = kf(sp['wb'], my)
+        hm = T(s * (wb + 0.085), my, mz) @ RZ(-s * 8)
+        mb.box(sp['paint'] if not big else 'MV_Black', (0.19, 0.09, 0.13 if not big else 0.24), hm)
+        mb.box('MV_Mirror', (0.15, 0.012, 0.09 if not big else 0.20), hm @ T(s * -0.005, 0.045, 0))
+        mb.box('MV_Black', (0.11, 0.06, 0.05), T(s * (wb + 0.0), my - 0.01, mz - 0.035))
+
+
+def car_interior(mb, sp):
+    ws0 = sp['windshield'][0]
+    zbe = kf(sp['zbelt'], ws0 + 0.5)
+    zb = kf(sp['zb'], ws0 + 0.5)
+    hw = sp['hw']
+    I = 'MV_Interior'
+    mb.box(I, (2 * hw - 0.14, sp['cabin'][1] - ws0, 0.04), T(0, (ws0 + sp['cabin'][1]) / 2, zb + 0.16))
+    mb.box(I, (2 * hw - 0.16, 0.40, 0.24), T(0, ws0 + 0.30, zbe - 0.08))
+    yfs = sp['cabin'][0]
+    for x in (0.37, -0.37):
+        mb.box(I, (0.48, 0.48, 0.12), T(x, yfs, zb + 0.36))
+        mb.box(I, (0.48, 0.12, 0.62), T(x, yfs + 0.26, zb + 0.70) @ RX(-12))
+    if sp.get('rear_bench', True):
+        mb.box(I, (2 * hw - 0.26, 0.46, 0.12), T(0, yfs + 0.78, zb + 0.36))
+        mb.box(I, (2 * hw - 0.26, 0.12, 0.50), T(0, yfs + 1.01, zb + 0.64) @ RX(-12))
+    else:
+        mb.box(I, (2 * hw - 0.12, 0.05, kf(sp['ztop'], yfs + 0.5) - zb - 0.25), T(0, yfs + 0.45,
+                                                                                 (kf(sp['ztop'], yfs + 0.5) + zb) / 2 + 0.05))
+    # steering wheel + driver silhouette (LHD: driver on +X)
+    C = Vector((0.37, ws0 + 0.62, zbe + 0.04))
+    wm = T(C) @ RX(-62)
+    mb.torus('MV_Black', 0.18, 0.018, wm, segs=16, tsegs=5)
+    mb.cyl('MV_Black', 0.05, 0.05, wm, segs=8)
+    D = 'MV_Driver'
+    hz = zb + 0.42
+    mb.box(D, (0.38, 0.22, 0.52), T(0.37, yfs + 0.12, hz + 0.30) @ RX(-12))
+    mb.sphere(D, 0.10, T(0.37, yfs + 0.10, hz + 0.68) @ SC(0.9, 1.0, 1.1), segs=10, rings=7)
+    for t in (1, -1):
+        S = Vector((0.37 + t * 0.18, yfs + 0.12, hz + 0.50))
+        H = C + Vector((t * 0.16, 0.0, 0.02))
+        E = (S + H) / 2 + Vector((t * 0.05, 0.05, -0.12))
+        mb.cyl_between(D, S, E, 0.045, segs=6)
+        mb.cyl_between(D, E, H, 0.04, segs=6)
+
+
+def car_wheel(name, loc, R, W, side):
+    mb = MB()
+    rb = R - 0.105
+    tire(mb, W, R, 0.0, segs=20, blocks=18, rb=rb, block_h=0.012)
+    hw = W / 2
+    lip = [(rb + 0.012, hw - 0.012), (rb + 0.006, hw - 0.004), (rb - 0.004, hw - 0.010), (rb - 0.012, hw - 0.04)]
+    mb.lathe('MV_CarRim', lip, None, segs=24, axis='X')
+    mb.prism('MV_Black', ellipse2d(rb - 0.01, rb - 0.01, 24), hw - 0.06, hw - 0.055, RY(90))
+    for k in range(5):
+        a = 72.0 * k
+        mb.box('MV_CarRim', (0.03, rb - 0.05, 0.045), RX(a) @ T(hw - 0.05, (rb - 0.05) / 2 + 0.03, 0) @ RZ(6))
+    mb.lathe('MV_CarRim', [(0.065, hw - 0.06), (0.062, hw - 0.03), (0.0, hw - 0.025)], None, segs=16, axis='X')
+    mb.lathe('MV_Chrome', [(0.035, hw - 0.026), (0.03, hw - 0.018), (0.0, hw - 0.016)], None, segs=12, axis='X')
+    mb.prism('MV_Black', ellipse2d(rb, rb, 24), -hw + 0.02, -hw + 0.022, RY(90))
+    if side < 0:
+        for v in mb.bm.verts:
+            v.co.x = -v.co.x
+        bmesh.ops.reverse_faces(mb.bm, faces=mb.bm.faces[:])
+    return mb_to_object(name, mb, loc)
+
+
+def build_car(sp):
+    name = sp['name']
+    t0 = time.time()
+    shell, st = car_shell(name, sp)
+    parts = [shell]
+    parts.append(part('glass', lambda m: car_glass(m, sp, st)))
+    parts.append(part('details', lambda m: car_details(m, sp)))
+    parts.append(part('interior', lambda m: car_interior(m, sp)))
+    parts.append(part('mirrors', lambda m: car_mirrors(m, sp), bevel=(0.025, 1, 40)))
+    if sp.get('bevel_extras'):
+        parts.append(part('extras2', lambda m: sp['bevel_extras'](m, sp), bevel=(0.012, 2, 40)))
+    for o in parts:
+        o.data.calc_loop_triangles()
+    print('[%s] part tris: %s' % (name, ', '.join('%s %d' % (o.name, len(o.data.loop_triangles)) for o in parts)))
+    body = join_objects('Body', parts)
+    finalize_mesh(body)
+    root = bpy.data.objects.new(name, None)
+    root.empty_display_type = 'ARROWS'
+    scene().collection.objects.link(root)
+    body.parent = root
+    R, W, tr = sp['R'], sp['tw'], sp['track']
+    wheels = [car_wheel('Wheel_FL', (tr, sp['fa'], R), R, W, 1), car_wheel('Wheel_FR', (-tr, sp['fa'], R), R, W, -1),
+              car_wheel('Wheel_RL', (tr, sp['ra'], R), R, W, 1), car_wheel('Wheel_RR', (-tr, sp['ra'], R), R, W, -1)]
+    for w in wheels:
+        finalize_mesh(w)
+        w.parent = root
+    hx, hz = sp['front']['hl'][:2]
+    tx, tz = sp['rear']['tl'][:2]
+    locs = {'HL_L': (hx, -0.013, hz), 'HL_R': (-hx, -0.013, hz), 'TL_L': (tx, sp['L'] + 0.013, tz),
+            'TL_R': (-tx, sp['L'] + 0.013, tz)}
+    # shift so the frontmost point of the front bumper sits at y = 0
+    ymin = min(v.co.y for v in body.data.vertices)
+    for w in wheels:
+        ymin = min(ymin, min(w.location.y + v.co.y for v in w.data.vertices))
+    body.data.transform(T(0, -ymin, 0))
+    for w in wheels:
+        w.location.y -= ymin
+    for n, p in locs.items():
+        empty(n, (p[0], p[1] - ymin, p[2]), root)
+    print('[%s] built in %.1fs (front shift %.3f)' % (name, time.time() - t0, -ymin))
+    return root, list(locs.keys())
+
+
+# ---------------------------------------------------------------------------------------------- car specs
+SEDAN = dict(
+    name='Sedan', L=4.70, hw=0.91, R=0.32, tw=0.205, fa=0.95, ra=3.75, track=0.78, paint='MV_CarPaint',
+    zb=[(0, 0.28), (0.30, 0.20), (0.70, 0.17), (4.05, 0.17), (4.45, 0.22), (4.70, 0.30)],
+    zm=[(0, 0.48), (0.4, 0.54), (4.4, 0.56), (4.70, 0.58)],
+    zbelt=[(0, 0.62), (0.05, 0.74), (0.18, 0.84), (1.60, 0.92), (3.90, 0.97), (4.55, 0.96), (4.66, 0.93), (4.70, 0.90)],
+    ztop=[(0, 0.66), (0.05, 0.78), (0.18, 0.87), (1.60, 0.97), (2.30, 1.40), (2.70, 1.45), (3.25, 1.42), (3.95, 1.02),
+          (4.55, 1.00), (4.66, 0.96), (4.70, 0.92)],
+    wb=[(0, 0.80), (0.05, 0.85), (0.20, 0.895), (0.55, 0.91), (4.15, 0.91), (4.50, 0.90), (4.66, 0.87), (4.70, 0.83)],
+    wt=[(0, 0.70), (0.18, 0.80), (1.60, 0.81), (2.30, 0.70), (3.25, 0.70), (3.95, 0.82), (4.70, 0.76)],
+    windshield=(1.62, 2.28), rear_window=(3.27, 3.93), side_windows=[(1.66, 2.68), (2.76, 3.38)],
+    bpillars=[(2.68, 2.76)], seams=[1.42, 2.72, 3.36],
+    front=dict(hl=(0.585, 0.575, 0.36, 0.13), grille=(0.66, 0.50, 0.15), intake=(0.62, 0.325, 0.06), lip=(1.50, 0.29),
+               plate_z=0.40),
+    rear=dict(tl=(0.62, 0.80, 0.36, 0.13), plate_z=0.58, lip=(1.52, 0.33), garnish=True),
+    mirror=(1.80, 1.00), handles=[2.42, 3.20], cabin=(2.58, 3.80),
+)
+
+
+def taxi_extras(mb, sp):
+    uvl = mb.uv
+    y, z = 2.72, kf(sp['ztop'], 2.72)
+    mb.box('MV_Black', (0.64, 0.30, 0.03), T(0, y, z + 0.005))
+    prof = [(-0.13, 0.0), (0.13, 0.0), (0.08, 0.16), (-0.08, 0.16)]
+    p = mb.prism('MV_TaxiSign', prof, -0.30, 0.30, frame((0, y, z + 0.02), (0, 1, 0), (0, 0, 1)))
+    for f in p['faces']:
+        nrm = f.normal
+        if abs(nrm.y) > 0.5:
+            fr = frame(f.calc_center_median(), (-1 if nrm.y > 0 else 1, 0, 0), Vector((0, 0, 1)).cross(Vector((-1 if nrm.y > 0 else 1, 0, 0))).cross(Vector((-1 if nrm.y > 0 else 1, 0, 0))) * -1)
+            ys = [l.vert.co for l in f.loops]
+            xs_ = [c.x for c in ys]
+            zs_ = [c.z for c in ys]
+            for l in f.loops:
+                u = (l.vert.co.x - min(xs_)) / (max(xs_) - min(xs_))
+                if nrm.y > 0:
+                    u = 1 - u
+                l[uvl].uv = (u, (l.vert.co.z - min(zs_)) / (max(zs_) - min(zs_)))
+        else:
+            for l in f.loops:
+                l[uvl].uv = (0.03, 0.5)
+
+
+TAXI = dict(SEDAN, name='Taxi', paint='MV_TaxiPaint', checker=(1.46, 3.33), extras=taxi_extras)
+
+HATCH = dict(
+    name='Hatchback', L=4.10, hw=0.88, R=0.31, tw=0.195, fa=0.85, ra=3.40, track=0.755, paint='MV_CarPaint',
+    zb=[(0, 0.28), (0.28, 0.19), (0.60, 0.165), (3.75, 0.165), (4.0, 0.22), (4.10, 0.32)],
+    zm=[(0, 0.48), (0.4, 0.53), (4.10, 0.58)],
+    zbelt=[(0, 0.62), (0.05, 0.74), (0.18, 0.83), (1.36, 0.92), (3.60, 0.99), (4.02, 0.98), (4.10, 0.97)],
+    ztop=[(0, 0.66), (0.05, 0.77), (0.18, 0.86), (1.36, 0.96), (2.10, 1.43), (2.60, 1.47), (3.45, 1.45), (3.70, 1.36),
+          (4.02, 1.06), (4.10, 1.02)],
+    wb=[(0, 0.78), (0.05, 0.83), (0.20, 0.87), (0.50, 0.88), (3.70, 0.88), (4.0, 0.865), (4.10, 0.83)],
+    wt=[(0, 0.68), (0.18, 0.77), (1.36, 0.78), (2.10, 0.69), (3.45, 0.68), (4.02, 0.74), (4.10, 0.74)],
+    windshield=(1.38, 2.08), rear_window=(3.50, 3.98), side_windows=[(1.42, 2.38), (2.46, 3.14)],
+    bpillars=[(2.38, 2.46)], seams=[1.24, 2.42, 3.02],
+    front=dict(hl=(0.565, 0.575, 0.34, 0.13), grille=(0.58, 0.50, 0.14), intake=(0.56, 0.325, 0.06), lip=(1.44, 0.29),
+               plate_z=0.40),
+    rear=dict(tl=(0.66, 0.84, 0.26, 0.20), plate_z=0.60, lip=(1.46, 0.35)),
+    mirror=(1.55, 0.99), handles=[2.18, 2.90], cabin=(2.36, 3.50),
+)
+
+
+def hatch_extras(mb, sp):
+    z = kf(sp['ztop'], 3.52)
+    mb.box(sp['paint'], (1.24, 0.24, 0.035), T(0, 3.56, z - 0.004) @ RX(-7))   # roof spoiler over the hatch glass
+    mb.box('MV_Black', (1.10, 0.10, 0.03), T(0, 3.52, z - 0.03))               # spoiler root
+    mb.box('MV_TailLamp', (0.22, 0.016, 0.022), T(0, 3.678, z - 0.016))        # high stop lamp
+    mb.box('MV_Black', (0.45, 0.018, 0.016), T(0.05, 3.86, 1.13) @ RX(-55) @ RZ(8))   # rear wiper
+
+
+HATCH['extras'] = hatch_extras
+
+VAN = dict(
+    name='Van', L=5.00, hw=0.95, R=0.33, tw=0.215, fa=0.80, ra=3.80, track=0.815, paint='MV_CarPaint',
+    zb=[(0, 0.32), (0.35, 0.22), (0.60, 0.20), (4.45, 0.20), (4.85, 0.26), (5.0, 0.36)],
+    zm=[(0, 0.55), (0.4, 0.62), (5.0, 0.62)],
+    zbelt=[(0, 0.88), (0.05, 0.98), (0.25, 1.04), (0.72, 1.07), (5.0, 1.10)],
+    ztop=[(0, 0.92), (0.05, 1.02), (0.25, 1.08), (0.70, 1.13), (1.40, 1.88), (1.75, 1.98), (4.90, 2.00), (4.98, 1.96),
+          (5.0, 1.90)],
+    wb=[(0, 0.86), (0.05, 0.91), (0.25, 0.945), (0.50, 0.95), (4.85, 0.95), (4.97, 0.93), (5.0, 0.91)],
+    wt=[(0, 0.78), (0.25, 0.84), (0.70, 0.86), (1.40, 0.86), (1.75, 0.87), (5.0, 0.86)],
+    windshield=(0.74, 1.38), rear_window=None, side_windows=[(0.80, 1.62)], bpillars=[(1.62, 1.70)],
+    seams=[1.66, 2.62],
+    front=dict(hl=(0.66, 0.84, 0.30, 0.14), grille=(0.80, 0.70, 0.16), intake=(0.70, 0.42, 0.06), lip=(1.74, 0.34),
+               plate_z=0.52, bars=3),
+    rear=dict(tl=(0.84, 0.98, 0.10, 0.40), plate_z=0.62, lip=(1.84, 0.40)),
+    mirror=(0.86, 1.20), handles=[1.40, 2.45], cabin=(1.55, 2.10), rear_bench=False,
+)
+
+
+def van_extras(mb, sp):
+    L = sp['L']
+    for s in (1, -1):        # rear door windows (dark panes on black frames) + sliding-door rail
+        fr = fascia_frame(s * 0.44, 1.52, True, L)
+        mb.prism('MV_Black', rrect2d(0.74, 0.50, 0.05, 3), -0.01, 0.006, fr)
+        q = mb.prism('MV_Black', rrect2d(0.68, 0.44, 0.04, 3), 0.0, 0.009, fr)
+        q['top'].material_index = MI['MV_Glass']
+        uv_local(q['top'], mb.uv, fr)
+    mb.box('MV_Black', (0.014, 1.80, 0.025), T(-0.952, 2.60, 1.07))
+    mb.box('MV_Black', (0.02, 0.014, 1.40), T(0, L + 0.004, 1.12))            # rear door split
+    mb.box('MV_TailLamp', (0.30, 0.02, 0.04), T(0, L + 0.006, 1.86))         # high stop lamp
+
+
+VAN['extras'] = van_extras
+
+SUV = dict(
+    name='SUV', L=4.60, hw=0.93, R=0.36, tw=0.235, fa=0.95, ra=3.70, track=0.78, paint='MV_CarPaint',
+    zb=[(0, 0.40), (0.30, 0.26), (0.70, 0.23), (3.95, 0.23), (4.35, 0.28), (4.60, 0.40)],
+    zm=[(0, 0.62), (0.4, 0.68), (4.60, 0.70)],
+    zbelt=[(0, 0.86), (0.05, 0.96), (0.20, 1.03), (1.55, 1.08), (4.40, 1.12), (4.56, 1.11), (4.60, 1.08)],
+    ztop=[(0, 0.90), (0.05, 1.00), (0.20, 1.07), (1.55, 1.13), (2.15, 1.64), (2.50, 1.70), (4.20, 1.68), (4.45, 1.60),
+          (4.57, 1.24), (4.60, 1.18)],
+    wb=[(0, 0.84), (0.05, 0.89), (0.20, 0.92), (0.50, 0.93), (4.15, 0.93), (4.50, 0.92), (4.60, 0.88)],
+    wt=[(0, 0.76), (0.20, 0.84), (1.55, 0.85), (2.15, 0.76), (4.20, 0.76), (4.57, 0.80), (4.60, 0.80)],
+    windshield=(1.57, 2.13), rear_window=(4.24, 4.55), side_windows=[(1.60, 2.66), (2.74, 3.50), (3.56, 4.12)],
+    bpillars=[(2.66, 2.74), (3.50, 3.56)], seams=[1.40, 2.70, 3.28],
+    front=dict(hl=(0.64, 0.80, 0.32, 0.12), grille=(0.76, 0.66, 0.20), intake=(0.70, 0.47, 0.08), lip=(1.62, 0.42),
+               plate_z=0.52, bars=3),
+    rear=dict(tl=(0.70, 0.98, 0.30, 0.13), plate_z=0.70, lip=(1.66, 0.44)),
+    mirror=(1.76, 1.17), handles=[2.40, 3.20], cabin=(2.55, 3.75),
+)
+
+
+def suv_cladding(mb, sp):
+    for ay in (sp['fa'], sp['ra']):
+        for s in (1, -1):
+            poly = []
+            R0, R1 = sp['R'] + 0.035, sp['R'] + 0.10
+            for i in range(11):
+                a = math.radians(8 + 164 * i / 10)
+                poly.append((ay + R1 * math.cos(a), sp['R'] + R1 * math.sin(a)))
+            for i in range(11):
+                a = math.radians(172 - 164 * i / 10)
+                poly.append((ay + R0 * math.cos(a), sp['R'] + R0 * math.sin(a)))
+            x0 = kf(sp['wb'], ay) - 0.03
+            mb.prism('MV_Black', poly, s * x0, s * (x0 + 0.045), frame((0, 0, 0), (0, 1, 0), (0, 0, 1)))
+    for s in (1, -1):                                                      # roof rails
+        y0, y1 = 2.30, 4.12
+        z = kf(sp['ztop'], 3.0)
+        mb.box('MV_Black', (0.035, y1 - y0, 0.035), T(s * 0.64, (y0 + y1) / 2, z + 0.06))
+        for y in (y0 + 0.05, y1 - 0.05):
+            mb.box('MV_Black', (0.05, 0.08, 0.06), T(s * 0.64, y, z + 0.025))
+
+
+SUV['bevel_extras'] = suv_cladding
+CAR_SPECS = {'Sedan': SEDAN, 'Hatchback': HATCH, 'Taxi': TAXI, 'Van': VAN, 'SUV': SUV}
+
+
+def car_previews(name):
+    def fn(prev_dir):
+        L = CAR_SPECS[name]['L']
+        H = kf(CAR_SPECS[name]['ztop'], L * 0.55)
+        eevee_env(sun_dir=(0.67, -0.4, 0.45))
+        out = []
+        shots = [('%s_34_front' % name, 'ev', dict(loc=(3.7, -2.7, 1.7), target=(0.0, L * 0.42, H * 0.42), lens=28)),
+                 ('%s_34_rear' % name, 'wb', dict(loc=(-3.6, L + 2.9, 1.8), target=(0.0, L * 0.55, H * 0.42), lens=28))]
+        for nm, eng, kw in shots:
+            cam = camera('PrevCam_' + nm, kw['loc'], kw['target'], kw.get('fov_v'), kw.get('ortho'), kw.get('lens'))
+            path = os.path.join(prev_dir, nm + '.png')
+            g = bpy.data.objects.get('PreviewGround')
+            if g:
+                g.hide_render = (eng == 'wb')
+            (render_workbench if eng == 'wb' else render_eevee)(path, cam)
+            out.append(path)
+        clear_preview_objects()
+        return out
+    return fn
+
+
+def _car(name):
+    def b():
+        sp = CAR_SPECS[name]
+        root, locs = build_car(sp)
+        notes = ('%.1f m %s. Body paint %s%s. Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R '
+                 'headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + '
+                 'dim driver visible through MV_Glass.' % (sp['L'], name.lower(), sp['paint'],
+                                                          ' (neutral grey: tint per instance)' if sp['paint'] == 'MV_CarPaint' else ''))
+        return root, locs, notes, car_previews(name)
+    return b
+
+
+for _n in CAR_SPECS:
+    BUILDERS[_n] = _car(_n)
 
 if __name__ == '__main__':
     main()

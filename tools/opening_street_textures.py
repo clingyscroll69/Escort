@@ -100,7 +100,7 @@ def street_names(out):
     W, H = 1024, 512
     img = canvas(W, H, '#0D6B3E')
     d = ImageDraw.Draw(img)
-    rows = [('MAPLE', 'AVE', '300'), ('3', 'RD ST', '100')]
+    rows = [('MAPLE', 'AVE', '300'), ('3RD', 'ST', '100')]
     for i, (big, small, block) in enumerate(rows):
         y0 = i * 256 * SS
         rrect(d, (10 * SS, y0 + 10 * SS, (W - 10) * SS, y0 + 246 * SS), 22 * SS, outline=hexc('#F4F6F2'), width=7 * SS)
@@ -155,19 +155,22 @@ def hand_mask(d, S):
 
 
 def walk_mask(d, S):
-    # walking person in stride, facing left
+    # MUTCD-style walking person in stride, facing left: round head, forward-leaning torso, swinging arms
     u = S / 100.0
-    w = int(8.5 * u)
-    d.ellipse((44 * u, 8 * u, 58 * u, 22 * u), fill=255)                               # head
-    d.line([(51 * u, 27 * u), (47 * u, 55 * u)], fill=255, width=int(12 * u))           # torso
-    d.line([(50 * u, 31 * u), (38 * u, 44 * u), (33 * u, 55 * u)], fill=255, width=w, joint='curve')   # front arm
-    d.line([(51 * u, 31 * u), (61 * u, 43 * u), (64 * u, 54 * u)], fill=255, width=w, joint='curve')   # back arm
-    d.line([(47 * u, 54 * u), (37 * u, 72 * u), (31 * u, 91 * u)], fill=255, width=int(9.5 * u), joint='curve')
-    d.line([(47 * u, 54 * u), (57 * u, 72 * u), (66 * u, 89 * u)], fill=255, width=int(9.5 * u), joint='curve')
-    d.ellipse((26 * u, 87 * u, 36 * u, 95 * u), fill=255)
-    d.ellipse((62 * u, 85 * u, 72 * u, 93 * u), fill=255)
-    for (x, y) in [(51, 27), (47, 55), (38, 44), (61, 43)]:
-        d.ellipse(((x - 5) * u, (y - 5) * u, (x + 5) * u, (y + 5) * u), fill=255)
+
+    def limb(pts, w):
+        d.line([(x * u, y * u) for x, y in pts], fill=255, width=int(w * u), joint='curve')
+        for x, y in pts:
+            d.ellipse(((x - w / 2) * u, (y - w / 2) * u, (x + w / 2) * u, (y + w / 2) * u), fill=255)
+
+    d.ellipse((42 * u, 6 * u, 57 * u, 21 * u), fill=255)                                 # head
+    d.polygon([(44 * u, 26 * u), (56 * u, 25 * u), (55 * u, 52 * u), (41 * u, 53 * u)], fill=255)   # torso
+    limb([(47, 29), (39, 42), (35, 52)], 8.5)                                            # front arm
+    limb([(53, 29), (61, 41), (66, 49)], 8.5)                                            # back arm
+    limb([(45, 50), (38, 66), (27, 80), (22, 92)], 10)                                   # front leg
+    limb([(51, 50), (57, 68), (62, 80), (70, 92)], 10)                                   # back leg
+    d.polygon([(16 * u, 88 * u), (28 * u, 88 * u), (28 * u, 96 * u), (14 * u, 96 * u)], fill=255)   # front foot
+    d.polygon([(66 * u, 87 * u), (78 * u, 90 * u), (76 * u, 97 * u), (64 * u, 95 * u)], fill=255)   # back foot
 
 
 def push_button_sign(out):
@@ -516,9 +519,9 @@ def chalkboard(out):
     for (x, y) in [(60, 380), (450, 360), (420, 520), (80, 560)]:
         glint(d, x * SS, y * SS, 14 * SS, cw)
     # chalk grain: knock holes into the strokes
-    grain = (noise(S[0], S[1], 12, scale=90, octaves=1) > 0.38).astype(np.uint8) * 255
-    a = np.asarray(chalk.split()[3], dtype=np.uint8) * (grain // 255)
-    chalk.putalpha(Image.fromarray((a * 0.92).astype(np.uint8)))
+    grain = 0.78 + 0.22 * (noise(S[0], S[1], 12, scale=120, octaves=1) > 0.3)
+    a = np.asarray(chalk.split()[3], dtype=float) * grain * 0.95
+    chalk.putalpha(Image.fromarray(a.astype(np.uint8)))
     img.alpha_composite(chalk)
     save(img, out, 'T_AFrameChalk.png', (W, H))
 
@@ -555,15 +558,28 @@ def drain_marker(out):
     d = ImageDraw.Draw(img)
     c = W / 2 * SS
     d.ellipse((6 * SS, 6 * SS, (W - 6) * SS, (W - 6) * SS), fill=hexc('#2D6E8E'), outline=hexc('#E8EEF0'), width=6 * SS)
-    f = font('arialb', 30 * SS)
-    text_c(d, (c, 58 * SS), 'NO DUMPING', f, hexc('#F2F4F2'))
+    f = fit_font(d, 'NO DUMPING', 'arialb', 150 * SS, 26 * SS)
+    text_c(d, (c, 62 * SS), 'NO DUMPING', f, hexc('#F2F4F2'))
     # fish
     d.ellipse((c - 62 * SS, c - 30 * SS, c + 40 * SS, c + 30 * SS), fill=hexc('#F2F4F2'))
     d.polygon([(c + 30 * SS, c), (c + 76 * SS, c - 32 * SS), (c + 76 * SS, c + 32 * SS)], fill=hexc('#F2F4F2'))
     d.ellipse((c - 44 * SS, c - 10 * SS, c - 30 * SS, c + 4 * SS), fill=hexc('#2D6E8E'))
-    text_c(d, (c, 190 * SS), 'DRAINS TO', font('arialb', 26 * SS), hexc('#F2F4F2'))
-    text_c(d, (c, 222 * SS), 'RIVER', font('arialb', 26 * SS), hexc('#F2F4F2'))
+    text_c(d, (c, 184 * SS), 'DRAINS TO', font('arialb', 22 * SS), hexc('#F2F4F2'))
+    text_c(d, (c, 210 * SS), 'RIVER', font('arialb', 22 * SS), hexc('#F2F4F2'))
     save(img, out, 'T_DrainMarker.png', (W, W))
+
+
+def pigeon_neck(out):
+    """Iridescent neck sheen: green/purple bands with soft noise (cylindrical UVs around the neck)."""
+    W, H = 128, 128
+    yy, xx = np.mgrid[0:H, 0:W] / float(W)
+    n = noise(W, H, 31, scale=4)
+    t = (np.sin((xx * 2 + yy * 0.6 + n * 0.8) * math.pi * 2) + 1) / 2
+    green, purple = np.array([76, 140, 112], float), np.array([118, 86, 140], float)
+    col = green * (1 - t[..., None]) + purple * t[..., None]
+    col *= (0.85 + 0.3 * n)[..., None]
+    Image.fromarray(np.clip(col, 0, 255).astype(np.uint8)).save(os.path.join(out, 'T_PigeonNeck.png'), optimize=True)
+    print('[tex]', os.path.join(out, 'T_PigeonNeck.png'), (W, H))
 
 
 def main():
@@ -582,6 +598,7 @@ def main():
     chalkboard(out)
     glass_reflection(out)
     drain_marker(out)
+    pigeon_neck(out)
 
 
 if __name__ == '__main__':

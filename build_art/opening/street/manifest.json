@@ -1,0 +1,686 @@
+{
+  "materials": {
+    "MP_BackGlass": {
+      "color": "#1F3B5C",
+      "texture": null,
+      "emission": null,
+      "note": "deep blue back glass and camera plateau"
+    },
+    "MP_Cable": {
+      "color": "#F4F4F2",
+      "texture": null,
+      "emission": null,
+      "note": "white earphone plastic: plug, strain relief, splitter, remote, earbuds"
+    },
+    "MP_Chrome": {
+      "color": "#C9CDD3",
+      "texture": null,
+      "emission": null,
+      "note": "lens rings, screws, plug collar (bright, slightly blue grey)"
+    },
+    "MP_EarbudGrille": {
+      "color": "#3C3F44",
+      "texture": null,
+      "emission": null,
+      "note": "earbud speaker grille"
+    },
+    "MP_Flash": {
+      "color": "#E9E2C8",
+      "texture": null,
+      "emission": null,
+      "note": "camera flash diffuser"
+    },
+    "MP_Frame": {
+      "color": "#5B5E66",
+      "texture": null,
+      "emission": null,
+      "note": "graphite titanium frame and buttons"
+    },
+    "MP_FrameBand": {
+      "color": "#3A3C42",
+      "texture": null,
+      "emission": null,
+      "note": "antenna bands in the frame"
+    },
+    "MP_FrontGlass": {
+      "color": "#0B0B0F",
+      "texture": null,
+      "emission": null,
+      "note": "front glass; Unity overlays the lock-screen canvas at ScreenCenter"
+    },
+    "MP_Lens": {
+      "color": "#101318",
+      "texture": null,
+      "emission": null,
+      "note": "camera lens glass, LiDAR"
+    },
+    "MP_Nail": {
+      "color": "#D9B49A",
+      "texture": null,
+      "emission": null,
+      "note": "fingernails"
+    },
+    "MP_Port": {
+      "color": "#141518",
+      "texture": null,
+      "emission": null,
+      "note": "insides of jack, USB-C port, speaker and mic holes"
+    },
+    "MP_Skin": {
+      "color": "#C59B76",
+      "texture": null,
+      "emission": null,
+      "note": "sidekick skin"
+    },
+    "MP_Sleeve": {
+      "color": "#C98A3A",
+      "texture": null,
+      "emission": null,
+      "note": "ochre hoodie sleeve"
+    },
+    "MP_SleeveCuff": {
+      "color": "#A86F2C",
+      "texture": null,
+      "emission": null,
+      "note": "ribbed cuff, darker ochre"
+    },
+    "MS_AdPanel": {
+      "color": "#3A2A80",
+      "texture": "T_AdHeroSummoner.png",
+      "emission": {
+        "color": "#FFFFFF",
+        "intensity": 1.6
+      },
+      "note": "back-lit ad: HERO SUMMONER (emission = texture x intensity)"
+    },
+    "MS_Backplate": {
+      "color": "#141516",
+      "texture": null,
+      "emission": null,
+      "note": "signal backplates"
+    },
+    "MS_Banner": {
+      "color": "#F2E6C9",
+      "texture": "T_BannerSpringMarket.png",
+      "emission": null,
+      "note": "lamp-post banner"
+    },
+    "MS_BannerHem": {
+      "color": "#E9DCBF",
+      "texture": null,
+      "emission": null,
+      "note": "banner pole pockets"
+    },
+    "MS_BikeFrame": {
+      "color": "#4F7D7A",
+      "texture": null,
+      "emission": null,
+      "note": "bicycle frame (teal)"
+    },
+    "MS_BikeSeat": {
+      "color": "#2A2A2C",
+      "texture": null,
+      "emission": null,
+      "note": "saddle, pedals"
+    },
+    "MS_BusSign": {
+      "color": "#1E4FA3",
+      "texture": "T_BusStopSign.png",
+      "emission": null,
+      "note": "bus stop sign 12 \u00b7 47"
+    },
+    "MS_ButtonBox": {
+      "color": "#E8B820",
+      "texture": null,
+      "emission": null,
+      "note": "push-button housing yellow"
+    },
+    "MS_CafeMetal": {
+      "color": "#2F6B4F",
+      "texture": null,
+      "emission": null,
+      "note": "bistro table and chair frames (cafe green)"
+    },
+    "MS_CafeTop": {
+      "color": "#E8E2D6",
+      "texture": null,
+      "emission": null,
+      "note": "bistro table top"
+    },
+    "MS_CastIron": {
+      "color": "#3A3B3D",
+      "texture": null,
+      "emission": null,
+      "note": "tree grate, drain grate, manhole frame"
+    },
+    "MS_Chalkboard": {
+      "color": "#2E3532",
+      "texture": "T_AFrameChalk.png",
+      "emission": null,
+      "note": "cafe chalkboard FRESH COFFEE"
+    },
+    "MS_Concrete": {
+      "color": "#B5B0A6",
+      "texture": null,
+      "emission": null,
+      "note": "concrete: planter, footings, curb inlet"
+    },
+    "MS_DrainMarker": {
+      "color": "#2D6E8E",
+      "texture": "T_DrainMarker.png",
+      "emission": null,
+      "note": "curb drain plaque"
+    },
+    "MS_Flower": {
+      "color": "#E58AA8",
+      "texture": null,
+      "emission": null,
+      "note": "small flowers in the planter"
+    },
+    "MS_HydrantCap": {
+      "color": "#E8B820",
+      "texture": null,
+      "emission": null,
+      "note": "fire hydrant bonnet / cap yellow"
+    },
+    "MS_HydrantRed": {
+      "color": "#C2392B",
+      "texture": null,
+      "emission": null,
+      "note": "fire hydrant body"
+    },
+    "MS_LampHead": {
+      "color": "#5E6469",
+      "texture": null,
+      "emission": null,
+      "note": "LED cobra head housing"
+    },
+    "MS_LampLens": {
+      "color": "#FFF4D6",
+      "texture": null,
+      "emission": {
+        "color": "#FFF4D6",
+        "intensity": 4.0
+      },
+      "note": "street lamp LED lens / shelter light strip (still lit at 7:52)"
+    },
+    "MS_LensAmber": {
+      "color": "#F2A21E",
+      "texture": null,
+      "emission": {
+        "color": "#FFB028",
+        "intensity": 3.0
+      },
+      "note": "signal amber lens"
+    },
+    "MS_LensGreen": {
+      "color": "#19D99A",
+      "texture": null,
+      "emission": {
+        "color": "#2BFFB8",
+        "intensity": 3.0
+      },
+      "note": "signal green lens"
+    },
+    "MS_LensRed": {
+      "color": "#E8321F",
+      "texture": null,
+      "emission": {
+        "color": "#FF3A22",
+        "intensity": 3.0
+      },
+      "note": "signal red lens (emission authored on; Unity dims when off)"
+    },
+    "MS_Manhole": {
+      "color": "#5A5958",
+      "texture": "T_ManholeCover.png",
+      "emission": null,
+      "note": "manhole cover pattern"
+    },
+    "MS_Metal": {
+      "color": "#9AA0A6",
+      "texture": null,
+      "emission": null,
+      "note": "galvanised / stainless steel: bolts, bike rack, chains, rims"
+    },
+    "MS_MeterHead": {
+      "color": "#4A5560",
+      "texture": null,
+      "emission": null,
+      "note": "parking meter head"
+    },
+    "MS_MeterScreen": {
+      "color": "#2B3A33",
+      "texture": null,
+      "emission": null,
+      "note": "parking meter LCD"
+    },
+    "MS_Mulch": {
+      "color": "#4A3727",
+      "texture": null,
+      "emission": null,
+      "note": "mulch under the tree grate"
+    },
+    "MS_NewsBoxBlue": {
+      "color": "#2459A8",
+      "texture": null,
+      "emission": null,
+      "note": "DAILY NEWS box body"
+    },
+    "MS_NewsBoxYellow": {
+      "color": "#E3B21C",
+      "texture": null,
+      "emission": null,
+      "note": "CITY WEEKLY box body"
+    },
+    "MS_NewsFront": {
+      "color": "#ECE8DD",
+      "texture": "T_NewsBoxFronts.png",
+      "emission": null,
+      "note": "news box door fronts: left half DAILY NEWS, right half CITY WEEKLY"
+    },
+    "MS_NoParking": {
+      "color": "#F4F4EF",
+      "texture": "T_NoParking.png",
+      "emission": null,
+      "note": "NO PARKING sign"
+    },
+    "MS_PedHand": {
+      "color": "#FF7A1A",
+      "texture": "T_PedHand.png",
+      "emission": {
+        "color": "#FFFFFF",
+        "intensity": 2.5
+      },
+      "note": "orange raised-hand LED icon (emission = texture x intensity); 0.5 mm behind MS_PedWalk"
+    },
+    "MS_PedPanelOff": {
+      "color": "#121314",
+      "texture": null,
+      "emission": null,
+      "note": "dark ped head panel; countdown digits drawn by Unity"
+    },
+    "MS_PedWalk": {
+      "color": "#F2F5EE",
+      "texture": "T_PedWalk.png",
+      "emission": {
+        "color": "#FFFFFF",
+        "intensity": 2.5
+      },
+      "note": "white walking-person LED icon; same panel as MS_PedHand, show one at a time"
+    },
+    "MS_PigeonBar": {
+      "color": "#2E3035",
+      "texture": null,
+      "emission": null,
+      "note": "pigeon wing bars, primaries, tail band"
+    },
+    "MS_PigeonBeak": {
+      "color": "#2B2B2B",
+      "texture": null,
+      "emission": null,
+      "note": "beak"
+    },
+    "MS_PigeonBody": {
+      "color": "#8A8F99",
+      "texture": null,
+      "emission": null,
+      "note": "pigeon blue-grey body, head, wings"
+    },
+    "MS_PigeonCere": {
+      "color": "#E9E6DF",
+      "texture": null,
+      "emission": null,
+      "note": "white cere at the beak base"
+    },
+    "MS_PigeonEye": {
+      "color": "#1C1A18",
+      "texture": null,
+      "emission": null,
+      "note": "dark eye"
+    },
+    "MS_PigeonFeet": {
+      "color": "#D98C8C",
+      "texture": null,
+      "emission": null,
+      "note": "pink feet"
+    },
+    "MS_PigeonNeck": {
+      "color": "#5E8C7E",
+      "texture": "T_PigeonNeck.png",
+      "emission": null,
+      "note": "iridescent green/purple neck"
+    },
+    "MS_Pole": {
+      "color": "#2F3A36",
+      "texture": null,
+      "emission": null,
+      "note": "poles, arms, brackets (dark green-grey)"
+    },
+    "MS_PoleDark": {
+      "color": "#26292D",
+      "texture": null,
+      "emission": null,
+      "note": "base plates, clamps, bollards, dark street furniture"
+    },
+    "MS_PushSign": {
+      "color": "#F3F3EE",
+      "texture": "T_PushButtonSign.png",
+      "emission": null,
+      "note": "PUSH BUTTON FOR WALK SIGNAL"
+    },
+    "MS_Reflective": {
+      "color": "#F2F2EE",
+      "texture": null,
+      "emission": null,
+      "note": "retroreflective bollard band"
+    },
+    "MS_Shadow": {
+      "color": "#101112",
+      "texture": null,
+      "emission": null,
+      "note": "dark insides of drains"
+    },
+    "MS_ShelterFrame": {
+      "color": "#3B4247",
+      "texture": null,
+      "emission": null,
+      "note": "bus shelter frame, posts, lightbox body"
+    },
+    "MS_ShelterGlass": {
+      "color": "#2F4250",
+      "texture": "T_GlassReflection.png",
+      "emission": null,
+      "note": "dark tinted reflective glass (opaque, reflection baked in the texture)"
+    },
+    "MS_ShelterRoof": {
+      "color": "#6B7176",
+      "texture": null,
+      "emission": null,
+      "note": "bus shelter roof top"
+    },
+    "MS_Shrub": {
+      "color": "#4E7A3A",
+      "texture": null,
+      "emission": null,
+      "note": "shrub foliage"
+    },
+    "MS_ShrubDark": {
+      "color": "#3C6330",
+      "texture": null,
+      "emission": null,
+      "note": "shrub foliage, darker"
+    },
+    "MS_SignBack": {
+      "color": "#B9BDC1",
+      "texture": null,
+      "emission": null,
+      "note": "aluminium sign backs and edges"
+    },
+    "MS_SignalHousing": {
+      "color": "#1B1C1E",
+      "texture": null,
+      "emission": null,
+      "note": "signal and ped head housings, visors, button faceplate"
+    },
+    "MS_SignalYellow": {
+      "color": "#F2C230",
+      "texture": null,
+      "emission": null,
+      "note": "retroreflective backplate border"
+    },
+    "MS_Soil": {
+      "color": "#3F3125",
+      "texture": null,
+      "emission": null,
+      "note": "planter soil"
+    },
+    "MS_SolarPanel": {
+      "color": "#1F2A44",
+      "texture": null,
+      "emission": null,
+      "note": "parking meter solar panel"
+    },
+    "MS_StreetBlade": {
+      "color": "#0D6B3E",
+      "texture": "T_StreetNames.png",
+      "emission": null,
+      "note": "street name blades: top half MAPLE AVE, bottom half 3RD ST"
+    },
+    "MS_TimetableFace": {
+      "color": "#ECEDEA",
+      "texture": null,
+      "emission": null,
+      "note": "timetable case face"
+    },
+    "MS_Tire": {
+      "color": "#1E1F21",
+      "texture": null,
+      "emission": null,
+      "note": "tyres, grips"
+    },
+    "MS_TrashGreen": {
+      "color": "#2F5D45",
+      "texture": null,
+      "emission": null,
+      "note": "trash can slats (dark green)"
+    },
+    "MS_Wood": {
+      "color": "#A0693A",
+      "texture": null,
+      "emission": null,
+      "note": "bench slats, A-frame frame"
+    }
+  },
+  "models": {
+    "AFrameSign": {
+      "file": "fbx/AFrameSign.fbx",
+      "tris": 592,
+      "locators": [],
+      "notes": "Cafe sandwich board 0.64 x 0.87 m, chalkboard faces on both sides (front faces -Y)."
+    },
+    "Bench": {
+      "file": "fbx/Bench.fbx",
+      "tris": 1440,
+      "locators": [],
+      "notes": "Park bench 1.8 m: cast frames (3) with armrests, 4 seat + 3 back wood slats; faces -Y."
+    },
+    "BikeRack": {
+      "file": "fbx/BikeRack.fbx",
+      "tris": 3232,
+      "locators": [],
+      "notes": "Stainless inverted-U rack (0.72 x 0.80 m) with a teal city bike locked to it (U-lock through the seat tube). Rack, Bicycle and Lock are separate children (delete Bicycle/Lock for an empty rack)."
+    },
+    "Bollard": {
+      "file": "fbx/Bollard.fbx",
+      "tris": 440,
+      "locators": [],
+      "notes": "Steel bollard 0.95 m with a retroreflective band (MS_Reflective) at 0.72-0.80 m."
+    },
+    "BusShelter": {
+      "file": "fbx/BusShelter.fbx",
+      "tris": 1800,
+      "locators": [
+        "AdCenter"
+      ],
+      "notes": "4.2 x 1.8 x 2.55 m glass shelter, open front toward -Y (street), back glass + side glass at +X (MS_ShelterGlass, opaque, reflection texture), roof with an emissive light strip (MS_LampLens) along the front edge, slatted bench, back-lit ad lightbox at -X printed on both faces (MS_AdPanel, emissive; AdCenter locator)."
+    },
+    "BusStopSign": {
+      "file": "fbx/BusStopSign.fbx",
+      "tris": 788,
+      "locators": [],
+      "notes": "2.9 m pole, 0.3 x 0.6 m BUS STOP plate (routes 12 \u00b7 47) printed both sides facing -Y/+Y, timetable case."
+    },
+    "CafeChair": {
+      "file": "fbx/CafeChair.fbx",
+      "tris": 936,
+      "locators": [],
+      "notes": "Bistro chair, cafe-green frame with wood slats, seat 0.46 m; faces -Y."
+    },
+    "CafeTable": {
+      "file": "fbx/CafeTable.fbx",
+      "tris": 548,
+      "locators": [],
+      "notes": "Bistro table 0.6 m round top at 0.725 m on a cast pedestal."
+    },
+    "Earphones": {
+      "file": "fbx/Earphones.fbx",
+      "tris": 4018,
+      "locators": [
+        "Splitter/CableIn",
+        "Splitter/CableOut_L",
+        "Splitter/CableOut_R",
+        "Remote/CableTop",
+        "Remote/CableBottom",
+        "Earbud/CableEnd",
+        "Earbud/HeadCenter"
+      ],
+      "notes": "Three root objects, origins at their bounding-box centres; the cable runs along Blender Z = Unity Y (cable radius ~1.0 mm). Splitter 14 mm: main cable in at -Y(Unity), branches out at +Y, L at Unity +X (Blender -X). Remote 26 x 9 x 6 mm pill, buttons (+, centre, -) on the Unity +Z face (Blender -Y), cable at both ends. Earbud: 16 mm head with the dark grille facing Unity +Z, 18 mm stem down; CableEnd at the stem tip, HeadCenter at the head centre. Tris: Splitter 696, Remote 1666, Earbud 1656."
+    },
+    "FireHydrant": {
+      "file": "fbx/FireHydrant.fbx",
+      "tris": 1216,
+      "locators": [],
+      "notes": "Classic hydrant 0.75 m: red body, yellow bonnet, pumper nozzle facing -Y, chained side caps."
+    },
+    "ManholeCover": {
+      "file": "fbx/ManholeCover.fbx",
+      "tris": 476,
+      "locators": [],
+      "notes": "0.65 m cast-iron cover (pattern via T_ManholeCover, planar UVs) in a frame, top 4 mm above z = 0."
+    },
+    "NewsBox_CityWeekly": {
+      "file": "fbx/NewsBox_CityWeekly.fbx",
+      "tris": 388,
+      "locators": [],
+      "notes": "Newspaper vending box, yellow; front door texture = right half of T_NewsBoxFronts."
+    },
+    "NewsBox_DailyNews": {
+      "file": "fbx/NewsBox_DailyNews.fbx",
+      "tris": 388,
+      "locators": [],
+      "notes": "Newspaper vending box, blue; front door texture = left half of T_NewsBoxFronts."
+    },
+    "NoParkingSign": {
+      "file": "fbx/NoParkingSign.fbx",
+      "tris": 272,
+      "locators": [],
+      "notes": "2.5 m U-channel post with a 12 x 18 in NO PARKING sign facing -Y."
+    },
+    "ParkingMeter": {
+      "file": "fbx/ParkingMeter.fbx",
+      "tris": 576,
+      "locators": [],
+      "notes": "Single-space smart meter 1.5 m: post, head with LCD, coin/card slots, buttons, solar fin."
+    },
+    "PedPole": {
+      "file": "fbx/PedPole.fbx",
+      "tris": 1564,
+      "locators": [
+        "Countdown"
+      ],
+      "notes": "3.2 m pole; PedHead (separate child, same layout as PedSignal) centred at 2.6 m facing -Y, its Countdown empty as child; push-button box at 1.0 m (yellow body, black face, silver button with a raised arrow pointing Unity +X, i.e. the crossing to the viewer's left) with the PUSH BUTTON sign above."
+    },
+    "PedSignal": {
+      "file": "fbx/PedSignal.fbx",
+      "tris": 612,
+      "locators": [
+        "Countdown"
+      ],
+      "notes": "LED ped head 0.46 m, origin at the housing bottom centre; clamp brackets for a pole 0.26 m behind (Blender +Y = Unity -Z). Left half: MS_PedHand and MS_PedWalk on the same square (Walk 0.5 mm in front of Hand) - show one at a time. Right half MS_PedPanelOff; empty Countdown at its centre, facing out of the panel (Unity +Z), 0.19 m square window."
+    },
+    "Phone": {
+      "file": "fbx/Phone.fbx",
+      "tris": 10024,
+      "locators": [
+        "ScreenCenter",
+        "CableStart"
+      ],
+      "notes": "Phone + plug only. Root \"Phone\" at the display centre, mesh child \"PhoneBody\" (origin at the phone centre), same empties and offsets as PhoneInHand."
+    },
+    "PhoneInHand": {
+      "file": "fbx/PhoneInHand.fbx",
+      "tris": 19140,
+      "locators": [
+        "ScreenCenter",
+        "CableStart"
+      ],
+      "notes": "Root at the display centre on the glass. Children: Phone (body+buttons+camera+ports+plug, origin at the phone centre, 4 mm behind the root), Hand (posed UBC female right hand + forearm + ochre hoodie sleeve, same origin), ScreenCenter (Unity +Z out of the screen, +Y to the phone top; display 69.2 x 142.7 mm, corner radius 8.5 mm; offset the UI canvas ~0.1 mm along +Z), CableStart (end of the plug strain relief, cable leaves along Unity -Y = phone down; strain relief end radius 1.1 mm). Tris: Phone 10024, Hand 9116. The sleeve runs 26 cm up the forearm (open end off-screen in the reading pose)."
+    },
+    "Pigeon": {
+      "file": "fbx/Pigeon.fbx",
+      "tris": 1462,
+      "locators": [],
+      "notes": "Rock pigeon 0.32 m (beak to tail), standing, faces -Y, origin at the feet. Wing_L (+X Blender = bird's left) and Wing_R are separate children with pivots at the shoulders, folded along the body at rest: to open, yaw them out about Unity Y by about +-70 deg, then flap about the wing's length axis."
+    },
+    "Planter": {
+      "file": "fbx/Planter.fbx",
+      "tris": 3264,
+      "locators": [],
+      "notes": "Concrete planter 1.4 x 0.6 x 0.52 m with three low shrubs and small pink flowers."
+    },
+    "SignPost": {
+      "file": "fbx/SignPost.fbx",
+      "tris": 436,
+      "locators": [],
+      "notes": "Corner post 3.3 m with two crossed street-name blades: MAPLE AVE along Blender X (faces -Y/+Y), 3RD ST along Blender Y (faces -X/+X), both printed on both sides."
+    },
+    "StormDrain": {
+      "file": "fbx/StormDrain.fbx",
+      "tris": 1320,
+      "locators": [],
+      "notes": "Curb inlet section (1.4 m, curb face at y = 0, top 0.15 m) with a dark throat and steel lintel, gutter grate on the road in front (-Y), NO DUMPING plaque on the curb top."
+    },
+    "StreetLamp": {
+      "file": "fbx/StreetLamp.fbx",
+      "tris": 1898,
+      "locators": [
+        "LampLight"
+      ],
+      "notes": "8.5 m pole on a bolted base with shroud, curved arm reaching 2.4 m toward -Y (street), LED cobra head with emissive MS_LampLens underneath (LampLight locator at the lens, pointing down). Banner 0.6 x 1.2 m on two bracket arms toward the street, printed both sides (faces Unity +-X)."
+    },
+    "TrafficSignalMast": {
+      "file": "fbx/TrafficSignalMast.fbx",
+      "tris": 5888,
+      "locators": [
+        "HeadA",
+        "HeadB",
+        "HeadPole"
+      ],
+      "notes": "6.8 m pole (front -Y), 6.5 m mast arm at 6.0 m toward -X, two 3-section heads on the arm (HeadA 3.7 m, HeadB 6.05 m from the pole) and one on the pole (HeadPole); locators sit on the amber lens. Lenses are separate faces: MS_LensRed/Amber/Green (emission authored on; drive per state). Street name blade MAPLE AVE under the arm (UV: top half of T_StreetNames)."
+    },
+    "TrashCan": {
+      "file": "fbx/TrashCan.fbx",
+      "tris": 2484,
+      "locators": [],
+      "notes": "Municipal bin 0.6 m dia x 1.07 m: steel bands, 22 dark-green slats, dome lid with a -Y opening."
+    },
+    "TreeGrate": {
+      "file": "fbx/TreeGrate.fbx",
+      "tris": 5180,
+      "locators": [],
+      "notes": "1.2 m square cast-iron tree grate, 0.5 m round opening, top 6 mm above the sidewalk (z = 0), mulch bed 6 cm below."
+    }
+  },
+  "draft_copy": [
+    "PUSH BUTTON FOR WALK SIGNAL",
+    "SPRING MARKET \u00b7 SAT (lamp banner)",
+    "HERO SUMMONER",
+    "Will today be the day you're chosen?",
+    "DAILY SUMMON READY",
+    "BUS STOP \u00b7 12 \u00b7 47 \u00b7 STOP 3417",
+    "MAPLE AVE (300 block)",
+    "3RD ST (100 block)",
+    "NO PARKING",
+    "DAILY NEWS",
+    "The Daily News",
+    "50\u00a2",
+    "CITY WEEKLY",
+    "City Weekly",
+    "FREE",
+    "CITY SEWER \u00b7 1926 (manhole)",
+    "NO DUMPING \u00b7 DRAINS TO RIVER",
+    "FRESH COFFEE",
+    "come on in!"
+  ]
+}

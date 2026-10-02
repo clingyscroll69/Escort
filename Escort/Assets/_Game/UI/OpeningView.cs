@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using HS.Audio;
+using HS.Opening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,13 +9,14 @@ using UnityEngine.UI;
 namespace HS.UI
 {
     /// <summary>
-    /// The opening (GDD §8), about 35 s, UI and audio only; later runs get the 3-second version.
-    /// 1. The walk: a phone lock screen bobbing with each step, a song in the earbuds, the street muffled. A horn rises
-    ///    out of the muffle, headlights flood in from the right, the phone drops away, and the song cuts on the drop that
-    ///    never comes. White screen, ringing.
-    /// 2. The status window: CLASS rolls (… Barista, Tax Auditor, Dark Lord) and settles on HERO. "YES. I finally get to
-    ///    be the hero."
-    /// 3. A red error box; red glyphs cycle and settle with 's SIDEKICK appended: HERO's SIDEKICK.
+    /// The opening (GDD §8), about 41 s; later runs get the 3-second version.
+    /// 1. The walk (<see cref="OpeningStreet"/>): first person up a city sidewalk and across a crosswalk, the phone's lock
+    ///    screen in hand and the song in the wired earphones, the street muffled. The light turns; a horn rises out of the
+    ///    muffle; you look up into a truck's grille and headlights, and the song cuts on the drop that never comes.
+    ///    White screen, ringing.
+    /// 2. The status window (<see cref="ClassRoll"/>): CLASS spins through ~70 classes and lands on HERO. "YES. I finally
+    ///    get to be the hero."
+    /// 3. The error: red glyphs and error pop-ups storm the screen, then clear, and the class settles on HERO's SIDEKICK.
     /// The song, street and truck (tools/make_opening.py) are scheduled on the audio clock and cut on the same sample; the
     /// picture follows the audio clock. Skipping takes two presses, so a stray click can't eat the joke.
     /// </summary>
@@ -54,8 +56,11 @@ namespace HS.UI
         /// <summary>The System window (class roll, error storm, recovery).</summary>
         public ClassRoll Roll => _roll;
         public float WhiteAlpha => _white.color.a;
-        public float GlowAlpha => Mathf.Max(_wash.color.a, _lampImgL.color.a);
-        public bool PhoneVisible => _phone != null && _phone.gameObject.activeSelf && _phoneGroup.alpha > 0.5f;
+        /// <summary>The truck's light: its headlights on the walker, then the flood before the cut (0 once it cuts).</summary>
+        public float GlowAlpha => Mathf.Max(_wash.color.a, _street != null ? _street.Glow : 0f);
+        public bool PhoneVisible => _street != null && _street.PhoneInView;
+        /// <summary>The 3D street of the walk (null once the picture has cut to white).</summary>
+        public OpeningStreet Street => _street;
         public int NotificationsShown { get; private set; }
         public bool AudioScheduled => _dsp0 > 0;
         /// <summary>Tests drive <see cref="Advance"/> themselves (no real time, no input).</summary>
@@ -81,9 +86,8 @@ namespace HS.UI
         float _sys0, _endAt;
         ClassRoll _roll;
 
-        RectTransform _phone, _lampL, _lampR, _streak;
-        CanvasGroup _phoneGroup;
-        Image _white, _glare, _wash, _lampImgL, _lampImgR, _coreL, _coreR, _streakImg, _progress;
+        OpeningStreet _street;
+        Image _black, _white, _glare, _wash, _progress;
         TextMeshProUGUI _foot, _steps, _elapsed, _remain;
         RectTransform[] _cards;
         CanvasGroup[] _cardGroups;
@@ -107,10 +111,13 @@ namespace HS.UI
         // ------------------------------------------------------------------------------------------------------ build
         void Build()
         {
-            var bg = UIKit.Image(transform, "Black", null, new Color(0.01f, 0.01f, 0.02f, 1f), false);
-            bg.raycastTarget = true; // nothing behind the opening takes clicks
-            if (!_short) BuildPhone();
-            BuildHeadlights();
+            // Black until the walk fades in, and behind the System window after the cut. The street renders behind it from
+            // the first frame, so its shaders compile during the pre-roll.
+            _black = UIKit.Image(transform, "Black", null, new Color(0.01f, 0.01f, 0.02f, 1f), false);
+            _black.raycastTarget = true; // nothing behind the opening takes clicks
+            _street = OpeningStreet.Build(_short);
+            if (!_short) BuildPhone(_street.PhoneScreen);
+            _wash = UIKit.Image(transform, "Flood", null, new Color(1f, 0.97f, 0.9f, 0f), false);
             _roll = new ClassRoll((RectTransform)transform, _short, _sys0);
             if (!_short) _endAt = _roll.EndAt;
             _foot = UIKit.Text(transform, "Foot", "", UIKit.Mono, 22, new Color(1f, 1f, 1f, 0.45f), TextAlignmentOptions.Bottom);
@@ -118,14 +125,10 @@ namespace HS.UI
             _white = UIKit.Image(transform, "White", null, new Color(0.98f, 0.98f, 1f, 0f), false);
         }
 
-        void BuildPhone()
+        /// <summary>The lock screen, on the 3D phone's display (a world-space canvas the size of the old screen).</summary>
+        void BuildPhone(RectTransform display)
         {
-            _phone = UIKit.Rect(transform, "Phone", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440f, 880f), new Vector2(0f, -20f));
-            _phoneGroup = _phone.gameObject.AddComponent<CanvasGroup>();
-            _phoneGroup.alpha = 0f;
-            Round(UIKit.Image(_phone, "Body", UIKit.Panel, new Color(0.05f, 0.05f, 0.07f)), 0.22f);
-            Round(UIKit.Image(_phone, "Rim", UIKit.Border, new Color(1f, 1f, 1f, 0.16f)), 0.22f);
-            var screen = UIKit.Stretch(_phone, "Screen", 13f);
+            var screen = UIKit.Stretch(display, "Screen");
             var scr = screen.gameObject.AddComponent<Image>();
             scr.sprite = UIKit.Panel;
             scr.type = Image.Type.Sliced;
@@ -173,9 +176,9 @@ namespace HS.UI
             var mc = UIKit.Text(art, "MC", "MC", UIKit.Sans, 44, Color.white, TextAlignmentOptions.Center);
             mc.fontStyle = FontStyles.Bold;
             Label(music, "NOW PLAYING", UIKit.Mono, 14, new Color(1f, 1f, 1f, 0.55f), new Vector2(0f, 1f), new Vector2(136f, -18f), new Vector2(150f, 20f), TextAlignmentOptions.Left);
-            var buds = UIKit.Rect(music, "Earbuds", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(104f, 26f), new Vector2(-14f, -14f));
+            var buds = UIKit.Rect(music, "Output", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(116f, 26f), new Vector2(-14f, -14f));
             Round(UIKit.Image(buds, "Bg", UIKit.Panel, new Color(0.48f, 0.9f, 1f, 0.18f)), 0.7f);
-            UIKit.Text(buds, "Label", "EARBUDS", UIKit.Mono, 14, UIKit.SystemCyan, TextAlignmentOptions.Center);
+            UIKit.Text(buds, "Label", "HEADPHONES", UIKit.Mono, 14, UIKit.SystemCyan, TextAlignmentOptions.Center); // wired
             var song = Label(music, "Main Character", UIKit.Sans, 27, Color.white, new Vector2(0f, 1f), new Vector2(136f, -44f), new Vector2(240f, 34f), TextAlignmentOptions.Left);
             song.fontStyle = FontStyles.Bold;
             Label(music, "Nobody in Particular", UIKit.Sans, 20, new Color(1f, 1f, 1f, 0.7f), new Vector2(0f, 1f), new Vector2(136f, -80f), new Vector2(240f, 28f), TextAlignmentOptions.Left);
@@ -194,29 +197,6 @@ namespace HS.UI
             var home = UIKit.Rect(screen, "Home", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(130f, 5f), new Vector2(0f, 12f));
             UIKit.Image(home, "Bg", null, new Color(1f, 1f, 1f, 0.8f), false);
             _glare = UIKit.Image(screen, "Glare", null, new Color(1f, 0.98f, 0.9f, 0f), false);
-        }
-
-        void BuildHeadlights()
-        {
-            _lampL = UIKit.Rect(transform, "LampL", new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(900f, 900f), Vector2.zero);
-            _lampImgL = UIKit.Image(_lampL, "Glow", UIKit.Glow, new Color(1f, 0.97f, 0.86f, 0f), false);
-            _lampR = UIKit.Rect(transform, "LampR", new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(900f, 900f), Vector2.zero);
-            _lampImgR = UIKit.Image(_lampR, "Glow", UIKit.Glow, new Color(1f, 0.97f, 0.86f, 0f), false);
-            _coreL = Core(_lampL);
-            _coreR = Core(_lampR);
-            _streak = UIKit.Rect(transform, "Streak", new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(900f, 80f), Vector2.zero);
-            _streakImg = UIKit.Image(_streak, "Glow", UIKit.Glow, new Color(1f, 0.98f, 0.9f, 0f), false);
-            var wash = UIKit.Rect(transform, "Wash", new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(4200f, 4200f), new Vector2(-200f, 0f));
-            _wash = UIKit.Image(wash, "Glow", UIKit.Glow, new Color(1f, 0.98f, 0.92f, 0f), false);
-        }
-
-        /// <summary>A lamp's hot white centre.</summary>
-        static Image Core(RectTransform lamp)
-        {
-            var img = UIKit.Image(lamp, "Core", UIKit.Glow, new Color(1f, 1f, 1f, 0f), false);
-            img.rectTransform.anchorMin = new Vector2(0.32f, 0.32f);
-            img.rectTransform.anchorMax = new Vector2(0.68f, 0.68f);
-            return img;
         }
 
         static void Round(Image img, float multiplier)
@@ -328,15 +308,25 @@ namespace HS.UI
             Current = Phase.Done;
             var a = AudioDirector.Instance;
             if (skipped && a != null) a.StopCutscene();
+            DropStreet();
             Done?.Invoke();
             Destroy(gameObject);
         }
 
         void OnDestroy()
         {
+            DropStreet();
             if (Current == Phase.Done) return;
             var a = AudioDirector.Instance;
             if (a != null) a.StopCutscene();
+        }
+
+        /// <summary>The street hands the chapter its cameras, sun and sky back.</summary>
+        void DropStreet()
+        {
+            if (_street == null) return;
+            _street.Dispose();
+            _street = null;
         }
 
         bool Crossed(float at) => _prevT < at && _t >= at;
@@ -353,9 +343,19 @@ namespace HS.UI
                 if (_short) Current = t < _sys0 ? Phase.White : Phase.System;
                 else Current = t < CutAt ? Phase.Walk : t < _sys0 ? Phase.White : Phase.System;
             }
-            if (_phone != null) RenderPhone(started ? t : -1f);
-            RenderLights(started ? t : -1f);
             float cut = _short ? ShortFlash : CutAt, hold = _short ? ShortFlash + 0.05f : WhiteUntil, black = _short ? ShortFlash + 0.35f : BlackAt;
+            if (started && t >= cut) DropStreet();                       // gone with the cut, under the white
+            if (_street != null)
+            {
+                _street.Render(started ? t : 0f);
+                if (!_short) RenderPhone(started ? t : -1f);
+            }
+            // black: the pre-roll, a fade into the street, then nothing until the System window
+            float fade = _short ? Smooth(0f, 0.1f, t) : Smooth(0f, 0.8f, t);
+            _black.color = new Color(0.01f, 0.01f, 0.02f, !started || t >= cut ? 1f : 1f - fade);
+            float flood = !started || t >= cut ? 0f : _short ? 0.85f * Mathf.Pow(Mathf.Clamp01(t / ShortFlash), 2f)
+                : 0.92f * Mathf.Pow(Smooth(OpeningStreet.FloodFrom, CutAt, t), 2.2f);
+            _wash.color = new Color(1f, 0.97f, 0.9f, flood);
             float white = !started || t < cut ? 0f : t < hold ? 1f : 1f - Smooth(hold, black, t);
             _white.color = new Color(0.98f, 0.98f, 1f, white);
             _roll.Render(started ? t : -1f);
@@ -365,24 +365,9 @@ namespace HS.UI
             else _foot.text = "";
         }
 
+        /// <summary>The lock screen's live parts (the phone itself moves with the walker's hand in the street).</summary>
         void RenderPhone(float t)
         {
-            if (t >= CutAt)
-            {
-                _phone.gameObject.SetActive(false);
-                return;
-            }
-            float k = (t - StepAt) / Step;
-            float walking = t < 0f ? 0f : 1f - Smooth(StepsEnd, StepsEnd + 0.5f, t);
-            float since = (k - Mathf.Floor(k)) * Step;                     // seconds since the last footfall
-            float dip = t >= StepAt ? Mathf.Exp(-since / 0.09f) * 9f : 0f;
-            float drop = Smooth(LookUpAt, LookUpAt + 0.9f, t);
-            drop *= drop;                                                  // lowered: looking up into the light
-            float rise = 1f - Smooth(0f, 0.8f, t);
-            _phone.anchoredPosition = new Vector2(Mathf.Sin(Mathf.PI * k) * 7f * walking,
-                (-dip + Mathf.Sin(2f * Mathf.PI * k) * 2f) * walking - 20f - rise * 60f - drop * 1150f);
-            _phone.localRotation = Quaternion.Euler(0f, 0f, -3f + Mathf.Sin(Mathf.PI * k + 0.6f) * 0.8f * walking - drop * 14f);
-            _phoneGroup.alpha = Mathf.Max(Smooth(0f, 0.8f, t), WarmAlpha);
             Steps = t < StepAt ? 0 : Mathf.Min(Mathf.FloorToInt((Mathf.Min(t, StepsEnd) - StepAt) / Step + 1e-4f) + 1, MaxSteps);
             _steps.text = string.Format(CultureInfo.InvariantCulture, "{0:N0} steps", StepsBefore + Steps);
             int pos = TrackPos + Mathf.Max(0, Mathf.FloorToInt(t));
@@ -394,30 +379,12 @@ namespace HS.UI
             {
                 float a = Smooth(Notes[i].at, Notes[i].at + 0.35f, t);
                 if (t >= Notes[i].at) NotificationsShown++;
-                _cardGroups[i].alpha = Mathf.Max(a, WarmAlpha);
+                // invisible warm-up draw only behind the black pre-roll (linear lighting would show even 0.004)
+                _cardGroups[i].alpha = t < 0f ? WarmAlpha : a;
                 _cards[i].localScale = Vector3.one * (0.92f + 0.08f * a); // grows in place: sliding crossed the card above
             }
-            _glare.color = new Color(1f, 0.98f, 0.9f, 0.55f * Smooth(HornAt + 1.4f, LookUpAt + 0.6f, t));
+            _glare.color = new Color(1f, 0.98f, 0.9f, 0.55f * _street.ScreenGlare);
             if (_song != null) _song.volume = Mathf.Lerp(SongVol, SongDucked, Mathf.InverseLerp(LookUpAt, CutAt, t)); // the horn drowns it out
-        }
-
-        void RenderLights(float t)
-        {
-            float p = t < 0f ? 0f : _short ? Smooth(0f, ShortFlash, t) : Mathf.Pow(Smooth(HornAt + 1.2f, CutAt, t), 1.6f);
-            if (t >= (_short ? ShortFlash : CutAt)) p = 0f;                // gone with the cut
-            // Far off: two small bright lamps and a streak in the dark; close: they grow apart and flood the frame.
-            float spread = Mathf.Lerp(34f, 560f, p), size = Mathf.Lerp(130f, 1700f, p * p);
-            float x = Mathf.Lerp(-170f, -640f, p);
-            _lampL.anchoredPosition = new Vector2(x - spread, -60f);
-            _lampR.anchoredPosition = new Vector2(x + spread, -60f);
-            _lampL.sizeDelta = _lampR.sizeDelta = new Vector2(size, size);
-            var lamp = new Color(1f, 0.97f, 0.86f, p <= 0f ? 0f : Mathf.Clamp01(0.35f + p * 1.8f));
-            _lampImgL.color = _lampImgR.color = lamp;
-            _coreL.color = _coreR.color = new Color(1f, 1f, 1f, lamp.a);
-            _streak.anchoredPosition = new Vector2(x, -60f);
-            _streak.sizeDelta = new Vector2(Mathf.Lerp(500f, 3400f, p), Mathf.Lerp(40f, 150f, p));
-            _streakImg.color = new Color(1f, 0.98f, 0.9f, 0.6f * Mathf.Clamp01(p * 2f));
-            _wash.color = new Color(1f, 0.98f, 0.92f, 0.95f * Mathf.Pow(p, 2.5f));
         }
 
         /// <summary>The status window's sounds (the walk's audio is all in the scheduled clips).</summary>

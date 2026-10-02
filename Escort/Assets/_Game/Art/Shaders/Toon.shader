@@ -207,6 +207,8 @@ Shader "HS/Toon"
                     color = lerp(color, half3(g, g, g) * half3(0.92, 0.95, 1.05), _Desaturate);
                 }
                 color = lerp(color, _FlashColor.rgb, _FlashAmount);
+                // a light right on top of a surface can overflow half precision; bloom would smear the Inf over the frame
+                color = min(color, half3(48.0, 48.0, 48.0));
                 color = MixFog(color, input.fogFactor);
                 return half4(color, 1);
             }

@@ -6,7 +6,7 @@ and side facade lines meet (for a chamfered/rounded corner: the virtual intersec
     CornerPharmacy, CornerDiner     side facade on the viewer's RIGHT (Blender +X), building spans x in [-W, 0]
 Mid-block buildings: origin = centre of the front facade's base line, body toward +Y.
     NoodleBar, Books, Laundromat, PhoneRepair, Bakery, Florist, ForLease, Bank
-Background towers (origin = footprint centre, base): Tower1..Tower4.
+Background towers (origin = centre of the front facade base line, like mid-blocks): Tower1..Tower4.
 Front facade faces -Y (Unity +Z after export). z = 0 is sidewalk level. Units metres. Floors: ground 4.2 m, upper 3.2 m.
 
 Usage (textures first, the generator reads <out>/atlas_layout.json):
@@ -65,11 +65,12 @@ MATS = {
     'MB_WoodLight': ('#A8825A', None, None, 'light wood: tables, planters, A-frame'),
     'MB_Terracotta': ('#A85A3C', None, None, 'pots and flower boxes'),
     'MB_Foliage': ('#FFFFFF', 'T_Foliage.png', None, 'leaves with flowers; tileable 1 unit = 1 m'),
-    'MB_WindowDark': ('#FFFFFF', 'T_WindowDark.png', None, 'unlit glass atlas (sky/street reflection, blinds, curtains); 4x3 cells'),
-    'MB_WindowLit': ('#FFFFFF', 'T_WindowLit.png', ('#FFE2B0', 1.1), 'lit window atlas (warm homes, cool offices); emission map = texture'),
+    'MB_WindowDark': ('#FFFFFF', 'T_WindowDark.png', None, 'SOLID toon surface, not see-through: painted window glass atlas (sky/street reflection, blinds, curtains), 4x3 cells'),
+    'MB_WindowLit': ('#808080', 'T_WindowLit.png', ('#FFFFFF', 1.0), 'SOLID toon surface + emission, not see-through: lit window atlas (warm homes, cool offices); emission map = texture'),
     'MB_ShopGlass': ('#CFE0E8', 'T_GlassSheen.png', None,
-                     'OPTIONAL transparent shop glass, only on the *_Glass child (texture alpha ~0.13). '
-                     'If the toon shader is opaque-only, disable that child.'),
+                     'TRANSPARENT glass: alpha-blended, opacity ~6-9% from the texture alpha, no shadow casting. '
+                     'Only on the optional <Name>_Glass child in front of the fake shop interiors; disable that '
+                     'child if see-through glass is not wanted.'),
     'MB_LampGlow': ('#FFE7B8', None, ('#FFE7B8', 3.0), 'bulbs, wall lamps, pendant lamps'),
     'MB_SignsLit': ('#FFFFFF', 'T_SignsLit.png', ('#FFFFFF', 2.2), 'lightboxes and neon; emission map = texture (dark backgrounds stay dark)'),
     'MB_NeonGreen': ('#3CDC78', None, ('#3CDC78', 3.0), 'pharmacy cross edge tubes'),
@@ -81,12 +82,27 @@ MATS = {
     'MB_WaterTower': ('#FFFFFF', 'T_WoodStaves.png', None, 'water tower staves; tileable 2 m'),
     'MB_Shutter': ('#FFFFFF', 'T_Shutter.png', None, 'roll-down shutter; tileable 2 m'),
     'MB_Grate': ('#FFFFFF', 'T_Grate.png', None, 'fire-escape grating (top of platforms)'),
+    'MB_Vinyl': ('#B8322B', None, None, 'diner booth / stool vinyl'),
+    'MB_Granite': ('#8E8A82', None, None, 'granite base course, plinths'),
+    'MB_TrimTeal': ('#2E5553', None, None, 'dark teal trim'),
+    'MB_MetalDark': ('#3A3F45', None, None, 'modern window surrounds, canopies, fins'),
+    'MB_TrimBottle': ('#1F4D3A', None, None, 'bottle-green shopfront paint (bookshop, florist)'),
+    'MB_LanternRed': ('#E0392B', None, ('#FF5A3C', 1.6), 'paper lanterns (emissive)'),
+    'MB_Paper': ('#FFFFFF', 'T_Paper.png', None, 'kraft paper over vacant shop windows; tileable 2 m'),
+    'MB_PanelGrey': ('#8C939B', 'T_PanelLight.png', None, 'grey stone panels (bank); colour multiplies T_PanelLight'),
+    'MB_TowerGlass': ('#FFFFFF', 'T_TowerGlass.png', None, 'SOLID toon surface, not see-through: tower curtain wall; UV tile = 4 floors x 8 modules'),
+    'MB_TowerDark': ('#FFFFFF', 'T_TowerDark.png', None, 'SOLID toon surface, not see-through: tower dark glass + bronze mullions; tile = 4 floors x 8 modules'),
+    'MB_TowerBands': ('#FFFFFF', 'T_TowerBands.png', None, 'SOLID toon surface, not see-through: tower ribbon windows + stone bands; tile = 4 floors x 8 modules'),
+    'MB_TowerPunched': ('#FFFFFF', 'T_TowerPunched.png', None, 'SOLID toon surface, not see-through: residential tower punched windows; tile = 4 floors x 8 modules'),
+    'MB_TowerTrim': ('#B4BAC0', None, None, 'tower rims, crown frames, masts'),
+    'MB_TowerCrown': ('#6F7780', None, None, 'tower mechanical crowns / caps'),
+    'MB_BeaconRed': ('#FF3030', None, ('#FF3030', 4.0), 'aircraft warning beacon'),
 }
 SHOPS = ['Cafe', 'Mart', 'Pharmacy', 'Diner', 'Noodle', 'Books', 'Laundry', 'Phone', 'Bakery', 'Florist', 'ForLease',
          'Bank']
 for _s in SHOPS:
     MATS['MB_Sign_' + _s] = ('#FFFFFF', 'T_Sign_%s.png' % _s, None, '%s signs, posters and number plates (atlas)' % _s)
-    MATS['MB_Int_' + _s] = ('#FFFFFF', 'T_Int_%s.png' % _s, ('#FFFFFF', 0.9),
+    MATS['MB_Int_' + _s] = ('#666666', 'T_Int_%s.png' % _s, ('#FFFFFF', 0.85),
                             '%s fake interior on recessed boxes behind the glass; emission map = texture' % _s)
 
 _LAYOUT = None
@@ -418,11 +434,14 @@ class Facade:
             d = -o['depth']
             zz = [z for z in zs if o['z0'] - EPS <= z <= o['z1'] + EPS]
             uu = [u for u in us if o['u0'] - EPS <= u <= o['u1'] + EPS]
+            skip_l, skip_r = o.get('skip_sides', (False, False))
             for j in range(len(zz) - 1):
-                mb.face([F.P(o['u0'], zz[j], 0), F.P(o['u0'], zz[j], d), F.P(o['u0'], zz[j + 1], d),
-                         F.P(o['u0'], zz[j + 1], 0)], o['side'], normal=F.t, frame=F)
-                mb.face([F.P(o['u1'], zz[j], 0), F.P(o['u1'], zz[j], d), F.P(o['u1'], zz[j + 1], d),
-                         F.P(o['u1'], zz[j + 1], 0)], o['side'], normal=-F.t, frame=F)
+                if not skip_l:
+                    mb.face([F.P(o['u0'], zz[j], 0), F.P(o['u0'], zz[j], d), F.P(o['u0'], zz[j + 1], d),
+                             F.P(o['u0'], zz[j + 1], 0)], o['side'], normal=F.t, frame=F)
+                if not skip_r:
+                    mb.face([F.P(o['u1'], zz[j], 0), F.P(o['u1'], zz[j], d), F.P(o['u1'], zz[j + 1], d),
+                             F.P(o['u1'], zz[j + 1], 0)], o['side'], normal=-F.t, frame=F)
             for i in range(len(uu) - 1):
                 mb.face([F.P(uu[i], o['z1'], 0), F.P(uu[i + 1], o['z1'], 0), F.P(uu[i + 1], o['z1'], d),
                          F.P(uu[i], o['z1'], d)], o['top'], normal=-Z, frame=F)
@@ -449,6 +468,7 @@ class Building:
         self.mb, self.glass = MeshBuilder(), MeshBuilder()
         self.zcuts = {0.0, round(self.top, 4)}
         self.locators = []
+        self.rooms = []         # plan polygons of fake interiors (overlap check)
         self.notes = []
         self.copy = []          # draft copy used on this building
         self.footprint_wd = footprint_wd
@@ -623,6 +643,7 @@ def interior_box(B, F, u0, u1, d_front, depth, shop, pano='panoA', pano_off=0.0,
     mb = B.mb
     tex, mat = 'T_Int_%s.png' % shop, 'MB_Int_' + shop
     d_back = d_front - depth
+    B.rooms.append([F.P(u0, 0, d_front), F.P(u1, 0, d_front), F.P(u1, 0, d_back), F.P(u0, 0, d_back)])
     L = layout()[tex]
     W, H = L['size']
     x, y, w, h = L['slots'][pano]['rect']
@@ -640,10 +661,12 @@ def interior_box(B, F, u0, u1, d_front, depth, shop, pano='panoA', pano_off=0.0,
              F.P(u0, z_floor, d_back)], mat, normal=Z, uvs=quad_uv(slot(tex, 'floor', 3)))
     mb.face([F.P(u0, z_ceil, d_back), F.P(u1, z_ceil, d_back), F.P(u1, z_ceil, d_front),
              F.P(u0, z_ceil, d_front)], mat, normal=-Z, uvs=quad_uv(slot(tex, 'ceiling', 3)))
+    dep = depth / pw            # side walls continue the panorama around the box corners
+    vf, vc = v(z_floor), v(z_ceil)
     mb.face([F.P(u0, z_floor, d_front), F.P(u0, z_floor, d_back), F.P(u0, z_ceil, d_back),
-             F.P(u0, z_ceil, d_front)], mat, normal=F.t, uvs=quad_uv(slot(tex, 'side', 3)))
+             F.P(u0, z_ceil, d_front)], mat, normal=F.t, uvs=[(a - dep, vf), (a, vf), (a, vc), (a - dep, vc)])
     mb.face([F.P(u1, z_floor, d_back), F.P(u1, z_floor, d_front), F.P(u1, z_ceil, d_front),
-             F.P(u1, z_ceil, d_back)], mat, normal=-F.t, uvs=quad_uv(slot(tex, 'side', 3)))
+             F.P(u1, z_ceil, d_back)], mat, normal=-F.t, uvs=[(b, vf), (b + dep, vf), (b + dep, vc), (b, vc)])
     return d_back
 
 
@@ -658,7 +681,8 @@ def swatch_box(B, F, u0, u1, z0, z1, d0, d1, shop, idx, skip='K'):
 
 def shopfront(B, f, u0, u1, shop, pano='panoA', pano_off=0.0, door=None, door_w=1.0, mulls=(), stall_h=0.45,
               transom=2.75, head=3.35, frame='MB_TrimDark', stall='MB_TrimDark', reveal=0.25, depth=1.75,
-              transom_div=0.9, stall_panel=True, glass=True, door_frame=None, interior=True, sill_mat=None):
+              transom_div=0.9, stall_panel=True, glass=True, door_frame=None, interior=True, sill_mat=None,
+              box_u0=None, box_u1=None):
     """Glazed shopfront set back `reveal` from the facade, with a fake interior box behind it."""
     F, mb = f.F, B.mb
     top = head + 0.08
@@ -708,7 +732,9 @@ def shopfront(B, f, u0, u1, shop, pano='panoA', pano_off=0.0, door=None, door_w=
         box(mb, F, hx - 0.012, hx + 0.012, 1.27, 1.3, dd1, dd1 + 0.04, 'MB_Brass', only='FTBLR')
     threshold(B, F, u0, u1, dg - 0.05, 0.0)
     if interior:
-        interior_box(B, F, u0, u1, b0, depth, shop, pano, pano_off)
+        # box_u0/box_u1 let corner shops share one L-shaped room instead of two intersecting boxes
+        interior_box(B, F, u0 if box_u0 is None else box_u0, u1 if box_u1 is None else box_u1, b0, depth, shop, pano,
+                     pano_off)
     if glass:
         gd = dg + 0.015
         gl = B.glass
@@ -845,8 +871,6 @@ def res_door(B, f, uc, door='door_green', n_steps=3, step_h=0.15, step_d=0.32, w
     for k in range(n_steps):
         dz0, dz1 = k * step_h, (k + 1) * step_h
         box(mb, F, sw0, sw1, dz0, dz1, 0.0, (n_steps - k) * step_d, 'MB_Concrete', skip='KB')
-    if n_steps:
-        threshold(B, F, u0, u1, -recess, 0.0, z=zt + 0.0001, mat='MB_Concrete') if False else None
     # stoop rails
     if rail and n_steps >= 2:
         for uu in (sw0 + 0.04, sw1 - 0.04):
@@ -1054,7 +1078,7 @@ def fire_escape(B, f, u0, u1, floors, depth=1.25, drop=True, gooseneck=True):
     """Iron fire escape: grated platform per floor, railings with balusters, alternating stair flights, braces,
     drop ladder at the bottom, gooseneck ladder over the parapet."""
     F, mb = f.F, B.mb
-    plats = [B.fz(k) + 0.05 for k in floors]
+    plats = [B.fz(k) + 0.4 for k in floors]
     sw = 0.62                       # stair width (in d)
     sd0, sd1 = depth - 0.07 - sw, depth - 0.07
     run = 2.6
@@ -1154,22 +1178,45 @@ def aframe_sign(B, F, u, d, tex, name, mat):
             pts = [c + ax_w * (w / 2) + down * (L / 2), c - ax_w * (w / 2) + down * (L / 2),
                    c - ax_w * (w / 2) - down * (L / 2), c + ax_w * (w / 2) - down * (L / 2)]
         mb.face(pts, mat, normal=nrm, uvs=quad_uv(r))
-        obox(mb, c - nrm * 0.02, ax_w, down, nrm, w / 2 + 0.03, L / 2 + 0.02, 0.018, 'MB_WoodLight', skip='+z' if s > 0 else '-z')
+        obox(mb, c - nrm * 0.018 - down * 0.02, ax_w, down, nrm, w / 2 + 0.03, L / 2 - 0.005, 0.018, 'MB_WoodLight', skip='+z')
+
+
+def blob(mb, c, rx, rz, mat, segs=8, rings=4, ry=None, k=1.0, flat_bottom=False):
+    """Low-poly ellipsoid (shrubs, lanterns, flower heads)."""
+    c = Vector(c)
+    ry = rx if ry is None else ry
+    pts = []
+    for i in range(1, rings):
+        th = math.pi * i / rings
+        z = -math.cos(th) * rz
+        rr = math.sin(th)
+        pts.append([c + Vector((math.cos(2 * math.pi * j / segs + i * 0.3) * rx * rr,
+                                math.sin(2 * math.pi * j / segs + i * 0.3) * ry * rr, z)) for j in range(segs)])
+    bot, top = c - Z * rz, c + Z * rz
+    for j in range(segs):
+        j2 = (j + 1) % segs
+        if not flat_bottom:
+            mb.face([bot, pts[0][j2], pts[0][j]], mat, normal=(pts[0][j] + pts[0][j2]) * 0.5 - c - Z * rz, k=k)
+        mb.face([pts[-1][j], pts[-1][j2], top], mat, normal=(pts[-1][j] + pts[-1][j2]) * 0.5 - c + Z * rz, k=k)
+        for i in range(len(pts) - 1):
+            a, b, cc, d = pts[i][j], pts[i][j2], pts[i + 1][j2], pts[i + 1][j]
+            mb.face([a, b, cc, d], mat, normal=(a + b + cc + d) * 0.25 - c, k=k)
+    if flat_bottom:
+        mb.face(list(reversed(pts[0])), mat, normal=-Z, k=k)
 
 
 def potted_shrub(B, F, u, d, h=1.1, r=0.32):
     mb = B.mb
     c = F.P(u, 0, d)
     cylinder(mb, c, Z, r, 0.55, 8, 'MB_Terracotta', cap0=False, cap1=True, r1=r * 1.15, cap_mat='MB_Wood')
-    cylinder(mb, c + Z * 0.55, Z, r * 1.1, h - 0.4, 7, 'MB_Foliage', cap0=True, cap1=False, r1=0.05, k=1.0)
-    cylinder(mb, c + Z * 0.85, Z, r * 1.25, h - 0.5, 7, 'MB_Foliage', cap0=True, cap1=False, r1=0.02, k=1.0)
+    blob(mb, c + Z * (0.55 + h * 0.42), r * 1.45, h * 0.45, 'MB_Foliage', segs=9, rings=4)
 
 
 def pendant(B, F, u, d, z_ceil=3.6, drop=1.0, shade='MB_TrimDark'):
     mb = B.mb
     zb = z_ceil - drop
     box(mb, F, u - 0.006, u + 0.006, zb + 0.18, z_ceil, d - 0.006, d + 0.006, 'MB_Metal', only='FKLR')
-    cylinder(mb, F.P(u, zb, d), Z, 0.2, 0.2, 10, shade, cap0=False, cap1=True, r1=0.06)
+    cylinder(mb, F.P(u, zb, d), Z, 0.2, 0.2, 10, shade, cap0=True, cap1=False, r1=0.06, cap_mat='MB_LampGlow')
     cylinder(mb, F.P(u, zb - 0.05, d), Z, 0.07, 0.07, 6, 'MB_LampGlow', cap0=True, cap1=True)
 
 
@@ -1238,7 +1285,7 @@ def build_cafe():
         cafe_table(B, front.F, u, dg - 0.55)
     # ---- chamfer: corner door with sidelights
     shopfront(B, ch, 0.18, ch.L - 0.18, 'Cafe', 'panoA', 2.2, door=ch.L / 2, door_w=1.0, frame='MB_TrimGreen',
-              stall='MB_TrimGreen', depth=1.2)
+              stall='MB_TrimGreen', depth=0.65)
     # ---- side (u 0 = back .. 12.4 = chamfer)
     shopfront(B, side, 5.6, 11.8, 'Cafe', 'panoB', 0.6, mulls=[7.65, 9.75], frame='MB_TrimGreen',
               stall='MB_TrimGreen')
@@ -1274,9 +1321,9 @@ def build_cafe():
     upper_windows(B, ch, [ch.L / 2], w=0.95, lintel_style='key', top_course=True)
     fe_us = [1.9, 4.1]
     for k in floors_upper(B):
-        z0 = B.fz(k) + 0.55
         for u in fe_us:
-            window(B, side, u, z0, w=1.1, h=2.05, lintel_style='key', ac=False, flower=False)
+            window(B, side, u, B.fz(k) + 0.85, w=1.1, h=2.0, lintel_style='key', ac=False, flower=False,
+                   sill_style=None if k == B.floors - 1 else 'stone')
     upper_windows(B, side, [6.6, 8.7, 10.8], lintel_style='key', top_course=True)
     fire_escape(B, side, 0.75, 5.25, floors_upper(B))
     # top-floor sill course + main cornice with brackets
@@ -1286,10 +1333,10 @@ def build_cafe():
     cornice(B, [(0, zt - 0.95), (0.06, zt - 0.95), (0.06, zt - 0.8), (0.16, zt - 0.75), (0.16, zt - 0.6),
                 (0.44, zt - 0.5), (0.5, zt - 0.42), (0.5, zt - 0.22), (0.46, zt - 0.18), (0.46, zt - 0.12),
                 (0, zt - 0.12)], 'MB_TrimCream')
-    for f in (front, side):
-        n = int(f.L / 1.15)
-        brackets_along(B, f, [0.3 + i * (f.L - 0.6) / (n - 1) for i in range(n)], zt - 0.95, 'MB_TrimCream',
-                       size=(0.13, 0.42, 0.42))
+    for f, wins in ((front, [1.5, 3.6, 5.7, 7.8, 9.9]), (side, [1.9, 4.1, 6.6, 8.7, 10.8])):
+        mids = [(a + b) / 2 for a, b in zip(wins[:-1], wins[1:])]
+        us = [0.3, f.L - 0.3] + [m + o for m in mids for o in (-0.22, 0.22)]
+        brackets_along(B, f, sorted(us), zt - 0.95, 'MB_TrimCream', size=(0.13, 0.42, 0.42))
     brackets_along(B, ch, [0.3, ch.L - 0.3], zt - 0.95, 'MB_TrimCream', size=(0.13, 0.42, 0.42))
     # string course above the 2nd floor windows
     # back / party walls: a few windows on the back
@@ -1302,7 +1349,7 @@ def build_cafe():
     aframe_sign(B, front.F, 4.85, 0.75, TS, 'aframe', MS)
     for u in (0.12, ch.L - 0.12):
         potted_shrub(B, ch.F, u, 0.45)
-    box(B.mb, front.F, 0.75, 1.05, 1.15, 1.6, 0.0, 0.02, MS, skip='K', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    box(B.mb, front.F, 0.15, 0.45, 1.2, 1.62, 0.1, 0.115, MS, skip='K', uv={'F': quad_uv(slot(TS, 'hours', 2))})
     # ---- roof
     water_tower(B, 10.2, 10.0)
     bulkhead(B, 2.2, 4.6, 9.5, 12.6, door_side='front')
@@ -1313,7 +1360,7 @@ def build_cafe():
     vent(B, 5.0, 8.0, 'pipe', h=1.1)
     antenna(B, 3.0, 4.0)
     skylight(B, 7.5, 9.0)
-    satellite_dish(B, Frame((W - 0.3, 0.0, B.H), (1, 0, 0), (0, -1, 0)), 0.0, 0.5, d=0.25)
+    satellite_dish(B, front.F, 11.35, B.fz(3) + 1.5)
     B.copy += [('fascia', 'DAILY GRIND / COFFEE · ESPRESSO · PASTRY'), ('awning valance', 'DAILY GRIND · COFFEE'),
                ('corner board', 'Daily Grind'), ('blade sign', 'COFFEE (cup icon)'),
                ('A-frame', 'TODAY: FLAT WHITE · OAT LATTE · COLD BREW · BANANA BREAD · 7AM-7PM'),
@@ -1322,11 +1369,1090 @@ def build_cafe():
     B.notes.append('Shop wraps the chamfered corner (1.6 m chamfer, entrance on the chamfer). Fire escape and service '
                    'door on the side facade; water tower at the back corner of the roof.')
     B.loc('Entrance', ch.F.P(ch.L / 2, 0, 0))
+    # in-game views: walker passes the front 2.6 m out heading for the corner; whip-pan looks down the side street
+    B.extra_views = [('walk', Vector((6.1, -2.6, 1.56)), Vector((-20.0, -0.6, 2.4)), 60, sun_from(222, 30)),
+                     ('pan', Vector((-12.35, -2.6, 1.56)), Vector((-8.0, 20.0, 3.0)), 60, sun_from(222, 30))]
     B.loc('Door_Apartments', front.F.P(10.1, 0.45, 0))
     return B
 
 
-BUILDERS = {'CornerCafe': build_cafe}
+# ------------------------------------------------------------------------------------------ extra helpers
+
+def polyline_offset(pts, d):
+    pts = [Vector((p[0], p[1], 0.0)) for p in pts]
+    n = len(pts)
+    dirs = [(pts[i + 1] - pts[i]).normalized() for i in range(n - 1)]
+    norms = [Vector((v.y, -v.x, 0.0)) for v in dirs]
+    out = []
+    for i in range(n):
+        na = norms[i - 1] if i > 0 else norms[0]
+        nb = norms[i] if i < n - 1 else norms[-1]
+        out.append(pts[i] + (na + nb) / (1 + na.dot(nb)) * d)
+    return out
+
+
+def surround(B, F, u0, u1, z0, z1, mat, w=0.12, proj=0.16):
+    """Modern projecting window frame ('picture frame') around an opening."""
+    mb = B.mb
+    box(mb, F, u0 - w, u0, z0, z1, 0, proj, mat, only='FLR')
+    box(mb, F, u1, u1 + w, z0, z1, 0, proj, mat, only='FLR')
+    box(mb, F, u0 - w, u1 + w, z1, z1 + w, 0, proj, mat, skip='K')
+    box(mb, F, u0 - w, u1 + w, z0 - w, z0, 0, proj, mat, skip='K')
+
+
+def pediment(B, F, u0, u1, z, h=0.42, proj=0.14, mat='MB_StoneTrim'):
+    mb, P = B.mb, F.P
+    box(mb, F, u0 - 0.12, u1 + 0.12, z, z + 0.13, 0, proj + 0.03, mat, skip='K')
+    uc, a, b, zt, d1 = (u0 + u1) / 2, u0 - 0.06, u1 + 0.06, z + 0.13, proj - 0.02
+    mb.face([P(a, zt, d1), P(b, zt, d1), P(uc, zt + h, d1)], mat, normal=F.n, frame=F)
+    mb.face([P(b, zt, 0), P(b, zt, d1), P(uc, zt + h, d1), P(uc, zt + h, 0)], mat, normal=F.N(h, b - uc, 0), frame=F)
+    mb.face([P(a, zt, d1), P(a, zt, 0), P(uc, zt + h, 0), P(uc, zt + h, d1)], mat, normal=F.N(-h, uc - a, 0), frame=F)
+    for (x0, z0_), (x1, z1_) in (((a - 0.08, zt - 0.02), (uc, zt + h + 0.06)), ((uc, zt + h + 0.06), (b + 0.08, zt - 0.02))):
+        p0, p1 = P(x0, z0_, d1 + 0.02), P(x1, z1_, d1 + 0.02)
+        ax = (p1 - p0).normalized()
+        obox(mb, (p0 + p1) / 2, ax, ax.cross(F.n).normalized() * -1, F.n, (p1 - p0).length / 2, 0.05, 0.035, mat)
+
+
+def quoins(B, fa, fb, z0, z1, mat='MB_StoneTrim', h=0.6, gap=0.035, la=0.75, lb=0.45, proj=0.035):
+    corner = fb.F.A
+    k, z = 0, z0
+    while z + h <= z1 + 1e-6:
+        l1, l2 = (la, lb) if k % 2 == 0 else (lb, la)
+        sweep(B.mb, [fa.F.P(fa.L - l1, 0, 0), corner, fb.F.P(l2, 0, 0)],
+              [(0, z), (proj, z), (proj, z + h - gap), (0, z + h - gap)], mat)
+        z += h
+        k += 1
+
+
+def balconette(B, F, u0, u1, z, depth=0.5, mat='MB_Metal', slab='MB_StoneTrim'):
+    mb = B.mb
+    box(mb, F, u0, u1, z - 0.12, z, 0, depth, slab, skip='K')
+    for uu in (u0 + 0.15, u1 - 0.15):
+        prism(mb, F, [(0, z - 0.45), (0.06, z - 0.45), (depth - 0.08, z - 0.12), (0, z - 0.12)], uu - 0.06, uu + 0.06,
+              slab, skip_edges=(2, 3))
+    top = z + 0.92
+    box(mb, F, u0 + 0.02, u1 - 0.02, top - 0.035, top, depth - 0.05, depth - 0.015, mat)
+    for uu in (u0 + 0.02, u1 - 0.055):
+        box(mb, F, uu, uu + 0.035, top - 0.035, top, 0.0, depth - 0.05, mat, skip='K')
+    n = int((u1 - u0) / 0.13)
+    for i in range(n + 1):
+        uu = u0 + 0.04 + i * (u1 - u0 - 0.08) / n
+        box(mb, F, uu - 0.009, uu + 0.009, z, top - 0.035, depth - 0.042, depth - 0.024, mat, only='FKLR')
+    for uu in (u0 + 0.037, u1 - 0.037):
+        for j in range(1, 4):
+            dd = j * (depth - 0.05) / 4
+            box(mb, F, uu - 0.009, uu + 0.009, z, top - 0.035, dd - 0.009, dd + 0.009, mat, only='FKLR')
+
+
+def booth(B, F, uc, d_front, length=0.95, seat='MB_Vinyl', trim='MB_Chrome'):
+    """Diner booth perpendicular to the glass: table against the window, high-back benches either side."""
+    mb = B.mb
+    d0, d1 = d_front - 0.04, d_front - 0.04 - length
+    box(mb, F, uc - 0.34, uc + 0.34, 0.72, 0.77, d1 + 0.12, d0, 'MB_TrimWhite',
+        mats={'F': trim, 'L': trim, 'R': trim, 'K': trim})
+    box(mb, F, uc - 0.04, uc + 0.04, 0.03, 0.72, d1 + 0.42, d1 + 0.52, trim, only='FKLR')
+    for s in (-1, 1):
+        a, b = sorted((uc + s * 0.4, uc + s * 0.92))
+        box(mb, F, a, b, 0.03, 0.46, d1, d0, seat)
+        bu0, bu1 = (b - 0.15, b) if s > 0 else (a, a + 0.15)
+        box(mb, F, bu0, bu1, 0.46, 1.22, d1, d0, seat)
+        box(mb, F, bu0 - 0.012, bu1 + 0.012, 1.22, 1.26, d1 - 0.012, d0 + 0.012, trim)
+
+
+def poster(B, F, u, zc, d, tex, name, mat, size=None):
+    w, h = size or slot_m(tex, name)
+    B.mb.face([F.P(u - w / 2, zc - h / 2, d), F.P(u + w / 2, zc - h / 2, d), F.P(u + w / 2, zc + h / 2, d),
+               F.P(u - w / 2, zc + h / 2, d)], mat, normal=F.n, uvs=quad_uv(slot(tex, name, 2)))
+
+
+def cross_sign(B, F, u, zc, size=0.92, thick=0.17, d_wall=0.22):
+    """Pharmacy cross: plus-shaped double-sided lightbox (lit atlas faces, neon-green rim) on a bracket."""
+    mb, G = B.mb, F.turned(u)
+    r = slot('T_SignsLit.png', 'pharm_cross', 3)
+    c, s, a = d_wall + size / 2, size / 2, size / 6
+    outline = [(a, s), (a, a), (s, a), (s, -a), (a, -a), (a, -s), (-a, -s), (-a, -a), (-s, -a), (-s, a), (-a, a),
+               (-a, s)]
+    for side, nrm in ((thick / 2, G.n), (-thick / 2, -G.n)):
+        pts = [G.P(c + x, zc + y, side) for x, y in outline]
+        uvs = [(r[0] + (r[2] - r[0]) * (x / size + 0.5), r[1] + (r[3] - r[1]) * (y / size + 0.5)) for x, y in outline]
+        mb.face(pts, 'MB_SignsLit', normal=nrm, uvs=uvs)
+    for i in range(len(outline)):
+        (x0, y0), (x1, y1) = outline[i], outline[(i + 1) % len(outline)]
+        p0, p1 = G.P(c + x0, zc + y0, 0), G.P(c + x1, zc + y1, 0)
+        mb.face([p0 + G.n * (thick / 2), p1 + G.n * (thick / 2), p1 - G.n * (thick / 2), p0 - G.n * (thick / 2)],
+                'MB_NeonGreen', normal=(p0 + p1) / 2 - G.P(c, zc, 0))
+    box(mb, G, 0.0, d_wall + 0.02, zc - 0.05, zc + 0.05, -0.05, 0.05, 'MB_Metal')
+    box(mb, G, 0.0, 0.03, zc - 0.3, zc + 0.3, -0.12, 0.12, 'MB_Metal', skip='L')
+    box(mb, G, 0.0, c + a, zc + s + 0.08, zc + s + 0.13, -0.025, 0.025, 'MB_Metal')
+    box(mb, G, c - 0.01, c + 0.01, zc + s, zc + s + 0.08, -0.01, 0.01, 'MB_Metal', only='FKLR')
+    B.loc('SignLight_Cross', G.P(c, zc, 0))
+
+
+def curve_shop(B, segs, shop, pano='panoB', pano_off=0.0, reveal=0.22, depth=1.3, stall_h=0.5, transom=2.75,
+               head=3.35, frame='MB_Chrome', stall='MB_Chrome'):
+    """Glazing wrapped around a rounded corner (one facade per arc segment) with a shared curved interior."""
+    mb = B.mb
+    top = head + 0.08
+    dg = -reveal
+    for i, f in enumerate(segs):
+        f.opening(0.0, f.L, 0.0, top, reveal, side=frame, top=frame)
+        f.openings[-1]['skip_sides'] = (i > 0, i < len(segs) - 1)
+        F = f.F
+        box(mb, F, 0.0, f.L, 0.0, stall_h, dg - 0.05, dg + 0.1, stall, only='F')
+        for zr in (0.12, 0.24, 0.36):
+            box(mb, F, 0.0, f.L, zr, zr + 0.03, dg + 0.1, dg + 0.125, stall, only='FTB')
+        box(mb, F, 0.0, f.L, stall_h, stall_h + 0.05, dg - 0.05, dg + 0.14, frame, only='FTB')
+        box(mb, F, 0.0, f.L, transom, transom + 0.08, dg - 0.03, dg + 0.06, frame, only='FTB')
+        box(mb, F, 0.0, f.L, head, top, dg - 0.03, dg + 0.06, frame, only='FB')
+        B.glass.face([F.P(0, stall_h + 0.05, dg + 0.015), F.P(f.L, stall_h + 0.05, dg + 0.015),
+                      F.P(f.L, head, dg + 0.015), F.P(0, head, dg + 0.015)], 'MB_ShopGlass', normal=F.n, frame=F)
+    # joint mullions (+ end jambs)
+    pts = [segs[0].F.A] + [f.F.P(f.L, 0, 0) for f in segs]
+    for j, p in enumerate(pts):
+        fa = segs[max(0, j - 1)]
+        fb = segs[min(len(segs) - 1, j)]
+        m = (fa.F.n + fb.F.n).normalized()
+        t = Z.cross(m).normalized() * -1
+        c = p + m * (dg + 0.015)
+        obox(mb, c + Z * (top / 2), t, Z, m, 0.04 if 0 < j < len(pts) - 1 else 0.06, top / 2, 0.045, frame)
+    # shared curved interior
+    zf, zc = 0.03, 3.6
+    front = polyline_offset(pts, dg - 0.03)
+    back = polyline_offset(pts, dg - depth)
+    B.rooms.append(front + list(reversed(back)))
+    tex, mat = 'T_Int_%s.png' % shop, 'MB_Int_' + shop
+    L = layout()[tex]
+    W, H = L['size']
+    x, y, w, h = L['slots'][pano]['rect']
+    v_lo, v_hi = 1 - (y + h - 2) / H, 1 - (y + 2) / H
+    pw, ph = L['slots'][pano]['m']
+    acc = pano_off
+    for i in range(len(pts) - 1):
+        a, b = back[i], back[i + 1]
+        ln = (b - a).length
+        ua, ub = acc / pw, (acc + ln * 1.6) / pw
+        acc += ln * 1.6
+        mb.face([a + Z * zf, b + Z * zf, b + Z * zc, a + Z * zc], mat, normal=segs[i].F.n,
+                uvs=[(ua, v_lo + (v_hi - v_lo) * zf / ph), (ub, v_lo + (v_hi - v_lo) * zf / ph), (ub, v_hi), (ua, v_hi)])
+        mb.face([front[i] + Z * zf, front[i + 1] + Z * zf, b + Z * zf, a + Z * zf], mat, normal=Z,
+                uvs=quad_uv(slot(tex, 'floor', 3)))
+        mb.face([a + Z * zc, b + Z * zc, front[i + 1] + Z * zc, front[i] + Z * zc], mat, normal=-Z,
+                uvs=quad_uv(slot(tex, 'ceiling', 3)))
+    vlo = v_lo + (v_hi - v_lo) * zf / ph
+    for j, sgn in ((0, 1), (len(pts) - 1, -1)):
+        f = segs[0] if j == 0 else segs[-1]
+        u_a = (pano_off - depth) / pw if j == 0 else acc / pw
+        u_b = pano_off / pw if j == 0 else (acc + depth) / pw
+        uvs = [(u_a, vlo), (u_b, vlo), (u_b, v_hi), (u_a, v_hi)] if j == 0 else [(u_b, vlo), (u_a, vlo), (u_a, v_hi),
+                                                                                    (u_b, v_hi)]
+        mb.face([front[j] + Z * zf, back[j] + Z * zf, back[j] + Z * zc, front[j] + Z * zc], mat, normal=f.F.t * sgn,
+                uvs=uvs)
+    for f in segs:
+        threshold(B, f.F, 0.0, f.L, dg - 0.05, 0.0)
+    B.loc('Shop_curve', (front[len(front) // 2] + back[len(back) // 2]) / 2 + Z * 2.6)
+    return pts
+
+
+def lit_board(B, F, uc, zc, name, size=None, depth=0.22, frame='MB_MetalDark', d0=0.0):
+    return sign_board(B, F, uc, zc, 'T_SignsLit.png', name, 'MB_SignsLit', depth=depth, d0=d0, frame=frame,
+                      size=size)
+
+
+def steel_tank(B, x, y, r=1.4, h=2.6, legs=1.2):
+    mb, zb = B.mb, B.H
+    for a in range(4):
+        ang = math.pi / 4 + a * math.pi / 2
+        px, py = x + math.cos(ang) * r * 0.75, y + math.sin(ang) * r * 0.75
+        box(mb, WORLD, px - 0.08, px + 0.08, zb, zb + legs, -py - 0.08, -py + 0.08, 'MB_Metal', skip='B')
+    cylinder(mb, (x, y, zb + legs), Z, r, h, 14, 'MB_Steel', cap0=True, cap1=False)
+    cylinder(mb, (x, y, zb + legs + h), Z, r, 0.45, 14, 'MB_Steel', cap0=False, cap1=False, r1=0.25)
+    cylinder(mb, (x, y, zb + legs + h + 0.45), Z, 0.25, 0.2, 8, 'MB_Steel', cap0=False, cap1=True)
+    for hz in (0.5, 1.3, 2.1):
+        cylinder(mb, (x, y, zb + legs + hz), Z, r + 0.03, 0.05, 14, 'MB_Metal', cap0=False, cap1=False)
+
+
+def canopy(B, F, u0, u1, z, proj=1.2, mat='MB_MetalDark', lights=2, edge=None):
+    F = F.F if isinstance(F, Facade) else F
+    mb = B.mb
+    box(mb, F, u0, u1, z, z + 0.16, 0, proj, mat, skip='K')
+    for i in range(lights):
+        uu = u0 + (i + 0.5) * (u1 - u0) / lights
+        box(mb, F, uu - 0.09, uu + 0.09, z - 0.012, z, proj * 0.45, proj * 0.6, 'MB_LampGlow', only='BFLRK')
+    if edge:
+        box(mb, F, u0 - 0.01, u1 + 0.01, z + 0.04, z + 0.08, proj, proj + 0.025, edge, skip='K')
+    for uu in (u0 + 0.2, u1 - 0.2):
+        p0, p1 = F.P(uu, z + 0.9, 0.0), F.P(uu, z + 0.16, proj - 0.1)
+        ax = (p1 - p0).normalized()
+        obox(mb, (p0 + p1) / 2, ax, F.t, ax.cross(F.t).normalized(), (p1 - p0).length / 2, 0.015, 0.015, 'MB_Metal')
+
+
+# ------------------------------------------------------------------------------------------ CornerMart
+
+def build_mart():
+    """CornerMart: 15.4 x 15 m, 6 floors, light stone panels; 24/7 convenience store wrapping the corner (side LEFT)."""
+    W, D = 15.4, 15.0
+    B = Building('CornerMart', [(0, D), (0, 0), (W, 0), (W, D)], ['side', 'front', 'party', 'back'], 6,
+                 'MB_PanelLight', side='left', footprint_wd=(W, D), coping_mat='MB_MetalDark', lit_frac=0.4)
+    side, front, party, back = B.facades
+    TS, MS = 'T_Sign_Mart.png', 'MB_Sign_Mart'
+    for f in (side, front):
+        f.zone(0.0, 0.35, 'MB_Granite')
+    # corner column + piers
+    pilaster(B, front, 0.0, 0.4, 0.0, 3.5, proj=0.14, mat='MB_MetalDark', base_mat=None, cap=False)
+    pilaster(B, side, side.L - 0.4, side.L, 0.0, 3.5, proj=0.14, mat='MB_MetalDark', base_mat=None, cap=False)
+    sf = dict(frame='MB_Steel', stall='MB_MetalDark', stall_h=0.32, transom=2.95, head=3.35, transom_div=1.3)
+    shopfront(B, front, 0.4, 6.4, 'Mart', 'panoA', 0.0, door=1.55, door_w=1.8, mulls=[3.0, 4.7], box_u0=0.28, **sf)
+    shopfront(B, front, 6.9, 11.4, 'Mart', 'panoA', 6.0, mulls=[8.4, 9.9], **sf)
+    pilaster(B, front, 6.4, 6.9, 0.0, 3.5, proj=0.1, mat='MB_PanelLight', base_mat='MB_Granite', base_h=0.35, cap=False)
+    shopfront(B, side, 4.4, side.L - 0.4, 'Mart', 'panoB', 0.0, mulls=[6.9, 9.3, 11.9], box_u1=side.L - 2.03, **sf)
+    pilaster(B, side, 3.9, 4.4, 0.0, 3.5, proj=0.1, mat='MB_PanelLight', base_mat='MB_Granite', base_h=0.35, cap=False)
+    # sliding door centre stile
+    box(B.mb, front.F, 1.53, 1.57, 0.0, 2.75, -0.29, -0.2, 'MB_Steel', only='FLR')
+    canopy(B, front, 0.2, 2.9, 3.06, proj=1.3, edge='MB_LampGlow')
+    # big lightbox fascia (emissive), wrapping the corner
+    lit_board(B, front.F, 5.5, 3.98, 'mart_front', size=(8.1, 0.95), depth=0.28)
+    lit_board(B, side.F, 9.1, 3.98, 'mart_side', size=(6.4, 0.95), depth=0.28)
+    dgp = -0.25 - 0.06
+    for i, u in enumerate((2.3, 3.85, 5.55, 7.65, 9.15, 10.6)):
+        poster(B, front.F, u, 2.15, dgp, TS, 'poster%d' % (i % 6), MS)
+    for i, u in enumerate((5.6, 8.1, 10.6, 13.0)):
+        poster(B, side.F, u, 2.15, dgp, TS, 'poster%d' % ((i + 2) % 6), MS)
+    poster(B, front.F, 9.15, 1.0, dgp - 0.01, 'T_SignsLit.png', 'mart_open', 'MB_SignsLit')
+    poster(B, side.F, 12.4, 1.0, dgp - 0.01, 'T_SignsLit.png', 'mart_open', 'MB_SignsLit')
+    box(B.mb, front.F, 0.05, 0.35, 1.3, 1.5, 0.14, 0.155, MS, skip='K', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    # office entrance (side, back end)
+    res_door(B, side, 1.9, door='door_black', n_steps=1, number=(TS, 'office_plaque', MS), surround='MB_MetalDark',
+             hood=False, rail=False, transom=True)
+    canopy(B, side, 0.9, 2.9, 3.05, proj=0.9, lights=1)
+    drainpipe(B, front.F, W - 0.25, mat='MB_MetalDark')
+    # ice merchandiser outside
+    box(B.mb, front.F, 11.9, 12.65, 0.0, 1.15, 0.1, 0.8, 'MB_TrimWhite', skip='B',
+        uv={'F': quad_uv(slot(TS, 'poster5', 2))}, mats={'F': MS})
+    # band over the shop + floor bands
+    cornice(B, [(0, 4.42), (0.2, 4.42), (0.2, 4.62), (0, 4.62)], 'MB_MetalDark')
+    for k in range(2, B.floors):
+        cornice(B, [(0, B.fz(k) - 0.05), (0.05, B.fz(k) - 0.05), (0.05, B.fz(k) + 0.05), (0, B.fz(k) + 0.05)],
+                'MB_PanelLight')
+    # offices: large windows in dark projecting frames
+    for f, us in ((front, [1.7, 4.7, 7.7, 10.7, 13.7]), (side, [1.6, 4.55, 7.5, 10.45, 13.4])):
+        for k in floors_upper(B):
+            z0 = B.fz(k) + 0.75
+            for u in us:
+                window(B, f, u, z0, w=2.3, h=2.05, depth=0.2, frame='MB_Steel', sill_style=None, lintel_style=None,
+                       sash='transom', office=True, mulls=[u], ac=False, flower=False)
+                surround(B, f.F, u - 1.15, u + 1.15, z0, z0 + 2.05, 'MB_MetalDark', w=0.1, proj=0.18)
+    zt = B.top
+    cornice(B, [(0, zt - 0.4), (0.12, zt - 0.4), (0.12, zt - 0.12), (0, zt - 0.12)], 'MB_MetalDark')
+    for k in floors_upper(B):
+        for u in (3.5, 7.5, 11.5):
+            window(B, back, u, B.fz(k) + 0.8, w=1.6, h=1.8, frame='MB_Steel', sill_style='stone', lintel_style=None,
+                   sash='fixed', office=True, ac=False, flower=False, trim='MB_Concrete')
+    # roof
+    bulkhead(B, 2.0, 4.6, 10.5, 13.6, door_side='front', mat='MB_PanelLight')
+    hvac(B, 8.0, 5.0)
+    hvac(B, 11.0, 5.0)
+    hvac(B, 8.0, 9.5, w=1.3, d=1.3)
+    steel_tank(B, 11.6, 11.0)
+    vent(B, 5.5, 4.5, 'box')
+    vent(B, 4.0, 6.5, 'mushroom')
+    vent(B, 13.4, 8.0, 'pipe', h=1.3)
+    antenna(B, 2.5, 3.0, h=4.5)
+    satellite_dish(B, Frame((4.6, 11.6, B.H), (0, 1, 0), (1, 0, 0)), -0.4, 1.6)
+    B.copy += [('lightbox fascia (front + side)', '24/7 MART'), ('window LED', 'OPEN'),
+               ('posters', 'HOT COFFEE $1 · COLD DRINKS 2/$3 · SNACK DEAL 3/$5 · ATM INSIDE · FRESH FRUIT 99c · ICE'),
+               ('door plaque', 'OPEN 24 HOURS'), ('office plaque', '300 / OFFICES 2-6'),
+               ('interior', 'GROCERY · COLD DRINKS · SNACKS · CANDY · HOT COFFEE · ATM')]
+    B.notes.append('Sharp corner with a slim steel corner column; sliding glass doors at the corner under a steel '
+                   'canopy; offices above with large windows in dark projecting frames (40% lit, cool white).')
+    B.loc('Entrance', front.F.P(1.55, 0, 0))
+    B.extra_views = [('walk', Vector((-18.9, -18.6, 1.56)), Vector((0.0, 2.0, 6.0)), 60, sun_from(222, 30))]
+    return B
+
+
+# ------------------------------------------------------------------------------------------ CornerPharmacy
+
+def build_pharmacy():
+    """CornerPharmacy: 15.4 x 17 m, 7 floors, cream stone, classic cornices; side facade on the viewer's RIGHT."""
+    W, D = 15.4, 17.0
+    B = Building('CornerPharmacy', [(-W, 0), (0, 0), (0, D), (-W, D)], ['front', 'side', 'back', 'party'], 7,
+                 'MB_StoneCream', side='right', footprint_wd=(W, D), lit_frac=0.22)
+    front, side, back, party = B.facades
+    TS, MS = 'T_Sign_Pharmacy.png', 'MB_Sign_Pharmacy'
+    for f in (front, side):
+        f.zone(0.0, 0.6, 'MB_Granite')
+    sf = dict(frame='MB_TrimDark', stall='MB_Granite', stall_h=0.6, transom=2.8, head=3.35)
+    # front (u 0 = party end .. 15.4 = corner)
+    shopfront(B, front, 0.8, 6.8, 'Pharmacy', 'panoB', 1.0, mulls=[2.8, 4.8], **sf)
+    shopfront(B, front, 7.4, 14.6, 'Pharmacy', 'panoA', 0.0, door=13.4, door_w=1.1, mulls=[9.3, 11.2],
+              box_u1=W - 0.28, **sf)
+    for a, b in ((0.0, 0.8), (6.8, 7.4), (14.6, 15.4)):
+        pilaster(B, front, a, b, 0.0, 3.6, proj=0.12, base_mat='MB_Granite', base_h=0.6)
+    # side (u 0 = corner .. 17 = back)
+    shopfront(B, side, 0.8, 8.6, 'Pharmacy', 'panoA', 2.5, mulls=[3.4, 6.0], box_u0=2.03, **sf)
+    shopfront(B, side, 9.2, 12.0, 'Pharmacy', 'panoB', 5.0, mulls=[], **sf)
+    for a, b in ((0.0, 0.8), (8.6, 9.2), (12.0, 12.6)):
+        pilaster(B, side, a, b, 0.0, 3.6, proj=0.12, base_mat='MB_Granite', base_h=0.6)
+    res_door(B, side, 14.4, door='door_black', number=(TS, 'number', MS), surround='MB_StoneTrim')
+    drainpipe(B, side.F, 16.75)
+    drainpipe(B, front.F, 0.25)
+    dgp = -0.25 - 0.06
+    for f, items in ((front, ((2.8, 'poster0'), (11.2, 'poster1'))), (side, ((3.4, 'poster2'),))):
+        for u, nm in items:
+            poster(B, f.F, u + 0.85, 1.75, dgp, TS, nm, MS)
+    poster(B, front.F, 12.25, 3.08, dgp - 0.02, 'T_SignsLit.png', 'pharm_letters', 'MB_SignsLit', size=(1.6, 0.25))
+    box(B.mb, front.F, 14.85, 15.15, 1.25, 1.69, 0.12, 0.135, MS, skip='K', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    sign_board(B, front.F, 7.1, 3.92, TS, 'fascia_front', MS, frame='MB_TrimDark', depth=0.1)
+    sign_board(B, side.F, 6.0, 3.92, TS, 'fascia_side', MS, frame='MB_TrimDark', depth=0.1)
+    cross_sign(B, front.F, 15.0, 5.35)
+    cornice(B, [(0, 4.28), (0.1, 4.28), (0.14, 4.33), (0.26, 4.38), (0.3, 4.46), (0.3, 4.54), (0, 4.54)],
+            'MB_StoneTrim')
+    quoins(B, front, side, 4.6, B.H - 0.3)
+    # piano nobile (floor 2): tall windows, pediments, balconettes; band below
+    zb = B.fz(1) + 0.7
+    cornice(B, [(0, zb - 0.14), (0.09, zb - 0.14), (0.09, zb - 0.03), (0.07, zb), (0, zb)], 'MB_StoneTrim')
+    fus = [1.5, 3.9, 6.3, 8.7, 11.1, 13.5]
+    sus = [1.9, 4.25, 6.6, 8.95, 11.3, 13.65, 15.95]
+    for f, us, bal in ((front, fus, (2, 3)), (side, sus, (2, 4))):
+        for i, u in enumerate(us):
+            window(B, f, u, zb, w=1.15, h=2.05, frame='MB_TrimDark', sill_style=None, lintel_style=None,
+                   ac=False, flower=False)
+            box(B.mb, f.F, u - 0.7, u - 0.575, zb, zb + 2.05, 0, 0.05, 'MB_StoneTrim', skip='K')
+            box(B.mb, f.F, u + 0.575, u + 0.7, zb, zb + 2.05, 0, 0.05, 'MB_StoneTrim', skip='K')
+            pediment(B, f.F, u - 0.7, u + 0.7, zb + 2.05)
+            if i in bal:
+                balconette(B, f.F, u - 0.8, u + 0.8, zb)
+    for k in range(2, B.floors - 1):
+        style = 'hood' if k == 2 else 'key'
+        for f, us in ((front, fus), (side, sus)):
+            for u in us:
+                window(B, f, u, B.fz(k) + 0.85, w=1.15, h=1.75, frame='MB_TrimDark', lintel_style=style)
+    za = B.fz(B.floors - 1) + 0.75
+    cornice(B, [(0, za - 0.16), (0.1, za - 0.16), (0.1, za - 0.03), (0.08, za), (0, za)], 'MB_StoneTrim')
+    for f, us in ((front, fus), (side, sus)):
+        for u in us:
+            window(B, f, u, za, w=1.15, h=1.35, frame='MB_TrimDark', sill_style=None, lintel_style=None,
+                   sash='casement', ac=False)
+    # main cornice: dentils + modillions + crown
+    zt = B.top
+    zc0 = zt - 1.25
+    cornice(B, [(0, zc0), (0.16, zc0), (0.16, zc0 + 0.22), (0.24, zc0 + 0.26), (0.24, zc0 + 0.4), (0.62, zc0 + 0.48),
+                (0.7, zc0 + 0.52), (0.7, zc0 + 0.7), (0.62, zc0 + 0.76), (0, zc0 + 0.76)], 'MB_StoneTrim')
+    for f, us in ((front, fus), (side, sus)):
+        dentils(B, f, 0.3, f.L - 0.3, zc0, 'MB_StoneTrim', proj=0.22)
+        mods = sorted([0.35, f.L - 0.35] + [(a + b) / 2 for a, b in zip(us[:-1], us[1:])] + us)
+        for u in mods:
+            prism(B.mb, f.F, [(0.16, zc0 + 0.22), (0.2, zc0 + 0.22), (0.58, zc0 + 0.42), (0.58, zc0 + 0.47),
+                              (0.24, zc0 + 0.47), (0.24, zc0 + 0.26)], u - 0.07, u + 0.07, 'MB_StoneTrim',
+                  skip_edges=(4, 5))
+    # parapet panels
+    for f in (front, side):
+        n = int(f.L / 2.4)
+        for i in range(n):
+            u0 = 0.4 + i * (f.L - 0.8) / n
+            box(B.mb, f.F, u0 + 0.2, u0 + (f.L - 0.8) / n - 0.2, zt - 0.38, zt - 0.14, 0, 0.03, 'MB_StoneTrim',
+                skip='K')
+    for k in floors_upper(B):
+        for u in (3.0, 7.7, 12.4):
+            window(B, back, u, B.fz(k) + 0.85, w=1.0, h=1.6, frame='MB_TrimDark', lintel_style=None, ac=False,
+                   flower=False, trim='MB_Concrete')
+    # roof
+    bulkhead(B, -12.8, -10.2, 12.0, 15.2, door_side='front')
+    steel_tank(B, -4.5, 12.5, r=1.6, h=3.0, legs=1.6)
+    hvac(B, -8.0, 6.0)
+    vent(B, -11.5, 5.0, 'mushroom')
+    vent(B, -6.0, 9.0, 'box')
+    vent(B, -2.5, 4.5, 'pipe', h=1.2)
+    chimney(B, -14.7, 9.0, w=0.6, d=1.4, h=2.0, pots=2)
+    antenna(B, -9.5, 13.5, h=3.6)
+    skylight(B, -3.5, 6.5)
+    B.copy += [('fascia (front)', 'PHARMACY / PRESCRIPTIONS · HEALTH · BEAUTY'),
+               ('fascia (side)', 'PHARMACY / OPEN 8 AM - 9 PM'), ('blade sign', 'green cross (no text)'),
+               ('window LED', 'PHARMACY'),
+               ('posters', 'FLU SHOTS - NO APPOINTMENT NEEDED · SPRING ALLERGY RELIEF · VITAMINS BUY 1 GET 1 HALF PRICE'),
+               ('door plaque', 'HOURS MON-SAT 8-9 / SUN 10-6 / PHARMACIST ON DUTY'), ('house number', '401'),
+               ('interior', 'PRESCRIPTIONS · HEALTH & BEAUTY · VITAMINS')]
+    B.notes.append('Classic cream stone: granite base, quoins, piano nobile with pediments and two balconettes per '
+                   'street facade, dentil + modillion main cornice. Emissive green cross blade sign at the corner.')
+    B.loc('Entrance', front.F.P(13.4, 0, 0))
+    B.extra_views = [('walk', Vector((18.9, -2.6, 1.56)), Vector((0.0, 3.0, 6.5)), 60, sun_from(138, 30))]
+    return B
+
+
+# ------------------------------------------------------------------------------------------ CornerDiner
+
+def build_diner():
+    """CornerDiner: 16 x 15.4 m, 4 floors, teal-painted brick, rounded corner; side facade on the viewer's RIGHT."""
+    W, D, r, nseg = 16.0, 15.4, 2.6, 6
+    arc = [(-r + r * math.cos(math.radians(-90 + 90 * i / nseg)), r + r * math.sin(math.radians(-90 + 90 * i / nseg)))
+           for i in range(1, nseg + 1)]
+    fp = [(-W, 0), (-r, 0)] + arc + [(0, D), (-W, D)]
+    kinds = ['front'] + ['round'] * nseg + ['side', 'back', 'party']
+    B = Building('CornerDiner', fp, kinds, 4, 'MB_BrickTeal', side='right', footprint_wd=(W, D),
+                 coping_mat='MB_TrimWhite', lit_frac=0.3)
+    front = B.facades[0]
+    segs = B.facades[1:1 + nseg]
+    side = B.facades[1 + nseg]
+    back = B.facades[2 + nseg]
+    TS, MS = 'T_Sign_Diner.png', 'MB_Sign_Diner'
+    for f in [front, side] + segs:
+        f.zone(0.0, 0.5, 'MB_TrimTeal')
+    sf = dict(frame='MB_Chrome', stall='MB_Chrome', stall_h=0.5, transom=2.75, head=3.35)
+    # front (u 0 = party end .. 13.4 = curve start)
+    res_door(B, front, 1.45, door='door_red', number=(TS, 'number', MS), surround='MB_TrimWhite', hood=False)
+    shopfront(B, front, 2.9, 13.0, 'Diner', 'panoA', 0.0, door=12.0, door_w=1.0, mulls=[4.9, 6.9, 8.9, 10.9], **sf)
+    pilaster(B, front, 2.5, 2.9, 0.0, 3.5, proj=0.1, base_mat='MB_TrimTeal', base_h=0.5, cap=False)
+    pilaster(B, front, 13.0, front.L, 0.0, 3.5, proj=0.1, base_mat='MB_TrimTeal', base_h=0.5, cap=False)
+    for f in (front,):
+        for zr in (0.12, 0.24, 0.36):
+            box(B.mb, f.F, 3.0, 11.44, zr, zr + 0.03, -0.25 + 0.1, -0.25 + 0.125, 'MB_Chrome', only='FTB')
+    dgf = -0.25 - 0.03
+    for u in (3.9, 5.9, 7.9, 9.9):
+        booth(B, front.F, u, dgf)
+    curve_shop(B, segs, 'Diner', 'panoB', 2.0)
+    shopfront(B, side, 0.4, 6.4, 'Diner', 'panoB', 4.0, mulls=[2.4, 4.4], **sf)
+    pilaster(B, side, 0.0, 0.4, 0.0, 3.5, proj=0.1, base_mat='MB_TrimTeal', base_h=0.5, cap=False)
+    pilaster(B, side, 6.4, 6.9, 0.0, 3.5, proj=0.1, base_mat='MB_TrimTeal', base_h=0.5, cap=False)
+    for zr in (0.12, 0.24, 0.36):
+        box(B.mb, side.F, 0.5, 6.3, zr, zr + 0.03, -0.25 + 0.1, -0.25 + 0.125, 'MB_Chrome', only='FTB')
+    for u in (1.4, 3.4, 5.4):
+        booth(B, side.F, u, dgf)
+    # kitchen door + small window on the side
+    side.opening(7.6, 8.55, 0.0, 2.15, 0.12, side='MB_Concrete', top='MB_Concrete')
+    box(B.mb, side.F, 7.6, 8.55, 0.0, 2.15, -0.12, -0.11, 'MB_Details', only='F',
+        uv={'F': quad_uv(slot('T_Details.png', 'door_steel', 2))})
+    box(B.mb, side.F, 7.5, 8.65, 2.15, 2.3, 0, 0.06, 'MB_Concrete', skip='K')
+    window(B, side, 10.0, 1.8, w=1.2, h=1.0, frame='MB_TrimWhite', sash='fixed', lit=True, variant='kitchen',
+           lintel_style=None, ac=False, flower=False, trim='MB_TrimWhite')
+    vent_f = side.F
+    box(B.mb, vent_f, 9.6, 10.4, 2.95, 3.35, 0.0, 0.25, 'MB_Steel', skip='K',
+        uv={'F': quad_uv(slot('T_Details.png', 'vent', 2))}, mats={'F': 'MB_Details'})
+    drainpipe(B, side.F, side.L - 0.3, mat='MB_TrimWhite')
+    drainpipe(B, front.F, 0.25, mat='MB_TrimWhite')
+    # signs: neon fascia, side fascia, vertical blade on the curve, OPEN neon, canopy over the door
+    box(B.mb, front.F, 2.9, 13.0, 3.45, 3.5, 0.0, 0.05, 'MB_Chrome', skip='K')
+    lit_board(B, front.F, 7.6, 3.88, 'diner_main', size=(4.2, 0.75), depth=0.16, frame='MB_Chrome')
+    sign_board(B, side.F, 3.4, 3.83, TS, 'fascia_side', MS, frame='MB_Chrome', depth=0.08)
+    for f in segs:
+        box(B.mb, f.F, 0.0, f.L, 3.6, 3.66, 0.0, 0.05, 'MB_Chrome', only='FTB')
+        box(B.mb, f.F, 0.0, f.L, 3.8, 3.86, 0.0, 0.05, 'MB_Chrome', only='FTB')
+        box(B.mb, f.F, 0.0, f.L, 3.98, 4.04, 0.0, 0.05, 'MB_NeonPink', only='FTB')
+    mid = nseg // 2
+    jp = segs[mid].F.A
+    m = (segs[mid - 1].F.n + segs[mid].F.n).normalized()
+    Fj = Frame(jp, Z.cross(m).normalized() * -1, m)
+    blade_sign(B, Fj, 0.0, 6.35, 'T_SignsLit.png', 'diner_blade', 'MB_SignsLit', d_wall=0.25, thick=0.2,
+               frame='MB_Chrome')
+    poster(B, front.F, 10.9, 2.2, -0.25 - 0.07, 'T_SignsLit.png', 'diner_open', 'MB_SignsLit', size=(1.2, 0.34))
+    poster(B, side.F, 4.4, 2.2, -0.25 - 0.07, TS, 'poster0', MS)
+    poster(B, front.F, 4.9, 2.25, -0.25 - 0.07, TS, 'poster1', MS)
+    canopy(B, front, 11.2, 12.8, 3.0, proj=1.0, mat='MB_Chrome', lights=2, edge='MB_NeonBlue')
+    cornice(B, [(0, 4.24), (0.12, 4.24), (0.16, 4.3), (0.22, 4.34), (0.22, 4.42), (0, 4.42)], 'MB_TrimWhite')
+    # upper floors: white trim, soldier lintels; wrap-around corner windows on the curve
+    fus = [1.6, 4.1, 6.6, 9.1, 11.6]
+    sus = [1.6, 4.1, 6.6, 9.1, 11.6]
+    for k in floors_upper(B):
+        z0 = B.fz(k) + 0.85
+        for f, us in ((front, fus), (side, sus)):
+            for u in us:
+                window(B, f, u, z0, w=1.1, h=1.7, frame='MB_TrimWhite', lintel_style='soldier', trim='MB_TrimWhite')
+        for f in segs:
+            window(B, f, f.L / 2, z0, w=f.L - 0.14, h=1.7, frame='MB_TrimWhite', sill_style=None, lintel_style=None,
+                   sash='fixed', ac=False, flower=False, trim='MB_TrimWhite')
+        arcp = [segs[0].F.A] + [f.F.P(f.L, 0, 0) for f in segs]
+        sweep(B.mb, arcp, [(0, z0 - 0.07), (0.07, z0 - 0.07), (0.07, z0), (0, z0)], 'MB_TrimWhite')
+        sweep(B.mb, arcp, [(0, z0 + 1.7), (0.05, z0 + 1.7), (0.05, z0 + 1.88), (0, z0 + 1.88)], 'MB_TrimWhite')
+    zt = B.top
+    for zz in (zt - 0.62, zt - 0.46, zt - 0.3):
+        cornice(B, [(0, zz), (0.05, zz), (0.05, zz + 0.06), (0, zz + 0.06)], 'MB_TrimWhite')
+    cornice(B, [(0, B.H - 0.1), (0.3, B.H - 0.1), (0.3, B.H + 0.06), (0, B.H + 0.06)], 'MB_TrimWhite')
+    for k in floors_upper(B):
+        for u in (3.0, 8.0, 13.0):
+            window(B, back, u, B.fz(k) + 0.85, w=0.9, h=1.5, frame='MB_TrimWhite', lintel_style=None, ac=False,
+                   flower=False, trim='MB_Concrete')
+    # roof
+    bulkhead(B, -13.5, -11.0, 11.5, 14.6, door_side='front', mat='MB_BrickCommon')
+    hvac(B, -7.0, 8.0)
+    vent(B, -4.0, 6.0, 'box')
+    vent(B, -9.5, 4.0, 'mushroom')
+    vent(B, -5.0, 11.0, 'pipe', h=1.4)
+    chimney(B, -15.3, 6.0, w=0.6, d=1.2, h=1.6)
+    antenna(B, -3.5, 10.5, h=3.0)
+    satellite_dish(B, side.F, 8.2, B.fz(2) + 1.6)
+    B.copy += [('neon fascia', 'Diner · OPEN 24H'), ('vertical blade (neon)', 'DINER'), ('window neon', 'OPEN 24H'),
+               ('side fascia', 'EAT · DRINK · SINCE 1954'),
+               ('window posters', 'BREAKFAST ALL DAY / PANCAKES · EGGS · HASH · FREE COFFEE REFILLS'),
+               ('house number', '88'), ('interior', 'BURGERS 9.50 · PANCAKES 7.25 · SHAKES 5.00 · PIE 4.50')]
+    B.notes.append('Rounded corner (r 2.6 m, 6 facets) with wrap-around glazing and corner windows above; chrome '
+                   'trim, red vinyl booths behind the glass; vertical neon DINER blade on the corner.')
+    B.loc('Entrance', front.F.P(12.0, 0, 0))
+    B.extra_views = [('walk', Vector((-4.1, -18.6, 1.56)), Vector((-3.0, 0.0, 5.0)), 60, sun_from(138, 30))]
+    return B
+
+
+# ------------------------------------------------------------------------------------------ mid-block kit
+
+def midblock(name, W, D, floors, wall, side_mat='MB_BrickCommon', **kw):
+    B = Building(name, [(-W / 2, 0), (W / 2, 0), (W / 2, D), (-W / 2, D)], ['front', 'party', 'back', 'party'],
+                 floors, wall, side_mat=side_mat, footprint_wd=(W, D), kind='mid', **kw)
+    return B
+
+
+def side_windows(B, from_floor=2, w=0.9, h=1.4, n=2):
+    for f in (B.facades[1], B.facades[3]):
+        us = [f.L * (0.4 + 0.25 * i) for i in range(n)]
+        for k in range(from_floor, B.floors):
+            for u in us:
+                window(B, f, u, B.fz(k) + 0.9, w=w, h=h, frame='MB_TrimDark', lintel_style=None, trim='MB_Concrete',
+                       ac=False, flower=False)
+    back = B.facades[2]
+    nb = max(2, int(back.L / 4))
+    for k in range(1, B.floors):
+        for i in range(nb):
+            window(B, back, back.L * (i + 0.5) / nb, B.fz(k) + 0.9, w=0.9, h=1.5, frame='MB_TrimDark',
+                   lintel_style=None, trim='MB_Concrete', ac=False, flower=False)
+
+
+def shop_cornice(B, mat='MB_StoneTrim', z=4.14, proj=0.28):
+    cornice(B, [(0, z), (0.1, z), (0.14, z + 0.06), (proj - 0.04, z + 0.1), (proj, z + 0.18), (proj, z + 0.24),
+                (0, z + 0.24)], mat)
+
+
+def top_cornice(B, mat, proj=0.42, brackets=None, f=None):
+    zt = B.top
+    cornice(B, [(0, zt - 0.85), (0.06, zt - 0.85), (0.06, zt - 0.7), (0.14, zt - 0.66), (0.14, zt - 0.52),
+                (proj - 0.06, zt - 0.42), (proj, zt - 0.38), (proj, zt - 0.2), (0, zt - 0.2)], mat)
+    if brackets:
+        brackets_along(B, f or B.facades[0], brackets, zt - 0.85, mat, size=(0.13, 0.38, 0.34))
+
+
+def roof_kit(B, bulk=True, tank=False, chim=True, dish=False):
+    W, D = B.footprint_wd
+    r = B.rng
+    if bulk:
+        x0 = -W / 2 + 0.8 if r.random() < 0.5 else W / 2 - 3.2
+        bulkhead(B, x0, x0 + 2.4, D - 3.6, D - 0.6, door_side='front')
+    vent(B, r.uniform(-W / 4, W / 4), r.uniform(2.0, D / 2), 'mushroom')
+    vent(B, r.uniform(-W / 3, W / 3), r.uniform(D / 2, D - 4.5), 'box')
+    vent(B, r.uniform(-W / 3, W / 3), r.uniform(1.5, D - 5), 'pipe', h=1.1)
+    antenna(B, r.uniform(-W / 3, W / 3), r.uniform(1.5, 4.0), h=r.uniform(2.6, 3.6))
+    if chim:
+        chimney(B, W / 2 - 0.65, r.uniform(4, D - 5), w=0.6, d=1.1, h=1.5)
+    if tank:
+        water_tower(B, r.uniform(-W / 4, W / 4), D - 3.2, r=1.5, legs_h=2.6, tank_h=2.8)
+    if dish:
+        satellite_dish(B, Frame((-W / 2 + 1.5, D / 2, B.H), (0, -1, 0), (-1, 0, 0)), 0.0, 1.4)
+
+
+def lantern(B, F, u, z, d, r=0.22, h=0.3):
+    mb = B.mb
+    c = F.P(u, z, d)
+    blob(mb, c, r, h, 'MB_LanternRed', segs=10, rings=5)
+    cylinder(mb, c + Z * (h - 0.04), Z, r * 0.55, 0.08, 8, 'MB_Metal', cap0=False)
+    cylinder(mb, c - Z * (h + 0.04), Z, r * 0.55, 0.08, 8, 'MB_Metal', cap1=False)
+    box(mb, F, u - 0.006, u + 0.006, z + h + 0.04, z + h + 0.45, d - 0.006, d + 0.006, 'MB_Metal', only='FKLR')
+    box(mb, F, u - 0.025, u + 0.025, z - h - 0.25, z - h - 0.04, d - 0.025, d + 0.025, 'MB_LanternRed', only='FKLR')
+
+
+def text3d(B, F, text, uc, zc, size, depth, mat, font='Georgia Bold.ttf', d0=0.0, spacing=1.0):
+    """Extruded letters (Blender font -> mesh) placed on facade frame F, back faces dropped."""
+    cu = bpy.data.curves.new('txt', 'FONT')
+    cu.body = text
+    cu.font = bpy.data.fonts.load('/System/Library/Fonts/Supplemental/' + font, check_existing=True)
+    cu.size = size
+    cu.extrude = depth / 2
+    cu.resolution_u = 2
+    cu.align_x, cu.align_y = 'CENTER', 'CENTER'
+    cu.space_character = spacing
+    ob = bpy.data.objects.new('txt', cu)
+    bpy.context.scene.collection.objects.link(ob)
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = ob.evaluated_get(dg)
+    me = ev.to_mesh()
+    for poly in me.polygons:
+        if poly.normal.z < -0.99:
+            continue
+        pts = [F.P(uc + me.vertices[i].co.x, zc + me.vertices[i].co.y, d0 + depth / 2 + me.vertices[i].co.z)
+               for i in poly.vertices]
+        n = poly.normal
+        B.mb.face(pts, mat, normal=F.t * n.x + Z * n.y + F.n * n.z, frame=F)
+    ev.to_mesh_clear()
+    bpy.data.objects.remove(ob)
+    bpy.data.curves.remove(cu)
+
+
+def shutter(B, f, u0, u1, z1=3.05, reveal=0.12, sticker=None):
+    """Closed roll-down shutter in an opening: slats, guide rails, housing box, bottom bar + lock."""
+    F, mb = f.F, B.mb
+    f.opening(u0, u1, 0.0, z1 + 0.4, reveal, side=f.wall_mat, top='MB_Steel')
+    a, b = u0 + 0.06, u1 - 0.06
+    mb.face([F.P(a, 0.0, -reveal + 0.04), F.P(b, 0.0, -reveal + 0.04), F.P(b, z1, -reveal + 0.04),
+             F.P(a, z1, -reveal + 0.04)], 'MB_Shutter', normal=F.n, frame=F)
+    box(mb, F, u0, a, 0.0, z1 + 0.4, -reveal, -reveal + 0.1, 'MB_Steel', only='FR')
+    box(mb, F, b, u1, 0.0, z1 + 0.4, -reveal, -reveal + 0.1, 'MB_Steel', only='FL')
+    box(mb, F, a, b, z1, z1 + 0.4, -reveal, -reveal + 0.12, 'MB_Steel', only='FB')
+    box(mb, F, a, b, 0.0, 0.07, -reveal + 0.04, -reveal + 0.075, 'MB_Steel', only='FT')
+    for uu in ((a + b) / 2 - 0.5, (a + b) / 2 + 0.5):
+        box(mb, F, uu - 0.06, uu + 0.06, 0.02, 0.1, -reveal + 0.075, -reveal + 0.1, 'MB_Metal', skip='K')
+    threshold(B, F, u0, u1, -reveal, 0.0)
+    if sticker:
+        tex, nm, mat = sticker
+        poster(B, F, (a + b) / 2, 1.5, -reveal + 0.045, tex, nm, mat)
+
+
+def papered(B, F, u0, u1, z0, z1, d):
+    B.mb.face([F.P(u0, z0, d), F.P(u1, z0, d), F.P(u1, z1, d), F.P(u0, z1, d)], 'MB_Paper', normal=F.n, frame=F)
+
+
+def bucket_stand(B, F, u0, u1, d0=0.15, d1=1.0):
+    """Tiered wooden stand of flower buckets on the sidewalk, plus a few buckets on the ground."""
+    mb, r = B.mb, B.rng
+    tiers = [(0.0, 0.25, d1 - 0.05, d1 - 0.35), (0.25, 0.5, d1 - 0.38, d0 + 0.3), (0.5, 0.75, d0 + 0.28, d0)]
+    for z0, z1, dd0, dd1 in tiers:
+        a, b = sorted((dd0, dd1))
+        box(mb, F, u0, u1, z0, z1, a, b, 'MB_WoodLight', skip='B')
+        n = int((u1 - u0) / 0.38)
+        for i in range(n):
+            uc = u0 + (i + 0.5) * (u1 - u0) / n
+            c = F.P(uc, z1, (a + b) / 2)
+            cylinder(mb, c, Z, 0.13, 0.32, 8, 'MB_Steel', cap0=False, cap1=True, r1=0.15, cap_mat='MB_Foliage')
+            blob(mb, c + Z * (0.42 + r.uniform(0, 0.06)), r.uniform(0.17, 0.21), r.uniform(0.16, 0.22), 'MB_Foliage',
+                 segs=7, rings=3)
+    for i in range(3):
+        uc = u1 + 0.35 + i * 0.42
+        c = F.P(uc, 0.0, d1 - 0.3 - (i % 2) * 0.35)
+        cylinder(mb, c, Z, 0.14, 0.38, 8, 'MB_Steel', cap0=False, cap1=True, r1=0.16, cap_mat='MB_Foliage')
+        blob(mb, c + Z * 0.55, 0.2, 0.25, 'MB_Foliage', segs=7, rings=3)
+
+
+def book_cart(B, F, u, d, tex, mat):
+    mb = B.mb
+    box(mb, F, u - 0.65, u + 0.65, 0.62, 0.7, d - 0.3, d + 0.3, 'MB_Wood', skip='')
+    for uu in (u - 0.6, u + 0.55):
+        for dd in (d - 0.26, d + 0.22):
+            box(mb, F, uu, uu + 0.05, 0.0, 0.62, dd, dd + 0.05, 'MB_Wood', only='FKLR')
+    box(mb, F, u - 0.6, u + 0.6, 0.45, 0.62, d + 0.28, d + 0.3, 'MB_Wood', only='F',
+        uv={'F': quad_uv(slot(tex, 'bin', 2))}, mats={'F': mat})
+    cols = ['MB_TrimGreen', 'MB_Vinyl', 'MB_TrimCream', 'MB_TrimDark', 'MB_Brass', 'MB_TrimBottle']
+    x = u - 0.6
+    while x < u + 0.55:
+        w = B.rng.uniform(0.04, 0.08)
+        h = B.rng.uniform(0.16, 0.26)
+        box(mb, F, x, x + w, 0.7, 0.7 + h, d - 0.22, d + 0.2, cols[B.rng.randrange(len(cols))], skip='B')
+        x += w + 0.008
+
+
+def build_noodle():
+    B = midblock('NoodleBar', 12.0, 15.0, 4, 'MB_StoneCream', lit_frac=0.3)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Noodle.png', 'MB_Sign_Noodle'
+    front.zone(0.0, 0.5, 'MB_Granite')
+    res_door(B, front, 1.25, door='door_blue', number=(TS, 'number', MS))
+    shopfront(B, front, 2.6, 11.4, 'Noodle', 'panoA', 0.0, door=9.8, door_w=1.0, mulls=[4.8, 7.0], frame='MB_Wood',
+              stall='MB_Wood', transom_div=0.7)
+    pilaster(B, front, 11.4, 12.0, 0.0, 3.55, proj=0.1, base_mat='MB_Granite')
+    pilaster(B, front, 2.2, 2.6, 0.0, 3.55, proj=0.1, base_mat='MB_Granite')
+    poster(B, front.F, 9.8, 2.48, -0.25 + 0.09, TS, 'noren', MS, size=(1.0, 0.55))
+    poster(B, front.F, 3.7, 1.75, -0.31, TS, 'menu', MS)
+    poster(B, front.F, 8.4, 2.2, -0.32, 'T_SignsLit.png', 'open_neon', 'MB_SignsLit', size=(0.8, 0.36))
+    sign_board(B, front.F, 7.0, 3.86, TS, 'fascia', MS, frame='MB_Wood')
+    box(B.mb, front.F, 2.5, 11.5, 3.42, 3.5, 0.0, 0.62, 'MB_Wood', skip='K')        # lantern beam
+    for u in (3.2, 5.6, 8.0, 10.8):
+        lantern(B, front.F, u, 2.85, 0.48)
+        B.loc('Lantern_%d' % int(u * 10), front.F.P(u, 2.85, 0.48))
+    shop_cornice(B)
+    us = [1.5, 4.5, 7.5, 10.5]
+    upper_windows(B, front, us, frame='MB_TrimWhite', lintel_style='flat', trim='MB_StoneTrim')
+    top_cornice(B, 'MB_StoneTrim', brackets=[0.3, 3.0, 6.0, 9.0, 11.7])
+    drainpipe(B, front.F, 11.85)
+    side_windows(B)
+    roof_kit(B)
+    B.copy += [('fascia', 'NOODLE BAR / RAMEN · DUMPLINGS · BAO'), ('noren (door curtain)', 'OPEN + bowl icon'),
+               ('window menu', 'MENU: SHOYU RAMEN 12 · MISO RAMEN 13 · UDON 11 · GYOZA 7 · BAO 6 · LUNCH 11-3'),
+               ('window neon', 'OPEN'), ('interior boards', 'RAMEN 12 · UDON 11 · GYOZA 7 · BAO 6'),
+               ('house number', '112')]
+    B.notes.append('Dark wood shopfront, four emissive red paper lanterns on a beam under the sign, noren over the '
+                   'door.')
+    return B
+
+
+def build_books():
+    B = midblock('Books', 12.0, 16.0, 5, 'MB_BrickRed', lit_frac=0.25)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Books.png', 'MB_Sign_Books'
+    front.zone(0.0, 0.5, 'MB_StoneTrim')
+    shopfront(B, front, 0.9, 9.3, 'Books', 'panoA', 0.0, door=5.1, door_w=1.1, mulls=[1.9, 2.9, 3.9, 6.3, 7.3, 8.3],
+              frame='MB_TrimBottle', stall='MB_TrimBottle', transom=2.55, transom_div=0.5)
+    for a, b in ((0.0, 0.9), (9.3, 9.8)):
+        pilaster(B, front, a, b, 0.0, 3.55, proj=0.12, mat='MB_TrimBottle', base_mat='MB_TrimBottle', base_h=0.5)
+    res_door(B, front, 10.85, door='door_black', number=(TS, 'number', MS), n_steps=2)
+    sign_board(B, front.F, 5.1, 3.85, TS, 'fascia', MS, frame='MB_TrimBottle', depth=0.12)
+    box(B.mb, front.F, 4.7, 5.0, 1.15, 1.55, -0.22, -0.205, MS, only='F', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    book_cart(B, front.F, 2.6, 0.75, TS, MS)
+    shop_cornice(B, mat='MB_TrimBottle')
+    us = [1.5, 4.3, 7.2, 10.2]
+    upper_windows(B, front, us, frame='MB_TrimWhite', lintel_style='key')
+    top_cornice(B, 'MB_TrimCream', brackets=[0.3, 2.9, 5.75, 8.7, 11.7])
+    drainpipe(B, front.F, 11.8)
+    side_windows(B)
+    roof_kit(B, tank=True, bulk=False)
+    B.copy += [('fascia', 'BOOKS / USED & NEW · EST. 1972'), ('book cart', 'ALL BOOKS $1'),
+               ('door plaque', 'BOOKS / OPEN 10-8 / CLOSED MON'), ('interior', 'FICTION · HISTORY · NEW ARRIVALS'),
+               ('house number', '106')]
+    B.notes.append('Bottle-green small-paned shopfront, $1 book cart on the sidewalk, rooftop water tower.')
+    return B
+
+
+def build_laundromat():
+    B = midblock('Laundromat', 10.0, 14.0, 3, 'MB_BrickSlate', lit_frac=0.3)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Laundry.png', 'MB_Sign_Laundry'
+    front.zone(0.0, 0.45, 'MB_Concrete')
+    shopfront(B, front, 0.5, 7.7, 'Laundry', 'panoA', 0.0, door=6.75, door_w=1.0, mulls=[2.4, 4.3], frame='MB_Steel',
+              stall='MB_Steel', stall_h=0.4, transom_div=1.2)
+    pilaster(B, front, 7.7, 8.1, 0.0, 3.55, proj=0.1, base_mat='MB_Concrete', base_h=0.45, cap=False)
+    res_door(B, front, 9.0, door='door_blue', number=(TS, 'number', MS), n_steps=2, w=1.0, hood=False)
+    sign_board(B, front.F, 4.1, 3.87, TS, 'fascia', MS, frame='MB_TrimWhite', depth=0.1)
+    poster(B, front.F, 1.45, 1.55, -0.31, TS, 'poster0', MS)
+    poster(B, front.F, 3.35, 1.55, -0.31, TS, 'poster1', MS)
+    poster(B, front.F, 5.3, 2.3, -0.32, 'T_SignsLit.png', 'open_neon', 'MB_SignsLit', size=(0.8, 0.36))
+    box(B.mb, front.F, 6.05, 6.25 + 0.16, 1.25, 1.49, -0.22, -0.205, MS, only='F', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    dgi = -0.25 - 0.03
+    for u in (1.2, 1.75, 2.3, 4.6, 5.15):                                       # plastic chairs facing out
+        box(B.mb, front.F, u - 0.2, u + 0.2, 0.42, 0.46, dgi - 0.75, dgi - 0.35, 'MB_Terracotta')
+        box(B.mb, front.F, u - 0.2, u + 0.2, 0.46, 0.85, dgi - 0.79, dgi - 0.75, 'MB_Terracotta')
+        box(B.mb, front.F, u - 0.17, u + 0.17, 0.03, 0.42, dgi - 0.72, dgi - 0.4, 'MB_Steel', only='FKLR')
+    shop_cornice(B, mat='MB_TrimWhite')
+    upper_windows(B, front, [1.6, 5.0, 8.4], frame='MB_TrimWhite', lintel_style='soldier', trim='MB_TrimWhite')
+    top_cornice(B, 'MB_TrimWhite', proj=0.3)
+    drainpipe(B, front.F, 0.2, mat='MB_TrimWhite')
+    side_windows(B, from_floor=1)
+    roof_kit(B, chim=False)
+    hvac(B, 1.5, 6.0, w=1.3, d=1.0)
+    B.copy += [('fascia', 'LAUNDROMAT / COIN WASH · DRY · FOLD'), ('posters', 'WASH $3.50 / DRY 25c / 8 MIN · '
+               'DROP-OFF SERVICE / READY BY 5PM'), ('window neon', 'OPEN'), ('door plaque', 'OPEN 6AM-11PM / LAST WASH 10PM'),
+               ('interior', 'WASHERS · DRYERS'), ('house number', '96')]
+    B.notes.append('Bright fluorescent interior: rows of washers/dryers on the back wall, orange chairs at the window.')
+    return B
+
+
+def build_phone():
+    B = midblock('PhoneRepair', 14.0, 16.0, 6, 'MB_BrickBrown', lit_frac=0.25)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Phone.png', 'MB_Sign_Phone'
+    front.zone(0.0, 0.5, 'MB_Concrete')
+    shutter(B, front, 0.8, 7.8, sticker=(TS, 'sticker', MS))
+    pilaster(B, front, 0.0, 0.8, 0.0, 3.55, proj=0.1, base_mat='MB_Concrete')
+    pilaster(B, front, 7.8, 8.4, 0.0, 3.55, proj=0.1, base_mat='MB_Concrete')
+    sign_board(B, front.F, 4.3, 3.86, TS, 'fascia', MS, frame='MB_TrimDark', depth=0.1)
+    res_door(B, front, 10.6, door='door_red', number=(TS, 'number', MS), n_steps=4, step_h=0.15)
+    window(B, front, 12.75, 1.3, w=1.0, h=1.5, frame='MB_TrimWhite', lintel_style='flat', ac=False, flower=False)
+    for u in (12.5, 13.0):
+        box(B.mb, front.F, u - 0.012, u + 0.012, 1.3, 2.8, 0.02, 0.045, 'MB_Metal', skip='K')
+    shop_cornice(B, mat='MB_StoneTrim')
+    us = [1.3, 4.1, 7.0, 9.9, 12.7]
+    upper_windows(B, front, us, frame='MB_TrimWhite', lintel_style='flat', skip={(k, i) for k in range(1, 6)
+                                                                                  for i in (1, 2, 3)})
+    for k in floors_upper(B):
+        for u in us[1:4]:
+            window(B, front, u, B.fz(k) + 0.85, w=1.1, h=2.0, frame='MB_TrimWhite', lintel_style='flat', ac=False,
+                   flower=False, sill_style=None)
+    fire_escape(B, front, 2.85, 11.25, floors_upper(B), depth=1.2)
+    top_cornice(B, 'MB_TrimCream', brackets=[0.3, 2.7, 5.55, 8.45, 11.3, 13.7])
+    drainpipe(B, front.F, 13.85)
+    side_windows(B)
+    roof_kit(B, dish=True)
+    B.copy += [('fascia', 'PHONE REPAIR / SCREENS · BATTERIES · UNLOCK · ACCESSORIES'),
+               ('shutter sticker', 'OPEN 10AM-8PM / WALK-INS WELCOME'), ('house number', '118')]
+    B.notes.append('Shop closed at 7:52: roll-down shutter down. Apartment entrance with a 4-step stoop and rails; '
+                   'front fire escape over the middle bays.')
+    return B
+
+
+def build_bakery():
+    B = midblock('Bakery', 16.0, 16.0, 5, 'MB_BrickTeal', lit_frac=0.3)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Bakery.png', 'MB_Sign_Bakery'
+    front.zone(0.0, 0.5, 'MB_TrimTeal')
+    shopfront(B, front, 1.0, 11.6, 'Bakery', 'panoA', 0.0, door=9.7, door_w=1.0, mulls=[3.2, 5.4, 7.6],
+              frame='MB_TrimCream', stall='MB_TrimTeal', transom_div=0.9)
+    for a, b in ((0.0, 1.0), (11.6, 12.3)):
+        pilaster(B, front, a, b, 0.0, 3.5, proj=0.1, base_mat='MB_TrimTeal')
+    res_door(B, front, 13.9, door='door_green', number=(TS, 'number', MS), surround='MB_TrimWhite')
+    sign_board(B, front.F, 6.3, 3.86, TS, 'fascia', MS, frame='MB_TrimCream', depth=0.1)
+    awning(B, front, 0.95, 11.65, 3.42, proj=1.5, drop=0.6, row='stripe_red')
+    poster(B, front.F, 4.3, 1.0, -0.31, TS, 'decal', MS)
+    poster(B, front.F, 8.6, 2.2, -0.32, 'T_SignsLit.png', 'open_neon', 'MB_SignsLit', size=(0.8, 0.36))
+    aframe_sign(B, front.F, 12.0, 0.8, TS, 'aframe', MS)
+    cafe_table(B, front.F, 2.6, 0.95)
+    cafe_table(B, front.F, 5.6, 0.95)
+    shop_cornice(B, mat='MB_TrimWhite')
+    us = [1.4, 4.0, 6.6, 9.4, 12.0, 14.6]
+    upper_windows(B, front, us, frame='MB_TrimWhite', lintel_style='soldier', trim='MB_TrimWhite')
+    top_cornice(B, 'MB_TrimWhite', brackets=[0.3, 2.7, 5.3, 8.0, 10.7, 13.3, 15.7])
+    drainpipe(B, front.F, 0.2, mat='MB_TrimWhite')
+    side_windows(B)
+    roof_kit(B)
+    B.copy += [('fascia', 'Bakery / FRESH BREAD DAILY · SINCE 1961'), ('window decal', 'SOURDOUGH · CROISSANTS / COFFEE TO GO'),
+               ('A-frame', 'FRESH TODAY: CINNAMON BUNS · RYE LOAF · PAIN AU CHOC · BAGELS · OPEN 6:30'),
+               ('window neon', 'OPEN'), ('interior', "TODAY'S BREAD: SOURDOUGH 6 · BAGUETTE 3 · RYE 5 · CROISSANT 3.5"),
+               ('house number', '74')]
+    B.notes.append('Red/cream striped awning, two bistro tables and an A-frame on the sidewalk.')
+    return B
+
+
+def build_florist():
+    B = midblock('Florist', 10.0, 14.0, 4, 'MB_BrickRed', lit_frac=0.25)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Florist.png', 'MB_Sign_Florist'
+    front.zone(0.0, 0.5, 'MB_StoneTrim')
+    shopfront(B, front, 0.6, 7.4, 'Florist', 'panoA', 0.0, door=6.4, door_w=1.0, mulls=[2.6, 4.5],
+              frame='MB_TrimWhite', stall='MB_TrimBottle')
+    pilaster(B, front, 7.4, 7.9, 0.0, 3.5, proj=0.1)
+    res_door(B, front, 8.95, door='door_blue', number=(TS, 'number', MS), n_steps=2, w=1.0)
+    sign_board(B, front.F, 4.0, 3.86, TS, 'fascia', MS, frame='MB_TrimBottle', depth=0.1)
+    awning(B, front, 0.55, 7.45, 3.42, proj=1.3, drop=0.55, row='stripe_green')
+    bucket_stand(B, front.F, 0.8, 3.8)
+    aframe_sign(B, front.F, 5.3, 1.15, TS, 'aframe', MS)
+    for u in (1.3, 2.3, 3.3):
+        box(B.mb, front.F, u - 0.15, u + 0.15, 0.78, 0.94, 1.0, 1.006, MS, only='F', uv={'F': quad_uv(slot(TS, 'tag', 2))})
+    potted_shrub(B, front.F, 7.65, 0.45, h=0.9, r=0.28)
+    shop_cornice(B, mat='MB_StoneTrim')
+    upper_windows(B, front, [1.6, 5.0, 8.4], frame='MB_TrimWhite', lintel_style='key', flower=True)
+    top_cornice(B, 'MB_StoneTrim', brackets=[0.3, 3.3, 6.7, 9.7])
+    drainpipe(B, front.F, 9.8)
+    side_windows(B)
+    roof_kit(B, bulk=False)
+    B.copy += [('fascia', 'FLORIST / FLOWERS · PLANTS · GIFTS'),
+               ('A-frame', 'SPRING: TULIPS 3 FOR $10 · DAFFODILS · POTTED HERBS · BOUQUETS FROM $15'),
+               ('bucket tags', '$8'), ('house number', '58')]
+    B.notes.append('Tiered stand of flower buckets on the sidewalk, green striped awning, flower boxes upstairs.')
+    return B
+
+
+def build_forlease():
+    B = midblock('ForLease', 12.0, 15.0, 3, 'MB_StoneCream', lit_frac=0.2)
+    front = B.facades[0]
+    TS, MS = 'T_Sign_ForLease.png', 'MB_Sign_ForLease'
+    front.zone(0.0, 0.5, 'MB_Granite')
+    shopfront(B, front, 0.8, 9.0, 'Cafe', door=7.8, door_w=1.0, mulls=[3.0, 5.2], frame='MB_TrimDark',
+              stall='MB_TrimDark', interior=False, glass=False)
+    for a, b in ((0.0, 0.8), (9.0, 9.5)):
+        pilaster(B, front, a, b, 0.0, 3.5, proj=0.1, base_mat='MB_Granite')
+    papered(B, front.F, 0.9, 8.9, 0.45, 3.4, -0.25 - 0.035)
+    poster(B, front.F, 3.4, 1.65, -0.25 - 0.025, TS, 'forlease', MS)
+    poster(B, front.F, 6.1, 1.55, -0.25 - 0.025, TS, 'agent', MS)
+    poster(B, front.F, 7.8, 1.5, -0.25 - 0.045, TS, 'agent', MS, size=(0.45, 0.6))
+    sign_board(B, front.F, 4.9, 3.86, TS, 'fascia_old', MS, frame='MB_TrimDark', depth=0.08)
+    res_door(B, front, 10.75, door='door_black', number=(TS, 'number', MS), n_steps=2, w=1.0)
+    shop_cornice(B, mat='MB_StoneTrim')
+    upper_windows(B, front, [1.5, 4.5, 7.5, 10.5], frame='MB_TrimWhite', lintel_style='hood')
+    top_cornice(B, 'MB_StoneTrim', proj=0.36)
+    drainpipe(B, front.F, 0.2)
+    side_windows(B, from_floor=1)
+    roof_kit(B, bulk=False)
+    B.copy += [('window poster', 'FOR LEASE / RETAIL SPACE / 1,200 SQ FT / CALL 555-0142'),
+               ('agent posters', 'AVAILABLE NOW / 555-0142'), ('faded old fascia', 'HARDWARE & PAINT'),
+               ('house number', '64')]
+    B.notes.append('Vacant shop: windows papered over (MB_Paper, kraft sheets + tape), faded sign of the old '
+                   'hardware store.')
+    return B
+
+
+def build_bank():
+    B = midblock('Bank', 18.0, 18.0, 7, 'MB_PanelGrey', lit_frac=0.45, coping_mat='MB_MetalDark')
+    front = B.facades[0]
+    TS, MS = 'T_Sign_Bank.png', 'MB_Sign_Bank'
+    front.zone(0.0, 0.4, 'MB_Granite')
+    sf = dict(frame='MB_Steel', stall='MB_Granite', stall_h=0.4, transom=2.9, head=3.6, transom_div=1.5)
+    shopfront(B, front, 1.0, 12.4, 'Bank', 'panoA', 0.0, door=7.6, door_w=2.0, mulls=[2.9, 4.8, 10.0], **sf)
+    box(B.mb, front.F, 7.58, 7.62, 0.0, 2.75, -0.29, -0.2, 'MB_Steel', only='FLR')
+    shopfront(B, front, 13.0, 17.0, 'Bank', 'panoB', 0.0, door=14.0, door_w=1.0, mulls=[15.5], **sf)
+    for a, b in ((0.0, 1.0), (12.4, 13.0), (17.0, 18.0)):
+        pilaster(B, front, a, b, 0.0, 3.95, proj=0.14, mat='MB_Granite', base_mat=None, cap=False)
+    canopy(B, front, 5.8, 9.4, 3.05, proj=1.6, mat='MB_Steel', lights=3)
+    box(B.mb, front.F, 1.0, 17.0, 3.95, 4.75, 0.0, 0.12, 'MB_MetalDark', skip='K')
+    text3d(B, front.F, 'CITY BANK', 6.7, 4.35, 0.62, 0.08, 'MB_Steel', d0=0.12, spacing=1.12)
+    poster(B, front.F, 15.0, 3.25, -0.31, 'T_SignsLit.png', 'bank_atm', 'MB_SignsLit')
+    box(B.mb, front.F, 12.5, 12.9, 1.2, 1.7, 0.14, 0.155, MS, skip='K', uv={'F': quad_uv(slot(TS, 'hours', 2))})
+    box(B.mb, front.F, 0.2, 0.8, 2.6, 2.9, 0.14, 0.155, MS, skip='K', uv={'F': quad_uv(slot(TS, 'number', 2))})
+    # curtain wall: 1.5 m modules, glass with steel mullions, dark spandrels, full-height fins every 3 m
+    mods = [0.75 + i * 1.5 for i in range(12)]
+    for k in floors_upper(B):
+        z0 = B.fz(k) + 0.45
+        for u in mods:
+            window(B, front, u, z0, w=1.36, h=2.5, depth=0.08, frame='MB_Steel', sill_style=None, lintel_style=None,
+                   sash='transom', office=True, mulls=[], ac=False, flower=False)
+        cornice(B, [(0, B.fz(k) + 0.02), (0.1, B.fz(k) + 0.02), (0.1, B.fz(k) + 0.14), (0, B.fz(k) + 0.14)],
+                'MB_MetalDark')
+    for i in range(7):
+        u = i * 3.0
+        box(B.mb, front.F, u - 0.05 if i else 0.0, u + 0.05 if i < 6 else 18.0, 4.8, B.top - 0.3, 0.0, 0.42,
+            'MB_Steel', skip='K')
+    cornice(B, [(0, B.top - 0.9), (0.45, B.top - 0.9), (0.45, B.top - 0.12), (0, B.top - 0.12)], 'MB_MetalDark')
+    side_windows(B, from_floor=1, w=1.4, h=1.8)
+    # rooftop: mechanical penthouse + plant
+    box(B.mb, WORLD, -5.0, 5.0, B.H, B.H + 3.0, -14.0, -6.0, 'MB_PanelGrey', skip='B')
+    box(B.mb, WORLD, -5.15, 5.15, B.H + 3.0, B.H + 3.2, -14.15, -5.85, 'MB_MetalDark')
+    for x in (-3.5, 0.0, 3.5):
+        box(B.mb, WORLD, x - 1.2, x + 1.2, B.H + 0.6, B.H + 2.4, -6.0, -5.98, 'MB_Details', only='F',
+            uv={'F': quad_uv(slot('T_Details.png', 'vent', 2))})
+    hvac(B, -6.0, 3.5)
+    hvac(B, 6.0, 3.5)
+    antenna(B, 7.0, 15.0, h=5.0)
+    satellite_dish(B, Frame((5.0, 8.0, B.H), (0, 1, 0), (1, 0, 0)), 1.0, 1.2)
+    B.copy += [('3D letters', 'CITY BANK'), ('ATM sign (lit)', 'ATM 24H'), ('door plaque', 'CITY BANK / MON-FRI 9-5 / '
+               'SAT 9-1 / ATM 24 HOURS'), ('house number', '200'), ('interior', 'CITY BANK · ATM · WELCOME / OPEN 9-5')]
+    B.notes.append('Granite base, steel-framed glazed lobby with canopy, extruded steel CITY BANK letters on a dark '
+                   'band, curtain-wall floors (1.5 m modules, steel fins every 3 m), rooftop penthouse.')
+    return B
+
+
+# ---------------------------------------------------------------------------------------------- towers
+
+TOWER_STYLE = {   # material, texture, lit-window rect inside one module (fx0, fz0, fx1, fz1)
+    'glass': ('MB_TowerGlass', 'T_TowerGlass.png', (0.03, 0.27, 0.97, 0.985)),
+    'dark': ('MB_TowerDark', 'T_TowerDark.png', (0.03, 0.27, 0.97, 0.985)),
+    'bands': ('MB_TowerBands', 'T_TowerBands.png', (0.02, 0.36, 0.98, 0.985)),
+    'punched': ('MB_TowerPunched', 'T_TowerPunched.png', (26 / 128, 62 / 256, 102 / 128, 216 / 256)),
+}
+
+
+class Tower(Building):
+    def __init__(self, name, W, D, floors, fh, style, lit_frac=0.045, office=True):
+        super().__init__(name, [(-W / 2, 0), (W / 2, 0), (W / 2, D), (-W / 2, D)], ['front', 'party', 'back', 'party'],
+                         floors, TOWER_STYLE[style][0], side_mat=TOWER_STYLE[style][0], footprint_wd=(W, D),
+                         kind='tower', lit_frac=lit_frac, ground_h=fh, floor_h=fh)
+        self.fh, self.style, self.office = fh, style, office
+        self.top = floors * fh
+
+    def finish(self):
+        pass
+
+
+def tower_section(B, x0, x1, y0, y1, f0, f1, rim=0.6, rim_mat='MB_TowerTrim'):
+    mb, fh = B.mb, B.fh
+    mat, tex, (fx0, fz0, fx1, fz1) = TOWER_STYLE[B.style]
+    corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    for i in range(4):
+        a, b = Vector((*corners[i], 0.0)), Vector((*corners[(i + 1) % 4], 0.0))
+        t = b - a
+        L = t.length
+        t.normalize()
+        F = Frame(a, t, Vector((t.y, -t.x, 0.0)))
+        nm = max(1, int(round(L / 1.8)))
+        mw = L / nm
+
+        def q(ua, ub, za, zb, f, m=None, uvs=None):
+            if ub - ua < 1e-4 or zb - za < 1e-4:
+                return
+            if uvs is None:
+                fl = f % 4
+                uvs = [(ua / mw / 8, (fl + (za - f * fh) / fh) / 4), (ub / mw / 8, (fl + (za - f * fh) / fh) / 4),
+                       (ub / mw / 8, (fl + (zb - f * fh) / fh) / 4), (ua / mw / 8, (fl + (zb - f * fh) / fh) / 4)]
+            mb.face([F.P(ua, za, 0), F.P(ub, za, 0), F.P(ub, zb, 0), F.P(ua, zb, 0)], m or mat, normal=F.n, uvs=uvs)
+
+        for f in range(f0, f1):
+            z0, z1 = f * fh, (f + 1) * fh
+            lit = [k for k in range(nm) if B.rng.random() < B.lit_frac]
+            run0 = 0
+            for k in lit + [nm]:
+                q(run0 * mw, k * mw, z0, z1, f)
+                if k == nm:
+                    break
+                ua, ub = k * mw, (k + 1) * mw
+                la, lb = ua + fx0 * mw, ua + fx1 * mw
+                za, zb = z0 + fz0 * fh, z0 + fz1 * fh
+                q(ua, ub, z0, za, f)
+                q(ua, ub, zb, z1, f)
+                q(ua, la, za, zb, f)
+                q(lb, ub, za, zb, f)
+                pool = WIN_LIT_OFFICE if B.office else ['warm_room', 'warm_blinds', 'warm_curtains', 'lamp', 'kitchen']
+                q(la, lb, za, zb, f, m='MB_WindowLit', uvs=quad_uv(slot('T_WindowLit.png', B.rng.choice(pool), 4)))
+                run0 = k + 1
+    ztop = f1 * fh
+    mb.face([Vector((x0 + 0.3, y0 + 0.3, ztop)), Vector((x1 - 0.3, y0 + 0.3, ztop)), Vector((x1 - 0.3, y1 - 0.3, ztop)),
+             Vector((x0 + 0.3, y1 - 0.3, ztop))], 'MB_Roof', normal=Z)
+    if rim:
+        sweep(mb, corners, [(-0.3, ztop), (0.12, ztop), (0.12, ztop + rim), (-0.3, ztop + rim)], rim_mat,
+              closed_path=True, closed_profile=True)
+    return ztop
+
+
+def tower_box(B, x0, x1, y0, y1, z0, z1, mat, fins=0, fin_mat='MB_TowerTrim'):
+    box(B.mb, WORLD, x0, x1, z0, z1, -y1, -y0, mat, skip='B')
+    for i in range(fins):
+        zz = z0 + (i + 0.5) * (z1 - z0) / fins
+        box(B.mb, WORLD, x0 - 0.15, x1 + 0.15, zz - 0.08, zz + 0.08, -y1 - 0.15, -y0 + 0.15, fin_mat, skip='')
+
+
+def mast(B, x, y, z, h, r=0.25, beacon=True):
+    cylinder(B.mb, (x, y, z), Z, r, h, 6, 'MB_TowerTrim', cap0=False, r1=r * 0.35)
+    if beacon:
+        blob(B.mb, (x, y, z + h + 0.2), 0.35, 0.35, 'MB_BeaconRed', segs=6, rings=3)
+        B.loc('Beacon', (x, y, z + h + 0.2))
+
+
+def build_tower1():
+    B = Tower('Tower1', 30.0, 30.0, 24, 3.6, 'glass')
+    zt = tower_section(B, -15, 15, 0, 30, 0, 24)
+    tower_box(B, -12, 12, 3, 27, zt, zt + 7.2, 'MB_TowerCrown', fins=6)
+    box(B.mb, WORLD, -12.3, 12.3, zt + 7.2, zt + 7.6, -27.3, -2.7, 'MB_TowerTrim')
+    mast(B, 6.0, 20.0, zt + 7.6, 9.0)
+    B.top = zt
+    B.notes.append('24 floors x 3.6 m glass curtain wall (1.8 m modules), louvred mechanical crown, mast + red beacon.')
+    return B
+
+
+def build_tower2():
+    B = Tower('Tower2', 32.0, 24.0, 30, 3.6, 'bands')
+    z1 = tower_section(B, -16, 16, 0, 24, 0, 22)
+    z2 = tower_section(B, -13, 13, 3, 21, 22, 27)
+    z3 = tower_section(B, -10, 10, 6, 18, 27, 30)
+    for x in (-10, 10):
+        for y in (6, 18):
+            box(B.mb, WORLD, x - 0.5, x + 0.5, z3, z3 + 7.0, -y - 0.5, -y + 0.5, 'MB_TowerTrim', skip='B')
+    sweep(B.mb, [(-10, 6), (10, 6), (10, 18), (-10, 18)], [(-0.5, z3 + 6.2), (0.5, z3 + 6.2), (0.5, z3 + 7.0),
+                                                           (-0.5, z3 + 7.0)], 'MB_TowerTrim', closed_path=True,
+          closed_profile=True)
+    tower_box(B, -6, 6, 9, 15, z3, z3 + 4.0, 'MB_TowerCrown', fins=3)
+    B.top = z3
+    B.notes.append('30 floors, horizontal ribbon windows with stone bands; setbacks at floors 22 and 27; open frame crown.')
+    return B
+
+
+def build_tower3():
+    B = Tower('Tower3', 24.0, 24.0, 18, 3.3, 'punched', lit_frac=0.07, office=False)
+    zt = tower_section(B, -12, 12, 0, 24, 0, 18, rim=1.0)
+    tower_box(B, -4, 4, 14, 21, zt, zt + 3.4, 'MB_TowerPunched')
+    B.H = zt
+    water_tower(B, -6.5, 8.0, r=1.9, legs_h=3.2, tank_h=3.4)
+    hvac(B, 5.0, 6.0, w=2.0, d=1.5)
+    B.top = zt
+    B.notes.append('18-floor residential tower: punched windows with curtains, small balconies, rooftop water tower.')
+    return B
+
+
+def build_tower4():
+    B = Tower('Tower4', 34.0, 30.0, 36, 3.6, 'dark')
+    tower_section(B, -17, 17, 0, 30, 0, 28)
+    tower_section(B, -14, 14, 3, 27, 28, 33)
+    z3 = tower_section(B, -11, 11, 6, 24, 33, 36)
+    apex = Vector((0.0, 15.0, z3 + 9.0))
+    base = [Vector((-11, 6, z3 + 0.6)), Vector((11, 6, z3 + 0.6)), Vector((11, 24, z3 + 0.6)), Vector((-11, 24, z3 + 0.6))]
+    for i in range(4):
+        a, b = base[i], base[(i + 1) % 4]
+        B.mb.face([a, b, apex], 'MB_TowerCrown', normal=((a + b) / 2 - Vector((0, 15, z3))).normalized() + Z)
+    mast(B, 0.0, 15.0, z3 + 8.5, 16.0, r=0.4)
+    B.top = z3
+    B.notes.append('36 floors of dark glass with bronze mullions, two setbacks, pyramid cap + spire with red beacon.')
+    return B
+
+
+BUILDERS = {'CornerCafe': build_cafe, 'CornerMart': build_mart, 'CornerPharmacy': build_pharmacy,
+            'CornerDiner': build_diner, 'NoodleBar': build_noodle, 'Books': build_books,
+            'Laundromat': build_laundromat, 'PhoneRepair': build_phone, 'Bakery': build_bakery,
+            'Florist': build_florist, 'ForLease': build_forlease, 'Bank': build_bank,
+            'Tower1': build_tower1, 'Tower2': build_tower2, 'Tower3': build_tower3, 'Tower4': build_tower4}
 
 
 # ------------------------------------------------------------------------------------------- export & preview
@@ -1398,6 +2524,32 @@ def mesh_from_builder(mbld, name):
     me.set_sharp_from_angle(angle=math.radians(35))
     me.update()
     return me
+
+
+def inside(p, poly):
+    c = False
+    for i in range(len(poly)):
+        a, b = poly[i], poly[i - 1]
+        if (a.y > p.y) != (b.y > p.y) and p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y + 1e-12) + a.x:
+            c = not c
+    return c
+
+
+def check_rooms(B):
+    """Fake-interior rooms must not intersect (walls would show through glass): sample each room's plan."""
+    bad = []
+    for i, a in enumerate(B.rooms):
+        xs, ys = [p.x for p in a], [p.y for p in a]
+        pts = [Vector((min(xs) + (max(xs) - min(xs)) * (ix + 0.5) / 24, min(ys) + (max(ys) - min(ys)) * (iy + 0.5) / 24,
+                       0)) for ix in range(24) for iy in range(24)]
+        pts = [p for p in pts if inside(p, a)]
+        for j, b in enumerate(B.rooms):
+            if j > i:
+                n = sum(1 for p in pts if inside(p, b))
+                if n > 0.01 * max(1, len(pts)):
+                    bad.append((i, j, n))
+    print('[check] %-15s rooms=%d overlaps=%s' % (B.name, len(B.rooms), bad or 'none'))
+    return not bad
 
 
 def tri_count(me):
@@ -1552,16 +2704,22 @@ def sun_from(az_deg, el_deg):
 
 
 def default_views(B):
-    H = B.top
+    H = B.top + 4.0 if B.kind != 'tower' else B.top
     if B.kind == 'corner':
         sx = -1 if B.side == 'left' else 1      # side facade direction
         W, D = B.footprint_wd
         cx = (W / 2) * (-sx)
         tgt = Vector((cx * 0.6, D * 0.3, H * 0.42))
-        three = (Vector((sx * 26 + cx * 0.3, -30, H * 0.75)), tgt, 42, sun_from(200 + 30 * sx, 38))
-        street = (Vector((sx * 6.5, -7.5, 1.56)), Vector((cx * 0.15, 2.0, 4.2)), 60, sun_from(200 + 30 * sx, 32))
+        az = 222 if B.side == 'left' else 138
+        dist = max(H * 1.55, 34.0)
+        three = (tgt + Vector((sx * 0.62, -0.78, 0.0)) * dist + Vector((0, 0, H * 0.32)), tgt, 42, sun_from(az, 38))
+        street = (Vector((sx * 6.5, -7.5, 1.56)), Vector((cx * 0.15, 2.0, 4.2)), 60, sun_from(az, 32))
         return [('34', *three), ('street', *street)]
     W, D = B.footprint_wd
+    if B.kind == 'tower':
+        hm = H + 12
+        return [('34', Vector((-1.1 * hm, -1.5 * hm, hm * 0.75)), Vector((0, D / 2, hm * 0.45)), 40, sun_from(215, 35)),
+                ('street', Vector((-60.0, -200.0, 1.56)), Vector((0, D / 2, hm * 0.35)), 60, sun_from(215, 25))]
     return [('34', Vector((-14, -24, H * 0.7)), Vector((0, D * 0.3, H * 0.42)), 42, sun_from(200, 38)),
             ('street', Vector((-5.5, -8.5, 1.56)), Vector((1.5, 0, 3.8)), 60, sun_from(200, 32))]
 
@@ -1587,7 +2745,7 @@ def update_manifest(B, tris, glass_tris, mesh, previews):
         'units': 'metres; z=0 (Unity y=0) is sidewalk level; front facade faces Blender -Y = Unity +Z',
         'origin': 'corner buildings: exterior corner where the front and side facade lines meet (virtual corner for '
                   'chamfered/rounded corners); mid-block: centre of the front facade base line, body toward +Y '
-                  '(Unity -Z); towers: footprint centre',
+                  '(Unity -Z); towers: same as mid-block (front facade centre, base)',
         'material_colors': 'color multiplies the texture (white = use texture as-is); emission uses the texture as '
                            'emission map when a texture is set',
         'uv': 'tileable surfaces 1 UV unit = 2 m; signs, windows, interiors use atlas UVs (see atlas_layout.json)',
@@ -1599,8 +2757,7 @@ def update_manifest(B, tris, glass_tris, mesh, previews):
         col, tex, emi, note = MATS[nm]
         m['materials'][nm] = {'color': col, 'texture': tex,
                               'emission': ({'color': emi[0], 'intensity': emi[1]} if emi else None), 'note': note}
-        if nm == 'MB_ShopGlass':
-            m['materials'][nm]['transparent'] = True
+        m['materials'][nm]['transparent'] = nm == 'MB_ShopGlass'
     xs = [v.co.x for v in mesh.vertices]
     ys = [v.co.y for v in mesh.vertices]
     zs = [v.co.z for v in mesh.vertices]
@@ -1672,6 +2829,7 @@ def main():
         bpy.ops.wm.read_factory_settings(use_empty=True)
         B = BUILDERS[name]()
         B.finish()
+        check_rooms(B)
         root, ob, objs, tris, glass_tris, me = build_objects(B)
         path = export_fbx(B, objs)
         previews = []

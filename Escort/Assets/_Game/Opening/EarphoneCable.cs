@@ -11,7 +11,8 @@ namespace HS.Opening
     public sealed class EarphoneCable
     {
         const int MainN = 26, LeadN = 16, Sides = 6, Smooth = 3, Iterations = 18;
-        const float MainLen = 0.6f, LeadLen = 0.5f, MainRadius = 0.0016f, LeadRadius = 0.0012f, SubStep = 1f / 240f;
+        // a little thicker than life so the cable reads in first person; enough slack to hang in a loop in front of you
+        const float MainLen = 0.72f, LeadLen = 0.5f, MainRadius = 0.0021f, LeadRadius = 0.0016f, SubStep = 1f / 240f;
 
         /// <summary>Head-local ear positions (the earbuds sit just behind and below the eyes).</summary>
         public Vector3 EarL = new Vector3(-0.072f, -0.045f, -0.075f), EarR = new Vector3(0.072f, -0.045f, -0.075f);
@@ -72,7 +73,12 @@ namespace HS.Opening
                 Simulate(SubStep);
             }
             BuildMesh();
-            if (Splitter != null) Splitter.localPosition = _m[MainN - 1];
+            if (Splitter != null)
+            {
+                Splitter.localPosition = _m[MainN - 1];
+                var up = _m[MainN - 1] - _m[MainN - 3];
+                if (up.sqrMagnitude > 1e-8) Splitter.localRotation = Quaternion.LookRotation(up.normalized, Vector3.up);
+            }
             if (Remote != null)
             {
                 int k = LeadN - 5; // ~13 cm below the right ear
@@ -165,7 +171,7 @@ namespace HS.Opening
             {
                 var b = _rootToBody.MultiplyPoint3x4(x[i]);
                 if (b.y > -0.16f) continue;               // the neck: free
-                float front = 0.09f + (-0.16f - b.y) * 0.18f; // chest, then the belly a little further out
+                float front = 0.15f + (-0.16f - b.y) * 0.25f; // a hoodie's chest, then the belly a little further out
                 if (b.z < front)
                 {
                     b.z = front;

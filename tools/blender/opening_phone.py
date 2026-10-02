@@ -10,7 +10,7 @@ Headless Blender 5.2 (spec docs/superpowers/specs/2026-10-01-opening-street-desi
   Earphones.fbx    roots "Splitter", "Remote", "Earbud" (cable axis = Blender Z, see manifest)
 
 Modelled with the screen facing -Y, top toward +Z (X = right edge as seen from the front), metres.
-Usage: Blender -b -P tools/blender/opening_phone.py -- <out_dir> [--only phone|earphones] [--no-export] [--previews a,b]
+Usage: Blender -b -P tools/blender/opening_phone.py -- <out_dir> [--only phone|earphones] [--no-export] [--dev]
 <out_dir> = build_art/opening/street (fbx/, previews/ and manifest.json are written there).
 """
 import bpy, bmesh, math, os, sys, json
@@ -528,11 +528,6 @@ def load_ubc_arm(cut_forearm):
     return {'rest': rest, 'parent': parent, 'V': V, 'W': np.array(wts), 'dom': np.array(dom), 'faces': faces}
 
 
-def rot_xyz(ax, ay, az):
-    return (Matrix.Rotation(math.radians(ax), 4, 'X') @ Matrix.Rotation(math.radians(ay), 4, 'Y')
-            @ Matrix.Rotation(math.radians(az), 4, 'Z'))
-
-
 class HandRig:
     def __init__(self, data):
         self.d = data
@@ -553,7 +548,19 @@ class HandRig:
         self.Hv = np.c_[data['V'], np.ones(len(data['V']))]
 
     def hand_transform(self, P):
-        """Rigid transform rest -> phone frame from the index knuckle position, knuckle-line direction and palm normal."""
+        """Rigid transform rest -> phone frame: least-squares fit of the index knuckle, pinky knuckle and wrist to
+        P['fit'] targets (mm), or index knuckle position + knuckle-line direction + palm normal."""
+        if P.get('fit'):
+            src = np.array([self.I0, self.P0, self.W0]) * HAND_SCALE
+            dst = np.array([P['fit']['index_mcp'], P['fit']['pinky_mcp'], P['fit']['wrist']]) * MM
+            cs, cd = src.mean(axis=0), dst.mean(axis=0)
+            U, _, Vt = np.linalg.svd((src - cs).T @ (dst - cd))
+            dd = np.sign(np.linalg.det(Vt.T @ U.T))
+            Rn = Vt.T @ np.diag([1, 1, dd]) @ U.T
+            R = Matrix(Rn.tolist())
+            t = Vector(cd - Rn @ cs)
+            S = Matrix.Diagonal((HAND_SCALE, HAND_SCALE, HAND_SCALE, 1.0))
+            return Matrix.Translation(t) @ R.to_4x4() @ S, R
         k = Vector(P['knuckle_line']).normalized()
         n = Vector(P['palm_normal'])
         n = (n - k * n.dot(k)).normalized()
@@ -574,16 +581,10 @@ class HandRig:
         S = Matrix.Diagonal((HAND_SCALE, HAND_SCALE, HAND_SCALE, 1.0))
         Gf = Matrix.Translation(W) @ (sw @ R).to_4x4() @ S @ Matrix.Translation(-self.W0)
         Pm = {'lowerarm_r': Gf @ self.rest['lowerarm_r'], 'hand_r': G @ self.rest['hand_r']}
+        loc = P.get('local', {})
         for digit, bones in DIGITS.items():
-            base = P['base'][digit]
-            flex = P['flex'][digit]
-            for k, b in enumerate(bones):
-                if k == 0:
-                    Rl = rot_xyz(*base) @ Matrix.Rotation(math.radians(flex[0]), 4, 'X')
-                elif k < 3:
-                    Rl = Matrix.Rotation(math.radians(flex[k]), 4, 'X')
-                else:
-                    Rl = Matrix.Identity(4)
+            for b in bones:
+                Rl = Matrix(loc[b]).to_4x4() if b in loc else Matrix.Identity(4)
                 Pm[b] = Pm[self.parent[b]] @ self.rel[b] @ Rl
         D = np.array([np.array(Pm[b] @ self.rest_inv[b]) for b in ARM_BONES])
         return D, Pm
@@ -599,11 +600,11 @@ class HandRig:
         seg = np.array([min(ids.index(x), 2) for x in self.d['dom'][sel]])
         return np.nonzero(sel)[0], seg
 
-    def settle_palm(self, P, gap, groups=('hand_r',)):
-        """Slide the hand along its palm normal until the palm is `gap` mm from the phone."""
+    def settle_palm(self, P, gap, groups=('hand_r',), direction=None):
+        """Slide the hand along `direction` (default: palm normal) until the palm is `gap` mm from the phone."""
         ids = [BIDX[g] for g in groups]
         sel = np.nonzero(np.isin(self.d['dom'], ids))[0]
-        n = Vector(P['palm_normal']).normalized()
+        n = -Vector(direction).normalized() if direction is not None else Vector(P['palm_normal']).normalized()
         for _ in range(30):
             D, _ = self.pose(P)
             sd = sdf_phone(self.skin(D, sel)).min()
@@ -612,47 +613,28 @@ class HandRig:
             P['index_mcp'] = tuple(Vector(P['index_mcp']) + n * (sd - gap))
         return sd
 
-    def close(self, P, digit, joints=(0, 1, 2), speed=(1.0, 1.0, 0.75), limits=(95, 105, 80), margin=0.5, step=0.5):
-        """Grasp closing: flex the joints together until each phalanx touches the phone, freezing proximal joints on
-        contact (GraspIt-style). Returns the final flex angles."""
-        idx, seg = self.digit_verts(digit)
-        ang = list(P['flex'][digit])
-        active = [k in joints for k in range(3)]
-        for _ in range(600):
-            if not any(active):
-                break
-            trial = [min(a + step * s, lim) if act else a for a, s, lim, act in zip(ang, speed, limits, active)]
-            P['flex'][digit] = trial
-            D, _ = self.pose(P)
-            sd = sdf_phone(self.skin(D, idx))
-            hit = [bool(np.any(sd[seg == s] < margin)) for s in range(3)]
-            if any(hit):
-                s = hit.index(True)
-                for k in range(s + 1):
-                    active[k] = False
-                P['flex'][digit] = ang
-                continue
-            ang = trial
-            for k in range(3):
-                if active[k] and ang[k] >= limits[k]:
-                    active[k] = False
-        P['flex'][digit] = ang
-        return ang
 
 
 # Hand pose (phone frame, mm / degrees). The knuckle line runs index -> pinky; the palm normal points out of the palm.
 # Fingers close automatically onto the phone (HandRig.close); `flex` holds the starting curl, `base` the extra
 # rotation of each digit's first bone (local X = flex, Y = twist, Z = spread).
-HAND_SCALE = 0.92      # UBC superhero hand (19 cm) -> ~17.5 cm, a typical adult hand next to a 147 mm phone
-HAND_POSE = {
-    'index_mcp': (14.0, 30.0, -14.0),
-    'knuckle_line': (-0.42, 0.01, -0.91),
-    'palm_normal': (-0.1, -0.99, 0.03),
-    'rotvec': (0.0, 0.0, 0.0),
-    'forearm_dir': None,                       # None = FOREARM_DIR
-    'base': {'thumb': (0, 0, 0), 'index': (0, 0, 0), 'middle': (0, 0, 0), 'ring': (0, 0, 0), 'pinky': (0, 0, 0)},
-    'flex': {'thumb': [0, 20, 20], 'index': [45, 50, 35], 'middle': [45, 55, 38], 'ring': [45, 55, 38],
-             'pinky': [60, 90, 60]},
+HAND_SCALE = 0.88      # UBC superhero hand (19 cm) -> ~16.7 cm, an average adult female hand next to a 147 mm phone
+# Grip design (phone frame, mm). The right edge rests in the palm; the knuckle line runs almost vertically behind the
+# right half; index/middle/ring cross the back and their tips peek round the left edge (index highest); the pinky curls
+# under the bottom edge right of centre (clear of the jack at x = -12); the thumb lies over the lower right border of the
+# screen (out of the upper two thirds of the display); wrist front-right of the phone, forearm down-right toward the
+# viewer. digits: (PIP / thumb-MCP target, fingertip target).
+GRIP = {
+    'fit': {'index_mcp': (30.0, 18.5, -30.0), 'pinky_mcp': (20.0, 24.5, -88.0), 'wrist': (58.0, -19.5, -105.0)},
+    'forearm_dir': (0.40, -0.45, -0.80),
+    'clearance': 0.35,
+    'digits': {   # (PIP, DIP, tip) for fingers; (MCP, IP, tip) for the thumb
+        'index': ((-4.0, 13.0, -27.0), (-30.0, 12.5, -25.0), (-44.0, -6.0, -23.0)),
+        'middle': ((-10.0, 13.0, -46.0), (-33.0, 12.5, -45.0), (-43.0, -9.0, -42.0)),
+        'ring': ((-12.0, 13.0, -64.0), (-32.0, 12.0, -63.0), (-43.0, -8.0, -60.0)),
+        'pinky': ((6.0, 4.0, -82.0), (2.0, -14.0, -83.0), (13.0, -14.0, -82.0)),
+        'thumb': ((46.0, -19.0, -84.0), (38.0, -15.0, -55.0), (31.0, -12.5, -29.0)),
+    },
 }
 CUFF_START = 40.0       # mm from the wrist joint toward the elbow
 SKIN_KEEP = 75.0        # forearm skin kept (hidden inside the cuff beyond CUFF_START)
@@ -666,231 +648,180 @@ NAILS = {               # distal bone, width, length (mm), start along the bone 
 }
 
 
-# Grip targets for the solver (phone frame, mm, boxes = (lo, hi) per axis). Cupped right-hand grip: knuckles behind the
-# right half, fingers across the back with the tips peeking round the left edge (index highest), the pinky curled under
-# the bottom edge right of centre (clear of the jack at x = -12), the thumb along the lower right border of the screen
-# (out of the upper two thirds of the display), wrist right of the bottom corner, forearm down-right toward the viewer.
-GRIP_BOXES = {
-    'index_tip': ((-44.0, -38.5), (-5.0, 1.5), (-16.0, 6.0)),
-    'index_pip': ((-24.0, -4.0), (8.0, 20.0), (-16.0, 6.0)),
-    'middle_tip': ((-44.0, -38.5), (-5.0, 1.5), (-34.0, -15.0)),
-    'middle_pip': ((-22.0, -2.0), (8.0, 20.0), (-34.0, -15.0)),
-    'ring_tip': ((-43.0, -37.5), (-5.0, 2.0), (-53.0, -33.0)),
-    'ring_pip': ((-18.0, 2.0), (8.0, 20.0), (-53.0, -33.0)),
-    'pinky_tip': ((4.0, 20.0), (-9.0, 1.0), (-87.0, -78.0)),
-    'pinky_pip': ((14.0, 34.0), (-4.0, 14.0), (-93.0, -80.0)),
-    'thumb_tip': ((24.0, 33.0), (-14.0, -8.5), (-40.0, -26.0)),
-    'thumb_ip': ((31.0, 42.0), (-16.0, -6.0), (-64.0, -47.0)),
-    'wrist': ((55.0, 95.0), (5.0, 45.0), (-100.0, -62.0)),
-}
-FOREARM_DIR = (0.52, -0.30, -0.80)   # wrist -> elbow in the phone frame: down-right, toward the viewer's body
-FINGERS4 = ('index', 'middle', 'ring', 'pinky')
+def sdf_grad(p, h=0.2):
+    """Unit gradient of sdf_phone at a point p (mm)."""
+    P = np.array([p + np.array(o) * h for o in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))])
+    d = sdf_phone(P * MM)
+    g = np.array([d[0] - d[1], d[2] - d[3], d[4] - d[5]])
+    n = np.linalg.norm(g)
+    return g / n if n > 1e-9 else np.array([0.0, 1.0, 0.0])
 
 
-def box_dist2(p, box):
-    return sum(max(0.0, lo - v, v - hi) ** 2 for v, (lo, hi) in zip(p, box))
+def aim_local(M0, target):
+    """Local rotation (Rz(spread) @ Rx(flex)) that points the bone's +Y from its head toward `target` (world, m)."""
+    d = M0.to_3x3().inverted() @ (Vector(target) - M0.translation)
+    d.normalize()
+    f = math.asin(max(-1.0, min(1.0, d.z)))
+    sp = math.atan2(-d.x, d.y)
+    return Matrix.Rotation(sp, 3, 'Z') @ Matrix.Rotation(f, 3, 'X'), sp, f
 
 
-def seg_dist(p1, q1, p2, q2):
-    """Closest distance between segments p1q1 and p2q2 (numpy 3-vectors)."""
-    d1, d2, r = q1 - p1, q2 - p2, p1 - p2
-    a, e, f = d1 @ d1, d2 @ d2, d2 @ r
-    c, b = d1 @ r, d1 @ d2
-    den = a * e - b * b
-    s = np.clip((b * f - c * e) / den, 0, 1) if den > 1e-12 else 0.0
-    t = (b * s + f) / e
-    if t < 0:
-        t, s = 0.0, np.clip(-c / a, 0, 1)
-    elif t > 1:
-        t, s = 1.0, np.clip((b - c) / a, 0, 1)
-    return float(np.linalg.norm((p1 + d1 * s) - (p2 + d2 * t)))
+class GripIK:
+    """Analytic digit posing from joint targets: the first bone is aimed at the second joint (spread + flex; the thumb
+    also twists so its next joint lies in the flexion plane), then each further bone flexes about its X axis to aim at
+    the next joint, the last one aims the fingertip vertex at the tip target."""
 
-
-class GripSolver:
-    """Fits the hand placement + all digit angles to GRIP_TARGETS with contact / no-penetration / no finger overlap /
-    wrist-bend terms, by deterministic coordinate descent."""
-
-    def __init__(self, rig, P):
-        self.rig, self.P = rig, json.loads(json.dumps(P))
-        self.tip = {}
+    def __init__(self, rig):
+        self.rig = rig
+        self.tip_local, self.tip_index = {}, {}
         for digit, bones in DIGITS.items():
             idx, _ = rig.digit_verts(digit)
             b3 = rig.rest[bones[2]]
             head, ax = np.array(b3.translation), np.array(b3.col[1].xyz.normalized())
-            self.tip[digit] = idx[np.argmax((rig.d['V'][idx] - head) @ ax)]
-        self.seg = {d: rig.digit_verts(d) for d in DIGITS}
-        self.palm = np.nonzero(rig.d['dom'] == BIDX['hand_r'])[0]
-        self.fd0 = Vector(FOREARM_DIR).normalized()
-        self.wpen = 40.0
+            vi = idx[np.argmax((rig.d['V'][idx] - head) @ ax)]
+            self.tip_index[digit] = vi
+            self.tip_local[digit] = (rig.rest_inv[bones[2]] @ Vector(rig.d['V'][vi])).normalized()
 
-    def unpack(self, x):
-        P = self.P
-        P['index_mcp'] = tuple(x[0:3])
-        P['rotvec'] = tuple(x[3:6])
-        for i, d in enumerate(FINGERS4):
-            sp, f1, f2, f3 = x[6 + 4 * i: 10 + 4 * i]
-            P['base'][d] = (0.0, 0.0, float(sp))
-            P['flex'][d] = [float(f1), float(f2), float(f3)]
-        bx, by, bz, f2, f3 = x[22:27]
-        P['base']['thumb'] = (float(bx), float(by), float(bz))
-        P['flex']['thumb'] = [0.0, float(f2), float(f3)]
-        a, b = x[27:29]
-        fd = Matrix.Rotation(a, 3, 'X') @ Matrix.Rotation(b, 3, 'Z') @ self.fd0
-        P['forearm_dir'] = tuple(fd)
-        P['forearm_rot'] = (float(a), float(b))
-        return P
+    @staticmethod
+    def flex_to(M0, target, offset=0.0):
+        d = M0.to_3x3().inverted() @ (Vector(target) - M0.translation)
+        return math.atan2(d.z, d.y) - offset
 
-    def pack(self, P):
-        x = list(P['index_mcp']) + list(P.get('rotvec') or (0, 0, 0))
-        for d in FINGERS4:
-            x += [P['base'][d][2]] + list(P['flex'][d])
-        x += list(P['base']['thumb']) + list(P['flex']['thumb'][1:])
-        x += list(P.get('forearm_rot') or (0.0, 0.0))
-        return np.array(x, dtype=float)
-
-    def energy(self, x, report=False):
-        P = self.unpack(x)
+    def pose_digit(self, P, digit, targets):
         rig = self.rig
+        bones = DIGITS[digit]
+        j1, j2, tip = [Vector(t) * MM for t in targets]
+        loc = P.setdefault('local', {})
+        for b in bones:
+            loc.pop(b, None)
         D, Pm = rig.pose(P)
-        V = rig.skin(D)
-        sd = sdf_phone(V)
-        terms = {}
-        terms['pen'] = self.wpen * float(np.sum(np.maximum(0.0, 0.5 - sd) ** 2))
-        tip = 0.0
-        tp = {d: V[self.tip[d]] / MM for d in DIGITS}
-        jp = {d: np.array(Pm[DIGITS[d][2 if d == 'thumb' else 1]].translation) / MM for d in DIGITS}
-        for d in DIGITS:
-            tip += box_dist2(tp[d], GRIP_BOXES[d + '_tip'])
-            tip += box_dist2(jp[d], GRIP_BOXES[d + ('_ip' if d == 'thumb' else '_pip')])
-        tip += box_dist2(np.array(Pm['hand_r'].translation) / MM, GRIP_BOXES['wrist'])
-        tip += max(0.0, tp['middle'][2] - (tp['index'][2] - 13.0)) ** 2
-        tip += max(0.0, tp['ring'][2] - (tp['middle'][2] - 13.0)) ** 2
-        # thumb: distal phalanx points up the edge, nail faces the viewer
-        ty = Pm['thumb_03_r'].col[1].xyz.normalized()
-        tz = Pm['thumb_03_r'].col[2].xyz.normalized()
-        tip += 200.0 * max(0.0, 0.75 - ty.z) ** 2 + 200.0 * max(0.0, 0.4 - (-tz).dot(Vector((0, -1, 0)))) ** 2
-        terms['tips'] = tip
-        con = 0.0
-        for d in ('index', 'middle', 'ring'):
-            idx, seg = self.seg[d]
-            m = float(sd[idx][seg <= 1].min())
-            con += 2.0 * (m - 0.7) ** 2
-        idx, seg = self.seg['thumb']
-        con += 2.0 * (float(sd[idx][seg >= 1].min()) - 0.6) ** 2
-        con += 1.0 * (float(sd[self.palm].min()) - 1.5) ** 2
-        terms['contact'] = con
-        # neighbouring fingers must not overlap (phalanx capsules, radius ~7.4 mm after scaling)
-        cap = 0.0
-        rr = 2 * 7.4 * HAND_SCALE / 0.92 - 1.0
-        segs = {}
-        for d in FINGERS4:
-            bs = DIGITS[d]
-            segs[d] = [(np.array(Pm[b].translation) / MM, np.array(Pm[bs[k + 1]].translation) / MM)
-                       for k, b in enumerate(bs[:3])]
-        for a_, b_ in (('index', 'middle'), ('middle', 'ring'), ('ring', 'pinky')):
-            for (p1, q1) in segs[a_]:
-                for (p2, q2) in segs[b_]:
-                    dd = seg_dist(p1, q1, p2, q2)
-                    if dd < rr:
-                        cap += 5.0 * (rr - dd) ** 2
-        terms['fingers'] = cap
-        # wrist bend and forearm deviation from the reading pose
-        fa = -Vector(P['forearm_dir']).normalized()
-        hy = Pm['hand_r'].col[1].xyz.normalized()
-        bend = math.degrees(fa.angle(hy))
-        dev = math.degrees(Vector(P['forearm_dir']).angle(self.fd0))
-        terms['wrist'] = 2.0 * max(0.0, bend - 40.0) ** 2 + 2.0 * max(0.0, dev - 25.0) ** 2
-        # joint ranges
-        lim = 0.0
-        for i, d in enumerate(FINGERS4):
-            sp, f1, f2, f3 = x[6 + 4 * i: 10 + 4 * i]
-            lim += max(0, abs(sp) - 15) ** 2 + max(0, f1 - 90) ** 2 + max(0, -10 - f1) ** 2
-            lim += max(0, f2 - 105) ** 2 + max(0, -f2) ** 2 + max(0, f3 - 80) ** 2 + max(0, -f3) ** 2
-            lim += 0.002 * (sp ** 2) + 0.02 * (f3 - 0.7 * f2) ** 2 + max(0, -5 - f1) ** 2 * 3
-        bx, by, bz, f2, f3 = x[22:27]
-        lim += sum(max(0, abs(v) - 70) ** 2 for v in (bx, by, bz)) + max(0, f2 - 70) ** 2 + max(0, -15 - f2) ** 2
-        lim += max(0, f3 - 80) ** 2 + max(0, -15 - f3) ** 2
-        terms['limits'] = lim
-        E = sum(terms.values())
-        if report:
-            log('energy', round(E, 2), {k: round(v, 2) for k, v in terms.items()}, f'wrist bend {bend:.1f} dev {dev:.1f}',
-                'min sd', round(float(sd.min()), 2))
-            for d in DIGITS:
-                log(f'  {d}: tip {np.round(tp[d], 1)} joint {np.round(jp[d], 1)} flex {np.round(P["flex"][d], 1)} '
-                    f'base {np.round(P["base"][d], 1)}')
-            log('  wrist', np.round(np.array(Pm['hand_r'].translation) / MM, 1))
-        return E
+        M0 = Pm[rig.parent[bones[0]]] @ rig.rel[bones[0]]
+        Ra, sp, f1 = aim_local(M0, j1)
+        if digit == 'thumb':
+            best = None
+            for k in range(-60, 61, 3):
+                R1 = Ra @ Matrix.Rotation(math.radians(k), 3, 'Y')
+                M1 = M0 @ R1.to_4x4() @ rig.rel[bones[1]]
+                dl = M1.to_3x3().inverted() @ (j2 - M1.translation)
+                # next joint must lie in the flexion plane (local x ~ 0) and on the palm side of a straight thumb
+                e = abs(dl.x) / max(dl.length, 1e-9) + 0.3 * max(0.0, -dl.z / max(dl.length, 1e-9))
+                if best is None or e < best[0]:
+                    best = (e, R1)
+            Ra = best[1]
+        loc[bones[0]] = [list(r) for r in Ra]
+        D, Pm = rig.pose(P)
+        M1 = Pm[bones[0]] @ rig.rel[bones[1]]
+        a2 = self.flex_to(M1, j2)
+        loc[bones[1]] = [list(r) for r in Matrix.Rotation(a2, 3, 'X')]
+        D, Pm = rig.pose(P)
+        M2 = Pm[bones[1]] @ rig.rel[bones[2]]
+        tl = self.tip_local[digit]
+        a3 = self.flex_to(M2, tip, offset=math.atan2(tl.z, tl.y))
+        loc[bones[2]] = [list(r) for r in Matrix.Rotation(a3, 3, 'X')]
+        D, Pm = rig.pose(P)
+        tipw = Vector(rig.skin(D, [self.tip_index[digit]])[0])
+        return (tipw - tip).length / MM, math.degrees(a2), math.degrees(a3)
 
-    def multistart(self, x0, starts=24, seed=7):
-        """Deterministic random restarts over the hand orientation/position, short descents, then refine the best."""
-        rng = np.random.default_rng(seed)
-        cands = []
-        for k in range(starts):
-            x = x0.copy()
-            if k > 0:
-                x[0:3] += rng.uniform(-12, 12, 3)
-                ax = rng.normal(size=3)
-                ax /= np.linalg.norm(ax)
-                x[3:6] = ax * rng.uniform(0, 0.6)
-                x[22:25] = rng.uniform(-50, 50, 3)
-            self.wpen = 2.0
-            x, e = self.solve(x, sweeps=60, quiet=True)
-            self.wpen = 40.0
-            e = self.energy(x)
-            log(f'start {k}: E={e:.1f}')
-            cands.append((e, k, x))
-        cands.sort(key=lambda c: c[0])
-        best = None
-        for e, k, x in cands[:3]:
-            x, e = self.solve(x, sweeps=300, quiet=True)
-            log(f'refined start {k}: E={e:.1f}')
-            if best is None or e < best[1]:
-                best = (x, e)
-        return best
 
-    def solve(self, x0, sweeps=400, quiet=False):
-        steps = np.array([4, 4, 4, 0.08, 0.08, 0.08] + [5, 10, 10, 10] * 4 + [12, 12, 12, 10, 10] + [0.08, 0.08])
-        x, e = x0.copy(), self.energy(x0)
-        st = steps.copy()
-        for it in range(sweeps):
-            improved = False
-            for i in range(len(x)):
-                for sgn in (1.0, -1.0):
-                    xt = x.copy()
-                    xt[i] += sgn * st[i]
-                    et = self.energy(xt)
-                    if et < e:
-                        x, e = xt, et
-                        improved = True
-                        # keep moving while it pays
-                        while True:
-                            xt = x.copy()
-                            xt[i] += sgn * st[i]
-                            et = self.energy(xt)
-                            if et >= e:
-                                break
-                            x, e = xt, et
-                        break
-            if not improved:
-                st *= 0.5
-                if np.max(st / steps) < 0.01:
+def grid_finger(rig, ik, P, digit, tip_t, clearance, near=1.5):
+    """Pose one finger by a coarse grid over (spread, MCP, PIP, DIP) followed by local refinement. Energy: fingertip
+    vertex to tip_t, no penetration, proximal/middle phalanges resting near the phone, DIP ~ 0.7 PIP."""
+    bones = DIGITS[digit]
+    idx, seg = rig.digit_verts(digit)
+    tv = int(np.nonzero(idx == ik.tip_index[digit])[0][0])
+    loc = P.setdefault('local', {})
+    T = np.array(tip_t, float)
+    near01 = seg <= 1
+
+    def apply(x):
+        loc[bones[0]] = [list(r) for r in Matrix.Rotation(math.radians(x[0]), 3, 'Z') @
+                         Matrix.Rotation(math.radians(x[1]), 3, 'X')]
+        loc[bones[1]] = [list(r) for r in Matrix.Rotation(math.radians(x[2]), 3, 'X')]
+        loc[bones[2]] = [list(r) for r in Matrix.Rotation(math.radians(x[3]), 3, 'X')]
+
+    def energy(x):
+        apply(x)
+        D, _ = rig.pose(P)
+        pts = rig.skin(D, idx)
+        sd = sdf_phone(pts)
+        e = float(np.sum((pts[tv] / MM - T) ** 2))
+        e += 400.0 * float(np.sum(np.maximum(0.0, clearance - sd) ** 2))
+        e += 4.0 * max(0.0, float(sd[near01].min()) - near) ** 2
+        e += 0.02 * (x[3] - 0.7 * x[2]) ** 2 + 0.02 * x[0] ** 2
+        e += 10.0 * (max(0.0, -x[2]) ** 2 + max(0.0, -x[3]) ** 2 + max(0.0, -10 - x[1]) ** 2)
+        return e
+
+    best = None
+    for sp in range(-15, 16, 5):
+        for f1 in range(-10, 81, 10):
+            for f2 in range(0, 101, 10):
+                for f3 in range(0, 81, 10):
+                    x = np.array([sp, f1, f2, f3], float)
+                    e = energy(x)
+                    if best is None or e < best[0]:
+                        best = (e, x)
+    e, x = best
+    steps = np.array([2.5, 5.0, 5.0, 5.0])
+    while steps.max() > 0.2:
+        moved = False
+        for i in range(4):
+            for sg in (1.0, -1.0):
+                xt = x.copy()
+                xt[i] += sg * steps[i]
+                et = energy(xt)
+                if et < e:
+                    x, e, moved = xt, et, True
+        if not moved:
+            steps *= 0.5
+    apply(x)
+    return x
+
+
+def pose_hand(rig, G, verbose=True):
+    """Place the hand from the GRIP design, settle the palm against the phone's right edge, then pose every digit;
+    joint targets that end up inside the phone are lifted along the SDF gradient until the digit clears it."""
+    P = {'fit': G['fit'], 'forearm_dir': G['forearm_dir'], 'local': {}}
+    sd = rig.settle_palm(P, G['palm_gap'], direction=G.get('settle_dir')) if G.get('palm_gap') is not None else None
+    ik = GripIK(rig)
+    info = {'palm': sd}
+    for digit in ('index', 'middle', 'ring', 'pinky', 'thumb'):
+        tg = [np.array(t, float) for t in G['digits'][digit]]
+        idx, seg = rig.digit_verts(digit)
+        it = 0
+        if digit == 'thumb':
+            for it in range(40):
+                e, a2, a3 = ik.pose_digit(P, digit, tg)
+                D, Pm = rig.pose(P)
+                pts = rig.skin(D, idx)
+                sdv = sdf_phone(pts)
+                m = float(sdv.min())
+                if m >= G['clearance']:
                     break
-            if it % 20 == 0 and not quiet:
-                log(f'solve sweep {it} E={e:.2f} step {np.max(st / steps):.3f}')
-        return x, e
-
-
-def pose_hand(rig, P, solve=False):
-    P = json.loads(json.dumps(P))                          # deep copy
-    if solve:
-        gs = GripSolver(rig, P)
-        x, e = gs.multistart(gs.pack(P))
-        P = gs.unpack(x)
-        gs.energy(x, report=True)
-        keep = {k: P[k] for k in ('index_mcp', 'knuckle_line', 'palm_normal', 'rotvec', 'forearm_dir', 'forearm_rot',
-                                  'base', 'flex')}
-        log('SOLVED_POSE ' + json.dumps(keep))
+                k = int(seg[np.argmin(sdv)])
+                tg[k] += sdf_grad(tg[k]) * (G['clearance'] - m + 0.4)
+        else:
+            x = grid_finger(rig, ik, P, digit, tg[2], G['clearance'])
+            a2, a3 = x[2], x[3]
+        D, Pm = rig.pose(P)
+        m = float(sdf_phone(rig.skin(D, idx)).min())
+        e = float(np.linalg.norm(rig.skin(D, [ik.tip_index[digit]])[0] / MM - tg[2]))
+        info[digit] = (e, a2, a3, m, it)
+        if verbose:
+            log(f'{digit}: tip miss {e:.1f} mm, flex {a2:.0f}/{a3:.0f}, clearance {m:.2f} mm ({it} lifts), '
+                f'tip at {np.round(rig.skin(D, [ik.tip_index[digit]])[0] / MM, 1)}')
     D, Pm = rig.pose(P)
+    hy = Pm['hand_r'].col[1].xyz.normalized()
+    info['bend'] = math.degrees((-Vector(P['forearm_dir'])).angle(hy))
+    if verbose:
+        palm = np.nonzero(rig.d['dom'] == BIDX['hand_r'])[0]
+        pp = rig.skin(D, palm)
+        sdp = sdf_phone(pp)
+        sd = float(sdp.min())
+        log(f'palm closest point {np.round(pp[np.argmin(sdp)] / MM, 1)}')
+        log(f'palm clearance {sd:.2f}, wrist '
+            f'{np.round(np.array(Pm["hand_r"].translation) / MM, 1)}, wrist bend {info["bend"]:.0f} deg')
+        for b in ('index_01_r', 'middle_01_r', 'ring_01_r', 'pinky_01_r', 'thumb_01_r', 'thumb_02_r', 'thumb_03_r'):
+            log(f'  {b} head {np.round(np.array(Pm[b].translation) / MM, 1)}')
     return P, D, Pm
 
 
@@ -996,6 +927,12 @@ def build_sleeve(B, Pm, skin_verts, dom):
             (105, 1.68, 0.8), (145, 1.72, 0.7), (190, 1.75, 0.6), (SLEEVE_LEN - base, 1.76, 0.5)]
     for k, (sv, g, amp) in enumerate(body):
         rings.append(('MP_Sleeve', ring(base + sv, g, g * 0.97, 0.0, fold_fn(k, amp))))
+    # far end: roll the fabric inward and line the inside so the open end never shows through
+    k_end, (sv_end, g_end, amp_end) = len(body) - 1, body[-1]
+    f_end = fold_fn(k_end, amp_end)
+    rings.append(('MP_Sleeve', ring(base + sv_end + 1.5, g_end * 0.985, g_end * 0.955, 0.0, f_end)))
+    rings.append(('MP_SleeveCuff', ring(base + sv_end + 1.0, g_end * 0.95, g_end * 0.92, 0.0, f_end)))
+    rings.append(('MP_SleeveCuff', ring(base + sv_end - 40.0, g_end * 0.93, g_end * 0.90, 0.0, f_end)))
     for k in range(len(rings) - 1):
         r0 = rings[k][1]
         mat, r1 = rings[k + 1]
@@ -1004,17 +941,70 @@ def build_sleeve(B, Pm, skin_verts, dom):
             B.f((r0[i], r0[j], r1[j], r1[i]), mat)
 
 
-def build_hand(rig, P, solve=False):
-    P, D, Pm = pose_hand(rig, P, solve)
-    verts = rig.skin(D)
-    faces = rig.d['faces']
+def corrective_smooth(rest, posed, faces, W, iterations=14):
+    """Delta-mush (Blender Corrective Smooth, rest = original coordinates) to remove linear-blend-skinning pinches at
+    the thumb web and knuckles. Strength per vertex grows with how evenly it is split between bones."""
+    me = bpy.data.meshes.new('_cs')
+    me.from_pydata([tuple(v) for v in rest], [], faces)
+    ob = bpy.data.objects.new('_cs', me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.shape_key_add(name='Basis')
+    sk = ob.shape_key_add(name='Pose')
+    sk.data.foreach_set('co', np.asarray(posed, dtype=np.float32).ravel())
+    sk.value = 1.0
+    ws = np.sort(W, axis=1)
+    split = np.clip(ws[:, -2] * 2.5, 0.0, 1.0)            # second-largest weight: 0 -> rigid, >=0.4 -> full
+    vg = ob.vertex_groups.new(name='cs')
+    for i, w in enumerate(split):
+        if w > 0.01:
+            vg.add([i], float(w), 'REPLACE')
+    mod = ob.modifiers.new('cs', 'CORRECTIVE_SMOOTH')
+    mod.factor = 1.0
+    mod.iterations = iterations
+    mod.rest_source = 'ORCO'
+    mod.smooth_type = 'LENGTH_WEIGHTED'
+    mod.use_pin_boundary = True
+    mod.vertex_group = 'cs'
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = ob.evaluated_get(dg)
+    out = np.array([tuple(v.co) for v in ev.data.vertices])
+    bpy.data.objects.remove(ob, do_unlink=True)
+    bpy.data.meshes.remove(me)
+    return out
+
+
+def subdivide_skin(verts, faces, levels=1):
+    """One Catmull-Clark level on the posed skin so the close-up silhouette is smooth (UBC hand is ~1.6k tris)."""
+    me = bpy.data.meshes.new('_skin')
+    me.from_pydata([tuple(v) for v in verts], [], faces)
+    ob = bpy.data.objects.new('_skin', me)
+    bpy.context.scene.collection.objects.link(ob)
+    mod = ob.modifiers.new('sub', 'SUBSURF')
+    mod.levels = mod.render_levels = levels
+    mod.boundary_smooth = 'PRESERVE_CORNERS'
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = ob.evaluated_get(dg)
+    me2 = bpy.data.meshes.new_from_object(ev)
+    out_v = np.array([tuple(v.co) for v in me2.vertices])
+    out_f = [list(p.vertices) for p in me2.polygons]
+    bpy.data.objects.remove(ob, do_unlink=True)
+    bpy.data.meshes.remove(me)
+    bpy.data.meshes.remove(me2)
+    return out_v, out_f
+
+
+def build_hand(rig, G):
+    P, D, Pm = pose_hand(rig, G)
+    base = rig.skin(D)
+    smooth = corrective_smooth(rig.d['V'], base, rig.d['faces'], rig.d['W'])
+    verts, faces = subdivide_skin(smooth, rig.d['faces'])
     B = Builder()
     for p in verts:
         B.v(p)
     for f in faces:
         B.f(f, 'MP_Skin')
     build_nails(B, verts, faces, Pm, rig.rest)
-    build_sleeve(B, Pm, verts, rig.d['dom'])
+    build_sleeve(B, Pm, base, rig.d['dom'])
     obj = to_object(B, 'Hand', recalc=False, triangulate=False)
     # skin: subdivide once for a smoother close-up silhouette (the base mesh is ~1.6k tris)
     return obj, P, Pm
@@ -1231,7 +1221,7 @@ def update_manifest(out_dir, models, mat_names, draft_copy=()):
     man['models'].update(models)
     dc = [d for d in man.get('draft_copy', []) if d not in draft_copy] + list(draft_copy)
     man['draft_copy'] = dc
-    man['materials'] = dict(sorted(man['materials'].items()))
+    man['materials'] = dict(sorted((k, v) for k, v in man['materials'].items() if 'preview only' not in v['note']))
     man['models'] = dict(sorted(man['models'].items()))
     with open(path, 'w') as fh:
         json.dump(man, fh, indent=2)
@@ -1252,15 +1242,12 @@ def used_materials(objs):
     return out
 
 
-def build_phone_in_hand(out_dir, export=True, dev=False, solve=False):
+def build_phone_in_hand(out_dir, export=True, dev=False):
     reset()
     M_read, fdir = reading_pose()
     phone = build_phone()
     rig = HandRig(load_ubc_arm(SKIN_KEEP * MM))
-    P = json.loads(json.dumps(HAND_POSE))
-    if P.get('forearm_dir') is None:
-        P['forearm_dir'] = FOREARM_DIR
-    hand, Pp, Pm = build_hand(rig, P, solve)
+    hand, Pp, Pm = build_hand(rig, GRIP)
     root = make_empty('PhoneInHand', size=0.03)
     for o in (phone, hand):
         o.parent = root
@@ -1306,7 +1293,9 @@ def build_phone_in_hand(out_dir, export=True, dev=False, solve=False):
     if dev:
         shots.update({'front': ((0, -0.55, -0.03), c, 50), 'right': ((0.55, 0.0, -0.03), c, 50),
                       'bottom': ((0.02, -0.12, -0.55), Vector((0, 0, -0.07)), 50),
-                      'left': ((-0.55, 0.02, -0.03), c, 50), 'backlow': ((0.2, 0.40, -0.25), c, 50)})
+                      'left': ((-0.55, 0.02, -0.03), c, 50), 'backlow': ((0.2, 0.40, -0.25), c, 50),
+                      'closeleft': ((-0.16, -0.20, -0.02), Vector((-0.03, 0, -0.04)), 50),
+                      'closethumb': ((0.18, -0.20, -0.06), Vector((0.035, 0, -0.06)), 50)})
     for label, (loc, tgt, lens) in shots.items():
         camera('Cam_' + label, Vector(loc), tgt, lens=lens)
         render(os.path.join(pv, f'PhoneInHand_{label}.png'), (900, 900))
@@ -1328,6 +1317,134 @@ def build_phone_in_hand(out_dir, export=True, dev=False, solve=False):
     }, mats
 
 
+# ----------------------------------------------------------------------------------------------------------------
+# B. earphone parts (cable runs along Blender Z = Unity Y; each part's origin at its bounding-box centre)
+CABLE_R = 1.0     # mm, earphone cable radius (main cable from the plug: strain relief ends at 1.1 mm)
+
+
+def earbud_part(name, builder, locators):
+    B = Builder()
+    builder(B)
+    obj = to_object(B, name, triangulate=True)
+    # origin at the bounding-box centre
+    vs = np.array([tuple(v.co) for v in obj.data.vertices])
+    c = (vs.min(axis=0) + vs.max(axis=0)) / 2
+    obj.data.transform(Matrix.Translation(-Vector(c)))
+    obj.location = (0, 0, 0)
+    obj.data.update()
+    obj.data.set_sharp_from_angle(angle=math.radians(35))
+    empties = []
+    for lname, p in locators.items():
+        e = make_empty(lname, Vector(p) * MM - Vector(c), obj, 0.003)
+        empties.append(e)
+    return obj, empties, tuple(round(-x / MM, 2) for x in c)
+
+
+def build_splitter(B):
+    """Y-splitter, 14 mm: the main cable enters at -Z, the two branches leave side by side at +Z."""
+    prof = [(0.0, -7.0), (0.75, -6.95), (1.25, -6.7), (1.55, -6.0), (2.0, -4.0), (2.45, -1.0), (2.7, 2.5), (2.75, 4.8),
+            (2.6, 5.9), (2.1, 6.6), (0.0, 6.9)]
+    rings = revolve(B, [(r * MM, h * MM) for (r, h) in prof], 28, (0, 0, 0), (0, 0, 1), 'MP_Cable')
+    # flatten into an oval toward the top so two cables fit side by side
+    for ring, (r, h) in zip(rings, prof):
+        sx = 1.0 + 0.32 * max(0.0, min(1.0, (h + 4.0) / 9.0))
+        sy = 1.0 - 0.12 * max(0.0, min(1.0, (h + 4.0) / 9.0))
+        for vi in ring:
+            x, y, z = B.verts[vi]
+            B.verts[vi] = (x * sx, y * sy, z)
+    for sx in (-1, 1):
+        o = Vector((sx * 1.45 * MM, 0, 6.2 * MM))
+        revolve(B, [(r * MM, h * MM) for (r, h) in [(0.0, -1.0), (1.15, -1.0), (1.15, 1.2), (1.05, 1.75), (0.0, 1.9)]], 16,
+                o, (0, 0, 1), 'MP_Cable')
+
+
+def build_remote(B):
+    """Inline remote pill 26 x 9 x 6 mm (Z x X x Y), three subtle buttons on the front (-Y), mic hole on the back."""
+    outline = rrect_outline(4.5, 13.0, 4.49, 10)
+    prof = [(2.2, -3.0), (1.6, -3.0), (0.9, -2.85), (0.4, -2.5), (0.1, -2.0), (0.0, -1.3), (0.0, 1.3), (0.1, 2.0),
+            (0.4, 2.5), (0.9, 2.85), (1.6, 3.0), (2.2, 3.0)]
+    sweep(B, [(u * MM, w * MM, nu, nw) for (u, w, nu, nw) in outline], [(d * MM, h * MM) for (d, h) in prof],
+          (0, 0, 0), (1, 0, 0), (0, 0, 1), (0, 1, 0), lambda k, i: 'MP_Cable', cap_first='MP_Cable', cap_last='MP_Cable')
+    # buttons: raised + / - bars and a soft centre pad (all white, catch the light)
+    def bar(cx, cz, lx, lz, h=0.28):
+        ol = rrect_outline(lx / 2, lz / 2, min(lx, lz) / 2 * 0.98, 4)
+        sweep(B, [(u * MM, w * MM, nu, nw) for (u, w, nu, nw) in ol], [(0, 0.15 * MM), (0, -h * MM), (0.12 * MM, -(h + 0.06) * MM)],
+              (cx * MM, -3.0 * MM, cz * MM), (1, 0, 0), (0, 0, 1), (0, 1, 0), lambda k, i: 'MP_Cable',
+              cap_last='MP_Cable')
+    bar(0, 7.2, 3.4, 0.8)
+    bar(0, 7.2, 0.8, 3.4)
+    bar(0, -7.2, 3.4, 0.8)
+    bar(0, 0, 4.2, 6.0, h=0.16)
+    revolve(B, [(r * MM, h * MM) for (r, h) in [(0.0, -0.05), (0.45, -0.05), (0.5, 0.1)]], 10, (0, 3.0 * MM, 4.0 * MM),
+            (0, -1, 0), 'MP_EarbudGrille')
+    for sz in (-1, 1):   # cable nubs
+        revolve(B, [(r * MM, h * MM) for (r, h) in [(0.0, -1.0), (1.35, -1.0), (1.35, 1.0), (1.15, 1.9), (0.0, 2.0)]], 16,
+                (0, 0, sz * 12.6 * MM), (0, 0, sz), 'MP_Cable')
+
+
+def build_earbud(B):
+    """Classic round earbud: 16 mm head (speaker grille facing -Y), 18 mm stem down -Z, cable leaves the stem end."""
+    head_c = Vector((0, 0, 0))
+    prof = [(0.0, 4.2), (2.5, 4.15), (4.8, 3.9), (6.6, 3.3), (7.7, 2.3), (8.0, 1.0), (8.0, -1.4), (7.7, -2.6),
+            (7.0, -3.5), (6.0, -4.1)]
+    revolve(B, [(r * MM, h * MM) for (r, h) in prof], 36, head_c, (0, 1, 0), 'MP_Cable')   # dome at +Y (back)
+    # grille: dark disc inset in the white rim on the ear side (-Y), with two subtle concentric ridges
+    g = [(6.0, -4.1), (5.6, -4.05), (5.6, -4.2), (4.2, -4.32), (4.0, -4.42), (3.8, -4.32), (2.2, -4.38), (2.0, -4.48),
+         (1.8, -4.38), (0.0, -4.42)]
+    revolve(B, [(r * MM, h * MM) for (r, h) in g], 36, head_c, (0, 1, 0), ['MP_Cable'] + ['MP_EarbudGrille'] * 8)
+    # stem: from the lower back of the head, slightly tilted, 18 mm long, tapered, cable nub at the end
+    top = Vector((0, 2.3 * MM, -5.2 * MM))
+    axis = Vector((0, 0.10, -1)).normalized()
+    sp = [(0.0, -2.0), (3.0, -2.0), (3.1, 0.0), (2.95, 4.0), (2.7, 10.0), (2.45, 15.5), (2.2, 17.2), (1.6, 18.0),
+          (1.05, 18.1), (1.05, 19.0), (0.0, 19.1)]
+    revolve(B, [(r * MM, h * MM) for (r, h) in sp], 24, top, axis, 'MP_Cable')
+    return top + axis * 19.1 * MM
+
+
+def build_earphones(out_dir, export=True, dev=False):
+    reset()
+    objs = []
+    sp, sp_e, sp_c = earbud_part('Splitter', build_splitter,
+                                 {'CableIn': (0, 0, -7.0), 'CableOut_L': (-1.45, 0, 8.1), 'CableOut_R': (1.45, 0, 8.1)})
+    rm, rm_e, rm_c = earbud_part('Remote', build_remote, {'CableTop': (0, 0, 14.6), 'CableBottom': (0, 0, -14.6)})
+    eb_tip = {}
+
+    def eb_builder(B):
+        eb_tip['p'] = build_earbud(B)
+    eb, eb_e, eb_c = earbud_part('Earbud', eb_builder, {})
+    c = Vector(tuple(-x for x in eb_c)) * MM
+    eb_e.append(make_empty('CableEnd', eb_tip['p'] - c, eb, 0.003))
+    eb_e.append(make_empty('HeadCenter', -c, eb, 0.003))
+    tris = {o.name: tri_count(o) for o in (sp, rm, eb)}
+    log('earphone tris', tris)
+    fbx_dir = os.path.join(out_dir, 'fbx')
+    os.makedirs(fbx_dir, exist_ok=True)
+    if export:
+        export_fbx(os.path.join(fbx_dir, 'Earphones.fbx'), [sp, rm, eb] + sp_e + rm_e + eb_e)
+    # preview: the three parts side by side (macro 3/4) + a hanging-cable context next to the phone plug
+    pv = os.path.join(out_dir, 'previews') if not dev else os.path.join(out_dir, 'dev')
+    os.makedirs(pv, exist_ok=True)
+    setup_render((900, 600))
+    sp.location = (-0.022, 0, 0)
+    rm.location = (0.0, 0, 0)
+    eb.location = (0.026, 0, 0)
+    camera('Cam_ep', Vector((0.06, -0.115, 0.05)), Vector((0.002, 0, -0.002)), lens=60)
+    render(os.path.join(pv, 'Earphones_threequarter.png'), (900, 600))
+    camera('Cam_ep2', Vector((-0.04, 0.08, 0.03)), Vector((0.002, 0, -0.001)), lens=60)
+    render(os.path.join(pv, 'Earphones_back.png'), (900, 600))
+    return {'Earphones': {
+        'file': 'fbx/Earphones.fbx', 'tris': sum(tris.values()),
+        'locators': ['Splitter/CableIn', 'Splitter/CableOut_L', 'Splitter/CableOut_R', 'Remote/CableTop',
+                     'Remote/CableBottom', 'Earbud/CableEnd', 'Earbud/HeadCenter'],
+        'notes': ('Three root objects, origins at their bounding-box centres; the cable runs along Blender Z = Unity Y '
+                  f'(cable radius ~{CABLE_R} mm). Splitter 14 mm: main cable in at -Y(Unity), branches out at +Y, '
+                  'L at Unity +X (Blender -X). Remote 26 x 9 x 6 mm pill, buttons (+, centre, -) on the Unity +Z face '
+                  '(Blender -Y), cable at both ends. Earbud: 16 mm head with the dark grille facing Unity +Z, 18 mm stem '
+                  'down; CableEnd at the stem tip, HeadCenter at the head centre. '
+                  f'Tris: Splitter {tris["Splitter"]}, Remote {tris["Remote"]}, Earbud {tris["Earbud"]}.')}}, \
+        used_materials([sp, rm, eb])
+
+
 def main():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     out_dir = os.path.abspath(argv[0] if argv else 'build_art/opening/street')
@@ -1336,7 +1453,7 @@ def main():
     export = '--no-export' not in argv and not dev
     os.makedirs(out_dir, exist_ok=True)
     if only in (None, 'phone'):
-        models, mats = build_phone_in_hand(out_dir, export=export, dev=dev, solve='--solve-hand' in argv)
+        models, mats = build_phone_in_hand(out_dir, export=export, dev=dev)
         if export:
             update_manifest(out_dir, models, mats)
     if only in (None, 'earphones') and 'build_earphones' in globals():
@@ -1345,4 +1462,5 @@ def main():
             update_manifest(out_dir, models, mats)
 
 
-main()
+if __name__ == '__main__':
+    main()

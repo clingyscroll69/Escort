@@ -780,7 +780,7 @@ def chalk_menu(title, lines, frame='#5A3B24'):
         w, h = cv.w_m, cv.h_m
         cv.rect(0, 0, w, h, C(frame))
         cv.rect(0.03, 0.03, w - 0.03, h - 0.03, C('#23282A'))
-        cv.text(w / 2, h - 0.12, title, 'chalk', 0.09, C('#F2EEE2'))
+        cv.fit_text(w / 2, h - 0.12, title, 'chalk', w - 0.12, 0.09, C('#F2EEE2'))
         y = h - 0.24
         for ln in lines:
             cv.fit_text(w / 2, y, ln, 'chalk', w - 0.12, 0.05, C('#E6E0CF'))
@@ -1421,6 +1421,9 @@ def signs_lit():
         ('diner_blade', 0.9, 3.4, 150, diner_blade, C('#C62828')),
         ('diner_open', 1.6, 0.45, 250, diner_open, C('#0E1114')),
         ('open_neon', 0.9, 0.4, 250, open_led, C('#0A0A0A')),
+        ('bank_atm', 1.0, 0.36, 250, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#1E5AA8')),
+                                                 cv.fit_text(cv.w_m / 2, cv.h_m / 2, 'ATM  24H', 'helv_bold', 0.85, 0.2,
+                                                             C('#FFFFFF'))), C('#1E5AA8')),
     ]
     build_sign_atlas('T_SignsLit.png', signs, bg=(10, 10, 10))
 
@@ -1513,15 +1516,628 @@ def details():
 def glass_sheen():
     """Optional transparent shop-glass layer (RGBA): faint tint + diagonal streaks."""
     n = 256
-    img = Image.new('RGBA', (n, n), (205, 222, 230, 34))
+    img = Image.new('RGBA', (n, n), (205, 222, 230, 14))
     d = ImageDraw.Draw(img, 'RGBA')
-    for x0, w, a in ((30, 40, 40), (90, 14, 30), (170, 55, 34), (240, 10, 26)):
+    for x0, w, a in ((30, 40, 22), (90, 14, 16), (170, 55, 18), (240, 10, 14)):
         for ox in (-n, 0, n):
             d.polygon([(x0 + ox, 0), (x0 + w + ox, 0), (x0 + w - 100 + ox, n), (x0 - 100 + ox, n)],
                       fill=(255, 255, 255, a))
     img = img.filter(ImageFilter.GaussianBlur(2))
     save(img, 'T_GlassSheen.png', keep_alpha=True)
     register('T_GlassSheen.png', (n, n), {}, tile_m=2.0)
+
+
+# ------------------------------------------------------------------------------------- mid-block shop textures
+
+BOOK_COLS = ['#7B2D26', '#2C3E5C', '#2F5A3A', '#C9A13B', '#E8DFC9', '#5A3B24', '#1E1E1E', '#8E5A9B', '#B5562C',
+             '#3D6E7A', '#A33B4E', '#D9C27A']
+
+
+def warm_lights(cv, xs, y=3.35, col='#FFE2A8', r=0.8):
+    for x in xs:
+        cv.glow(x, y, r, C(col), 0.5)
+
+
+def noodle_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#7A4E32'))
+    for x in np.arange(0, 8, 0.12):
+        cv.rect(x, 1.1, x + 0.1, 3.6, C(['#8A5A3A', '#7E5236', '#93623F'][rng.integers(3)]))
+    cv.rect(0, 2.75, 8, 3.6, C('#6E2620'))
+    cv.rect(0, 0, 8, 1.05, C('#B98A5A'))
+    for x in np.arange(0.2, 8, 0.6):
+        cv.rect(x, 0.1, x + 0.5, 0.95, C('#A97C50'))
+    cv.rect(0, 1.0, 8, 1.1, C('#3A2A1E'))
+    for x in (0.6, 1.5, 4.9, 5.8):                                 # pots with steam
+        cv.rect(x, 1.1, x + 0.6, 1.55, C('#B9BEC2'))
+        cv.rect(x - 0.03, 1.5, x + 0.63, 1.56, C('#8E9499'))
+        for k in range(3):
+            pts = [(x + 0.15 + k * 0.15 + 0.05 * math.sin(t * 6), 1.58 + t * 0.6) for t in np.linspace(0, 1, 10)]
+            cv.line(pts, (255, 255, 255, 90), 0.03)
+    for x in np.arange(2.4, 4.6, 0.22):                            # stacked bowls
+        for k in range(3):
+            cv.ellipse(x + 0.1, 1.16 + k * 0.07, 0.1, 0.035, C('#F2EEE6'))
+            cv.rect(x, 1.13 + k * 0.07, x + 0.2, 1.16 + k * 0.07, C('#2C3E5C'))
+    for k, (t, p) in enumerate((('RAMEN', '12'), ('UDON', '11'), ('GYOZA', '7'), ('BAO', '6'))):
+        x = 0.4 + k * 1.75
+        cv.rect(x, 1.85, x + 1.5, 2.6, C('#3A2A1E'))
+        cv.ellipse(x + 0.38, 2.15, 0.22, 0.12, C('#F2EEE6'))
+        cv.ellipse(x + 0.38, 2.2, 0.18, 0.06, C('#E9B44C'))
+        cv.line([(x + 0.25, 2.45), (x + 0.55, 2.25)], C('#C9A13B'), 0.02)
+        cv.text(x + 1.05, 2.33, t, 'futura_bold', 0.15, C('#F2E6CF'))
+        cv.text(x + 1.05, 2.07, p, 'futura_bold', 0.15, C('#E9B44C'))
+    cv.rect(7.0, 0, 7.9, 2.3, C('#2A2420'))                         # kitchen doorway + noren
+    for k in range(3):
+        cv.rect(7.02 + k * 0.29, 1.7, 7.28 + k * 0.29, 2.28, C('#2C3E5C'))
+    cv.line([(7.05, 1.9), (7.85, 1.9)], C('#E8E2D4'), 0.02)
+    for x in (1.2, 3.2, 5.2, 7.2):
+        cv.glow(x, 3.05, 0.7, C('#FF8A5C'), 0.6)
+        cv.ellipse(x, 3.05, 0.2, 0.26, C('#E0392B'))
+        cv.rect(x - 0.12, 3.29, x + 0.12, 3.33, C('#1E1E1E'))
+        cv.rect(x - 0.12, 2.77, x + 0.12, 2.81, C('#1E1E1E'))
+
+
+def noodle_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E8D9BE'))
+    cv.rect(0, 0, 8, 1.0, C('#8A5A3A'))
+    cv.ellipse(4.0, 2.2, 1.1, 0.75, C('#2C3E5C'))                    # wave mural
+    for k in range(5):
+        cv.ellipse(4.0 - 0.1 * k, 2.1 + 0.05 * k, 0.9 - 0.15 * k, 0.55 - 0.1 * k, None, outline=C('#E8E2D4'), w=0.03)
+    for x in np.arange(0.4, 8, 1.5):                                # tables + benches
+        cv.rect(x, 0.72, x + 0.9, 0.78, C('#5A3B24'))
+        cv.rect(x + 0.42, 0, x + 0.48, 0.72, C('#3A2A1E'))
+        cv.rect(x - 0.25, 0.42, x + 0.05, 0.47, C('#7A5233'))
+        cv.rect(x + 0.85, 0.42, x + 1.15, 0.47, C('#7A5233'))
+        cv.ellipse(x + 0.3, 0.84, 0.12, 0.06, C('#F2EEE6'))
+    cv.line([(0, 3.1)] + [(x, 3.1 - 0.12 * math.sin(x * 1.6) ** 2) for x in np.arange(0, 8.1, 0.2)], C('#2A2A2A'), 0.01)
+    for x in np.arange(0.5, 8, 1.0):
+        cv.glow(x, 2.95, 0.5, C('#FF9A6A'), 0.55)
+        cv.ellipse(x, 2.95, 0.13, 0.17, C('#E0392B'))
+    cv.rect(0.3, 1.6, 2.2, 1.64, C('#5A3B24'))
+    for x in np.arange(0.35, 2.15, 0.14):
+        cv.rect(x, 1.64, x + 0.08, 1.64 + rng.uniform(0.18, 0.3), C(['#2F5A3A', '#7B2D26', '#C9A13B', '#E8DFC9'][rng.integers(4)]))
+    plant(cv, rng, 7.4, 1.0)
+
+
+def books_shelves(cv, rng, x0, x1, y0=0.08, y1=3.25, step=0.38):
+    cv.rect(x0 - 0.05, 0, x1 + 0.05, y1 + 0.1, C('#4A3221'))
+    y = y0
+    while y < y1 - 0.25:
+        cv.rect(x0, y, x1, y + 0.03, C('#5E4026'))
+        x = x0 + 0.02
+        while x < x1 - 0.03:
+            w = rng.uniform(0.025, 0.065)
+            h = rng.uniform(0.2, min(0.33, step - 0.06))
+            col = C(BOOK_COLS[rng.integers(len(BOOK_COLS))])
+            if rng.random() < 0.06:
+                cv.poly([(x, y + 0.03), (x + 0.05, y + 0.03), (x + 0.05 + h * 0.5, y + 0.03 + h * 0.85),
+                         (x + h * 0.5, y + 0.03 + h * 0.85)], col)
+                x += 0.05 + h * 0.5
+            else:
+                cv.rect(x, y + 0.03, min(x + w, x1 - 0.02), y + 0.03 + h, col)
+                cv.rect(x, y + 0.03 + h * 0.75, min(x + w, x1 - 0.02), y + 0.03 + h * 0.8, shade(col, 1.35))
+                x += w + 0.004
+        y += step
+
+
+def books_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#3A2A1E'))
+    books_shelves(cv, rng, 0.1, 3.8)
+    books_shelves(cv, rng, 4.2, 7.9)
+    cv.line([(1.2, 0), (1.9, 3.3)], C('#8A5A3A'), 0.04)
+    cv.line([(1.55, 0), (2.25, 3.3)], C('#8A5A3A'), 0.04)
+    for t in np.linspace(0.1, 0.95, 9):
+        cv.line([(1.2 + 0.7 * t, 3.3 * t), (1.55 + 0.7 * t, 3.3 * t)], C('#8A5A3A'), 0.025)
+    for x, t in ((2.0, 'FICTION'), (6.0, 'HISTORY')):
+        cv.rect(x - 0.5, 3.28, x + 0.5, 3.5, C('#E8DFC9'))
+        cv.text(x, 3.39, t, 'bask_bold', 0.12, C('#2F5A3A'))
+    warm_lights(cv, (1.0, 3.0, 5.0, 7.0), y=3.4)
+
+
+def books_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E2D2B0'))
+    books_shelves(cv, rng, 0.1, 2.4)
+    books_shelves(cv, rng, 5.6, 7.9)
+    cv.rect(2.7, 0, 5.3, 0.06, C('#7B2D26'))
+    cv.rect(3.0, 0.7, 5.0, 0.78, C('#5E4026'))
+    cv.rect(3.1, 0, 3.18, 0.7, C('#4A3221'))
+    cv.rect(4.82, 0, 4.9, 0.7, C('#4A3221'))
+    for x in np.arange(3.1, 4.9, 0.32):
+        for k in range(rng.integers(2, 6)):
+            cv.rect(x, 0.78 + k * 0.05, x + 0.26, 0.82 + k * 0.05, C(BOOK_COLS[rng.integers(len(BOOK_COLS))]))
+    cv.rrect(2.75, 0, 3.15, 0.95, 0.08, C('#2F5A3A'))                  # armchair
+    cv.rect(4.9, 1.6, 5.4, 1.62, C('#3A2A1E'))
+    cv.rect(3.2, 1.6, 4.8, 2.5, C('#23282A'))
+    cv.text(4.0, 2.25, 'NEW', 'chalk', 0.14, C('#F2EEE2'))
+    cv.text(4.0, 1.95, 'ARRIVALS', 'chalk', 0.13, C('#F2EEE2'))
+    cv.line([(5.2, 0), (5.2, 1.4)], C('#3A3A3A'), 0.02)
+    cv.poly([(5.05, 1.4), (5.35, 1.4), (5.3, 1.6), (5.1, 1.6)], C('#2F5A3A'))
+    cv.glow(5.2, 1.45, 0.6, C('#FFE2A8'), 0.6)
+    warm_lights(cv, (1.0, 4.0, 7.0), y=3.4)
+
+
+def laundry_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E9F0F3'))
+    for x in np.arange(0, 8, 0.15):
+        for y in np.arange(0, 1.5, 0.15):
+            cv.rect(x + 0.004, y + 0.004, x + 0.146, y + 0.146, C('#DCEAF0' if (int(x / 0.15) + int(y / 0.15)) % 2 else '#E6F0F4'))
+    cv.rect(0, 1.5, 8, 1.56, C('#1F5FA8'))
+    for k in range(7):                                              # washers
+        x = 0.15 + k * 0.78
+        cv.rrect(x, 0.05, x + 0.72, 0.95, 0.04, C('#F7F9FA'))
+        cv.rect(x, 0.8, x + 0.72, 0.95, C('#D5DDE2'))
+        cv.ellipse(x + 0.36, 0.42, 0.25, 0.25, C('#AEB8BF'))
+        cv.ellipse(x + 0.36, 0.42, 0.19, 0.19, C('#3B5168'))
+        cv.ellipse(x + 0.3, 0.48, 0.06, 0.05, (255, 255, 255, 90))
+        cv.rect(x + 0.5, 0.84, x + 0.66, 0.9, C('#5BD16B' if rng.random() < 0.5 else '#E5534B'))
+    for row in range(2):                                             # stacked dryers
+        for k in range(2):
+            x, y = 5.75 + k * 1.05, 0.05 + row * 1.05
+            cv.rrect(x, y, x + 0.98, y + 0.98, 0.04, C('#C9D3D9'))
+            cv.ellipse(x + 0.49, y + 0.47, 0.3, 0.3, C('#8E9AA3'))
+            cv.ellipse(x + 0.49, y + 0.47, 0.24, 0.24, C('#2F3E4C'))
+            cv.rect(x + 0.1, y + 0.85, x + 0.88, y + 0.93, C('#F2F5F7'))
+    for x, t in ((2.7, 'WASHERS'), (6.8, 'DRYERS')):
+        cv.rect(x - 0.6, 2.35, x + 0.6, 2.65, C('#1F5FA8'))
+        cv.text(x, 2.5, t, 'arial_round', 0.15, C('#FFFFFF'))
+    for x in (1.0, 3.0, 5.0, 7.0):
+        cv.rect(x - 0.7, 3.42, x + 0.7, 3.5, C('#FFFFFF'))
+        cv.glow(x, 3.42, 1.0, C('#F4FBFF'), 0.55)
+
+
+def laundry_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#EEF3F5'))
+    cv.rect(0, 0, 8, 1.2, C('#DCE6EB'))
+    cv.rect(0.3, 0, 3.3, 0.9, C('#9AA8B1'))
+    cv.rect(0.25, 0.9, 3.35, 0.96, C('#F2F5F7'))
+    for x in np.arange(0.5, 3.2, 0.45):
+        cv.rect(x, 0.96, x + 0.35, 0.96 + rng.uniform(0.1, 0.25), C(['#F2B6C1', '#B3D4F0', '#F5E6A8', '#FFFFFF', '#C8E6C9'][rng.integers(5)]))
+    cv.rect(3.7, 0, 4.6, 1.85, C('#1F5FA8'))                         # vending
+    for r in range(4):
+        for c in range(3):
+            cv.rect(3.78 + c * 0.27, 0.75 + r * 0.25, 4.0 + c * 0.27, 0.95 + r * 0.25,
+                    C(['#FF7043', '#FFD54F', '#4FC3F7', '#81C784', '#BA68C8'][rng.integers(5)]))
+    cv.rect(4.8, 0.6, 5.3, 1.6, C('#B0BEC5'))
+    cv.text(5.05, 1.4, '$', 'arial_black', 0.18, C('#1F5FA8'))
+    for x in np.arange(5.6, 7.9, 0.55):                              # chairs
+        cv.rect(x, 0.42, x + 0.42, 0.47, C('#FF8A3D'))
+        cv.rect(x, 0.47, x + 0.05, 0.85, C('#FF8A3D'))
+        cv.rect(x + 0.05, 0, x + 0.08, 0.42, C('#607D8B'))
+        cv.rect(x + 0.34, 0, x + 0.37, 0.42, C('#607D8B'))
+    cv.rect(0.6, 1.7, 2.4, 2.6, C('#B98A5A'))
+    for _ in range(9):
+        x, y = rng.uniform(0.7, 2.1), rng.uniform(1.8, 2.3)
+        cv.rect(x, y, x + 0.22, y + 0.28, C(['#FFFFFF', '#FFF59D', '#B3E5FC', '#F8BBD0'][rng.integers(4)]))
+    cv.rect(5.8, 2.0, 7.0, 2.7, C('#202428'))
+    cv.rect(5.85, 2.05, 6.95, 2.65, C('#5C8FB8'))
+    for x in (1.0, 3.0, 5.0, 7.0):
+        cv.rect(x - 0.7, 3.42, x + 0.7, 3.5, C('#FFFFFF'))
+        cv.glow(x, 3.42, 1.0, C('#F4FBFF'), 0.55)
+
+
+def loaf(cv, x, y, rng):
+    kind = rng.integers(3)
+    col = C(['#C68A4A', '#B0743A', '#D9A35E', '#8E5A2E'][rng.integers(4)])
+    if kind == 0:
+        cv.ellipse(x, y + 0.07, 0.13, 0.07, col)
+        cv.line([(x - 0.06, y + 0.1), (x - 0.02, y + 0.06)], shade(col, 1.25), 0.01)
+    elif kind == 1:
+        cv.poly([(x - 0.18, y + 0.02), (x + 0.2, y + 0.16), (x + 0.22, y + 0.11), (x - 0.16, y - 0.02)], col)
+    else:
+        cv.ellipse(x, y + 0.08, 0.1, 0.08, col)
+
+
+def bakery_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#F3E7D2'))
+    cv.rect(0, 0, 8, 1.1, C('#4F7D7A'))
+    for x in np.arange(0, 8, 0.15):
+        cv.line([(x, 0), (x, 1.1)], C('#46706D'), 0.008)
+    # bread cubbies
+    cv.rect(0.3, 1.25, 4.6, 3.1, C('#8A5A3A'))
+    for r in range(4):
+        for c in range(5):
+            x0, y0 = 0.38 + c * 0.84, 1.33 + r * 0.44
+            cv.rect(x0, y0, x0 + 0.76, y0 + 0.38, C('#5E3D24'))
+            for k in range(2):
+                loaf(cv, x0 + 0.2 + k * 0.36, y0 + 0.02, rng)
+    # display case
+    cv.rect(0.3, 0, 4.6, 1.15, C('#E9F2F2'))
+    for sy in (0.2, 0.6):
+        cv.rect(0.35, sy, 4.55, sy + 0.02, C('#C9D6D6'))
+        for x in np.arange(0.5, 4.4, 0.3):
+            cv.ellipse(x, sy + 0.1, 0.11, 0.07, C(['#E9B44C', '#C27A3A', '#F2D7A0', '#8E3B5E', '#E57373'][rng.integers(5)]))
+    cv.rect(0.25, 1.1, 4.65, 1.18, C('#5E3D24'))
+    cv.rect(4.9, 1.6, 7.6, 2.95, C('#5A3B24'))
+    cv.rect(4.97, 1.67, 7.53, 2.88, C('#23282A'))
+    cv.text(6.25, 2.72, "TODAY'S BREAD", 'chalk', 0.12, C('#F2EEE2'))
+    for k, ln in enumerate(('SOURDOUGH  6', 'BAGUETTE  3', 'RYE  5', 'CROISSANT  3.5')):
+        cv.text(6.25, 2.48 - k * 0.19, ln, 'chalk', 0.1, C('#E6E0CF'))
+    cv.rect(5.2, 0, 7.4, 1.0, C('#8A5A3A'))
+    cv.rect(5.15, 1.0, 7.45, 1.06, C('#E8DCC2'))
+    cv.rect(5.5, 1.06, 6.3, 1.5, C('#C7CBCF'))
+    for x in (1.2, 3.4, 5.6, 7.4):
+        pendant_glow(cv, x, 3.1)
+
+
+def bakery_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#F6ECD9'))
+    cv.rect(0, 0, 8, 1.0, C('#4F7D7A'))
+    cv.rect(0.4, 0, 2.6, 2.2, C('#DDE6E6'))                           # cake fridge
+    for sy in (0.35, 0.95, 1.55):
+        cv.rect(0.45, sy, 2.55, sy + 0.02, C('#B7C6C6'))
+        for x in np.arange(0.65, 2.4, 0.5):
+            cv.rect(x - 0.18, sy + 0.02, x + 0.18, sy + 0.2, C(['#F8BBD0', '#FFF3E0', '#8D6E63', '#FFCC80'][rng.integers(4)]))
+            cv.rect(x - 0.18, sy + 0.2, x + 0.18, sy + 0.24, C('#FFFFFF'))
+    cv.glow(1.5, 1.8, 0.8, C('#FFFFFF'), 0.4)
+    for sy in (1.6, 2.1):
+        cv.rect(3.0, sy, 5.4, sy + 0.04, C('#8A5A3A'))
+        for x in np.arange(3.1, 5.3, 0.2):
+            cv.rect(x, sy + 0.04, x + 0.14, sy + 0.24, C(['#C0392B', '#E67E22', '#8E44AD', '#F1C40F'][rng.integers(4)]))
+            cv.rect(x, sy + 0.2, x + 0.14, sy + 0.25, C('#F2EEE6'))
+    cv.ellipse(6.6, 2.1, 0.55, 0.55, C('#4F7D7A'))
+    cv.text(6.6, 2.1, 'B', 'script', 0.6, C('#F6ECD9'))
+    for x in (3.6, 5.0):
+        cv.rect(x - 0.03, 0, x + 0.03, 0.72, C('#2A2A2A'))
+        cv.ellipse(x, 0.74, 0.3, 0.04, C('#EDEAE3'))
+    for x in (1.5, 4.2, 6.8):
+        pendant_glow(cv, x, 3.1)
+
+
+def flowers_cluster(cv, rng, x, y, w, h, n=40):
+    cols = ['#E8436B', '#F2C230', '#F5F0E6', '#C8417F', '#E86A2C', '#9B5FC0', '#F07C9A', '#FFFFFF', '#E53935']
+    for _ in range(int(n * 0.6)):
+        cv.ellipse(x + rng.uniform(0, w), y + rng.uniform(0, h * 0.6), 0.03, 0.05,
+                   C(['#3F6B33', '#4E7F3D', '#5D9046'][rng.integers(3)]))
+    base = cols[rng.integers(len(cols))]
+    for _ in range(n):
+        r = rng.uniform(0.025, 0.05)
+        cv.ellipse(x + rng.uniform(0, w), y + h * 0.35 + rng.uniform(0, h * 0.65), r, r,
+                   C(base if rng.random() < 0.75 else cols[rng.integers(len(cols))]))
+
+
+def florist_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E9EFE6'))
+    cv.rect(0, 0, 8, 0.9, C('#8A9A7A'))
+    for tier, (y, x0, x1) in enumerate(((0.0, 0.2, 5.3), (0.45, 0.4, 5.1), (0.9, 0.6, 4.9))):
+        cv.rect(x0, y, x1, y + 0.08 if tier else 0.06, C('#8A5A3A'))
+        for x in np.arange(x0 + 0.1, x1 - 0.3, 0.42):
+            cv.rect(x, y + 0.06, x + 0.32, y + 0.36, C('#A9B1B5'))
+            flowers_cluster(cv, rng, x - 0.06, y + 0.3, 0.44, 0.45, n=26)
+    cv.rect(5.6, 0, 7.8, 2.6, C('#B0BEC5'))                            # cold room
+    cv.rect(5.7, 0.05, 7.7, 2.5, C('#CFE8F2'))
+    for sy in (0.4, 1.2):
+        for x in np.arange(5.8, 7.6, 0.45):
+            flowers_cluster(cv, rng, x, sy, 0.38, 0.6, n=18)
+    cv.glow(6.7, 2.2, 0.9, C('#FFFFFF'), 0.5)
+    for x in np.arange(0.5, 5.2, 0.9):
+        hanging_plant(cv, rng, x, 3.1)
+    plant(cv, rng, 5.3, 1.6, w=0.6)
+
+
+def florist_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#F1EEE6'))
+    cv.rect(0.4, 0, 3.8, 0.92, C('#7A5233'))
+    cv.rect(0.35, 0.92, 3.85, 0.98, C('#B98A5A'))
+    for x, col in ((0.7, '#F8BBD0'), (1.2, '#E8DFC9'), (1.7, '#B3E5FC')):
+        cv.rect(x, 0.98, x + 0.15, 1.6, C(col))
+    for x in (2.4, 3.1):
+        cv.poly([(x - 0.12, 0.98), (x + 0.12, 0.98), (x + 0.18, 1.3), (x - 0.18, 1.3)], C('#9FB8C4'))
+        flowers_cluster(cv, rng, x - 0.25, 1.25, 0.5, 0.5, n=30)
+    for sy in (1.7, 2.3):
+        cv.rect(4.2, sy, 7.6, sy + 0.04, C('#8A5A3A'))
+        for x in np.arange(4.3, 7.4, 0.42):
+            cv.poly([(x, sy + 0.04), (x + 0.24, sy + 0.04), (x + 0.28, sy + 0.24), (x - 0.04, sy + 0.24)], C('#B4623F'))
+            for _ in range(6):
+                cv.ellipse(x + 0.12 + rng.uniform(-0.15, 0.15), sy + 0.32 + rng.uniform(0, 0.15), 0.07, 0.04,
+                           C(['#3F6B33', '#4E7F3D', '#5D9046'][rng.integers(3)]))
+    plant(cv, rng, 7.4, 1.5, w=0.7)
+    plant(cv, rng, 4.6, 1.1)
+    warm_lights(cv, (1.5, 4.0, 6.5), y=3.35, col='#FFF2D6')
+
+
+def bank_a(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E6DED0'))
+    for x in np.arange(0, 8, 1.2):
+        for y in np.arange(0, 3.6, 0.9):
+            cv.rect(x + 0.01, y + 0.01, x + 1.19, y + 0.89, C(['#E9E2D5', '#E2D9CA', '#EDE6DA'][rng.integers(3)]))
+            cv.line([(x + rng.uniform(0, 1.2), y), (x + rng.uniform(0, 1.2), y + 0.9)], C('#D2C7B4'), 0.008)
+    cv.text(4.0, 2.75, 'CITY BANK', 'optima_bold', 0.32, C('#5F6870'), spacing=0.05)
+    cv.rect(0.4, 0, 7.6, 1.05, C('#2B3440'))
+    cv.rect(0.35, 1.05, 7.65, 1.12, C('#C9CED3'))
+    for x in np.arange(0.8, 7.6, 1.45):
+        cv.rect(x, 1.12, x + 0.04, 1.75, C('#C9DDE6'))
+        cv.rect(x + 0.35, 1.12, x + 0.75, 1.42, C('#263238'))
+        cv.rect(x + 0.38, 1.15, x + 0.72, 1.39, C('#7FC4F0'))
+    for x in (1.5, 4.0, 6.5):
+        cv.ellipse(x, 3.35, 0.3, 0.06, C('#FFFFFF'))
+        cv.glow(x, 3.3, 0.9, C('#FFF8E8'), 0.45)
+
+
+def bank_b(cv, rng):
+    cv.rect(0, 0, 8, 3.6, C('#E8E4DC'))
+    cv.rect(0, 0, 8, 0.12, C('#2B3440'))
+    for k in range(3):
+        x = 0.5 + k * 1.2
+        cv.rect(x, 0, x + 0.9, 1.8, C('#1E5AA8'))
+        cv.rect(x + 0.1, 1.0, x + 0.8, 1.5, C('#0D2A4F'))
+        cv.rect(x + 0.15, 1.05, x + 0.75, 1.45, C('#8FD3FF'))
+        cv.glow(x + 0.45, 1.25, 0.5, C('#BFE6FF'), 0.5)
+        cv.rect(x + 0.2, 0.75, x + 0.7, 0.85, C('#C9CED3'))
+        cv.text(x + 0.45, 1.65, 'ATM', 'helv_bold', 0.1, C('#FFFFFF'))
+    cv.rrect(4.6, 0, 7.4, 0.8, 0.1, C('#5B6B7A'))
+    cv.rect(4.6, 0.45, 7.4, 0.8, C('#6E7F8F'))
+    plant(cv, rng, 4.3, 1.4)
+    plant(cv, rng, 7.7, 1.4)
+    cv.rect(5.0, 1.5, 7.0, 2.4, C('#2B3440'))
+    cv.text(6.0, 2.05, 'WELCOME', 'optima_bold', 0.16, C('#E6DED0'))
+    cv.text(6.0, 1.75, 'OPEN 9 - 5', 'optima_bold', 0.11, C('#C9CED3'))
+    for x in (1.5, 4.0, 6.5):
+        cv.glow(x, 3.3, 0.9, C('#FFF8E8'), 0.45)
+
+
+def interiors_mid():
+    build_interior('T_Int_Noodle.png', noodle_a, noodle_b, ('#6E4A30', '#4A3221'), ('#3A2A1E', '#2A1E15'),
+                   ('#8A5A3A', '#6E4A30'),
+                   ['#8A5A3A', '#E0392B', '#3A2A1E', '#F2EEE6', '#2C3E5C', '#C9A13B', '#B9BEC2', '#4E7F3D'], seed=300)
+    build_interior('T_Int_Books.png', books_a, books_b, ('#6B4A30', '#4A3221'), ('#E8DCC2', '#C9B597'),
+                   ('#4A3221', '#3A2A1E'),
+                   ['#5E4026', '#2F5A3A', '#7B2D26', '#E8DFC9', '#2C3E5C', '#C9A13B', '#1E1E1E', '#8A5A3A'], seed=310)
+    build_interior('T_Int_Laundry.png', laundry_a, laundry_b, ('#C9D6DC', '#A9B8C0'), ('#FFFFFF', '#E8EFF2'),
+                   ('#E9F0F3', '#CCD8DE'),
+                   ['#F7F9FA', '#1F5FA8', '#AEB8BF', '#FF8A3D', '#607D8B', '#2F3E4C', '#DCE6EB', '#5BD16B'], seed=320)
+    build_interior('T_Int_Bakery.png', bakery_a, bakery_b, ('#B98A5A', '#8A5A3A'), ('#F6ECD9', '#E2D2B6'),
+                   ('#F3E7D2', '#D9C8AC'),
+                   ['#8A5A3A', '#4F7D7A', '#F3E7D2', '#C68A4A', '#E9F2F2', '#5E3D24', '#E9B44C', '#2A2A2A'], seed=330)
+    build_interior('T_Int_Florist.png', florist_a, florist_b, ('#9AA58C', '#7A8670'), ('#F4F6F2', '#DDE3D8'),
+                   ('#E9EFE6', '#C9D3C4'),
+                   ['#8A5A3A', '#4E7F3D', '#A9B1B5', '#E8436B', '#F2C230', '#F5F0E6', '#B4623F', '#9B5FC0'], seed=340)
+    build_interior('T_Int_Bank.png', bank_a, bank_b, ('#CFC6B6', '#A8A090'), ('#F7F5F0', '#E2DED6'),
+                   ('#E6DED0', '#CBC2B2'),
+                   ['#2B3440', '#C9CED3', '#E6DED0', '#1E5AA8', '#5B6B7A', '#4E7F3D', '#8FD3FF', '#FFFFFF'], seed=350)
+
+
+def fascia_fn(bg, fg, title, tkey, sub=None, skey='futura', sub_col=None, edge=None, icon=None, spacing=0.06):
+    def fn(cv):
+        board(C(bg), inner=C(edge) if edge else None, inner_inset=0.04, inner_w=0.016)(cv)
+        w, h = cv.w_m, cv.h_m
+        if sub:
+            cv.fit_text(w / 2, h * 0.58, title, tkey, w * 0.62, h * 0.52, C(fg), spacing=spacing)
+            cv.fit_text(w / 2, h * 0.2, sub, skey, w * 0.6, h * 0.16, C(sub_col or fg), spacing=0.03)
+        else:
+            cv.fit_text(w / 2, h * 0.5, title, tkey, w * 0.7, h * 0.66, C(fg), spacing=spacing)
+        if icon:
+            for x in (w * 0.08, w * 0.92):
+                icon(cv, x, h * 0.5, h * 0.55)
+    return fn
+
+
+def bowl_icon(cv, x, y, s, col='#F2E6CF'):
+    cv.poly([(x - 0.55 * s, y), (x + 0.55 * s, y), (x + 0.35 * s, y - 0.4 * s), (x - 0.35 * s, y - 0.4 * s)], C(col))
+    cv.line([(x - 0.1 * s, y + 0.05 * s), (x + 0.45 * s, y + 0.55 * s)], C(col), 0.05 * s)
+    cv.line([(x + 0.05 * s, y + 0.05 * s), (x + 0.55 * s, y + 0.45 * s)], C(col), 0.05 * s)
+
+
+def text_card(lines, bg, fg='#222222', title_col=None):
+    def fn(cv):
+        w, h = cv.w_m, cv.h_m
+        cv.rect(0, 0, w, h, C(bg))
+        n = len(lines)
+        for i, (txt, key, rel) in enumerate(lines):
+            y = h * (1 - (i + 0.5) / n)
+            cv.fit_text(w / 2, y, txt, key, w * 0.86, h / n * rel, C(title_col if (i == 0 and title_col) else fg))
+    return fn
+
+
+def signs_mid():
+    red, cream, gold = '#9E2B25', '#F2E6CF', '#D9B45A'
+    build_sign_atlas('T_Sign_Noodle.png', [
+        ('fascia', 7.4, 0.62, 138, fascia_fn(red, cream, 'NOODLE BAR', 'futura_bold', 'RAMEN  ·  DUMPLINGS  ·  BAO',
+                                             sub_col=gold, edge=gold, icon=bowl_icon), C(red)),
+        ('noren', 1.0, 0.55, 300, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#24324A')),
+                                              [cv.rect(x, 0, x + 0.012, cv.h_m, C('#1A2436')) for x in (0.33, 0.66)],
+                                              bowl_icon(cv, 0.5, 0.3, 0.28, '#E8E2D4'),
+                                              cv.text(0.5, 0.12, 'OPEN', 'futura_bold', 0.07, C('#E8E2D4'))), C('#24324A')),
+        ('menu', 0.6, 0.85, 260, text_card([('MENU', 'futura_bold', 0.7), ('SHOYU RAMEN 12', 'futura', 0.45),
+                                            ('MISO RAMEN 13', 'futura', 0.45), ('UDON 11', 'futura', 0.45),
+                                            ('GYOZA 7', 'futura', 0.45), ('BAO 6', 'futura', 0.45),
+                                            ('LUNCH 11-3', 'futura_bold', 0.45)], '#F4EBDD', '#3A2A1E', red), C('#F4EBDD')),
+        ('number', 0.36, 0.24, 300, number_plate('112'), C('#1F2A24')),
+    ], bg=(158, 43, 37))
+    green = '#1F4D3A'
+    build_sign_atlas('T_Sign_Books.png', [
+        ('fascia', 7.6, 0.66, 132, fascia_fn(green, gold, 'BOOKS', 'bask_bold', 'USED  &  NEW  ·  EST. 1972',
+                                             skey='bask_bold', sub_col=cream, edge=gold, spacing=0.12), C(green)),
+        ('bin', 1.2, 0.3, 280, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#E8DFC9')),
+                                           cv.fit_text(cv.w_m / 2, cv.h_m / 2, 'ALL BOOKS $1', 'bask_bold', 1.0, 0.18,
+                                                       C(green))), C('#E8DFC9')),
+        ('hours', 0.3, 0.4, 300, text_card([('BOOKS', 'bask_bold', 0.8), ('OPEN 10-8', 'futura', 0.5),
+                                            ('CLOSED MON', 'futura', 0.5)], '#F4EEE0', '#333333', green), C('#F4EEE0')),
+        ('number', 0.36, 0.24, 300, number_plate('106', bg=green, fg='#E9DFC7', key='bask_bold'), C(green)),
+    ], bg=(31, 77, 58))
+    blue = '#1F5FA8'
+    build_sign_atlas('T_Sign_Laundry.png', [
+        ('fascia', 7.0, 0.7, 146, fascia_fn(blue, '#FFFFFF', 'LAUNDROMAT', 'arial_round', 'COIN WASH  ·  DRY  ·  FOLD',
+                                            skey='helv_bold', sub_col='#BFE3FF', edge='#FFFFFF'), C(blue)),
+        ('poster0', 0.7, 0.9, 240, text_card([('WASH', 'arial_round', 0.7), ('$3.50', 'arial_black', 0.9),
+                                              ('DRY 25c / 8 MIN', 'arial_round', 0.45)], '#FFFFFF', blue, '#E5534B'),
+         C('#FFFFFF')),
+        ('poster1', 0.7, 0.9, 240, text_card([('DROP-OFF', 'arial_round', 0.6), ('SERVICE', 'arial_round', 0.6),
+                                              ('READY BY 5PM', 'arial_round', 0.45)], '#FFF59D', blue), C('#FFF59D')),
+        ('hours', 0.36, 0.24, 300, text_card([('OPEN 6AM-11PM', 'arial_round', 0.6), ('LAST WASH 10PM', 'arial_round', 0.45)],
+                                             '#FFFFFF', blue), C('#FFFFFF')),
+        ('number', 0.36, 0.24, 300, number_plate('96', bg='#2A3140', fg='#F2F2F2', key='arial_round'), C('#2A3140')),
+    ], bg=(31, 95, 168))
+    yel = '#F2C230'
+    build_sign_atlas('T_Sign_Phone.png', [
+        ('fascia', 8.4, 0.7, 120, fascia_fn(yel, '#1E1E1E', 'PHONE REPAIR', 'impact',
+                                            'SCREENS  ·  BATTERIES  ·  UNLOCK  ·  ACCESSORIES', skey='helv_bold',
+                                            edge='#1E1E1E', spacing=0.08), C(yel)),
+        ('sticker', 0.5, 0.3, 300, text_card([('OPEN 10AM-8PM', 'helv_bold', 0.6), ('WALK-INS WELCOME', 'helv_bold', 0.45)],
+                                             yel, '#1E1E1E'), C(yel)),
+        ('number', 0.36, 0.24, 300, number_plate('118', bg='#2E2A28', fg='#E9DFC7'), C('#2E2A28')),
+    ], bg=(242, 194, 48))
+    teal = '#2E5553'
+    build_sign_atlas('T_Sign_Bakery.png', [
+        ('fascia', 7.2, 0.62, 140, lambda cv: (board(C('#F3E7D2'), inner=C(teal), inner_inset=0.04, inner_w=0.02)(cv),
+                                               cv.fit_text(cv.w_m * 0.5, cv.h_m * 0.6, 'Bakery', 'script', cv.w_m * 0.5,
+                                                           cv.h_m * 1.05, C(teal)),
+                                               cv.fit_text(cv.w_m * 0.5, cv.h_m * 0.17, 'FRESH BREAD DAILY  ·  SINCE 1961',
+                                                           'futura', cv.w_m * 0.5, cv.h_m * 0.13, C('#9E2B25'),
+                                                           spacing=0.03)), C('#F3E7D2')),
+        ('decal', 1.6, 0.45, 260, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#F3E7D2')),
+                                              cv.fit_text(cv.w_m / 2, cv.h_m * 0.6, 'SOURDOUGH  ·  CROISSANTS', 'futura_bold',
+                                                          1.45, 0.14, C(teal)),
+                                              cv.fit_text(cv.w_m / 2, cv.h_m * 0.25, 'COFFEE TO GO', 'futura', 1.2, 0.1,
+                                                          C('#9E2B25'))), C('#F3E7D2')),
+        ('aframe', 0.56, 0.8, 300, chalk_menu('FRESH TODAY', ['CINNAMON BUNS', 'RYE LOAF', 'PAIN AU CHOC', 'BAGELS',
+                                                               'OPEN 6:30']), C('#5A3B24')),
+        ('number', 0.36, 0.24, 300, number_plate('74', bg=teal, fg='#F3E7D2'), C(teal)),
+    ], bg=(46, 85, 83))
+    fgreen = '#2F5A3A'
+    build_sign_atlas('T_Sign_Florist.png', [
+        ('fascia', 6.0, 0.58, 160, fascia_fn('#EFE8D8', fgreen, 'FLORIST', 'didot_bold', 'FLOWERS  ·  PLANTS  ·  GIFTS',
+                                             skey='didot_bold', sub_col='#B5562C', edge=fgreen, spacing=0.1),
+         C('#EFE8D8')),
+        ('aframe', 0.56, 0.8, 300, chalk_menu('SPRING', ['TULIPS 3 FOR $10', 'DAFFODILS', 'POTTED HERBS', 'BOUQUETS',
+                                                          'FROM $15']), C('#5A3B24')),
+        ('tag', 0.3, 0.16, 300, text_card([('$8', 'didot_bold', 0.8)], '#FFFFFF', fgreen), C('#FFFFFF')),
+        ('number', 0.36, 0.24, 300, number_plate('58', bg=fgreen, fg='#EFE8D8', key='didot_bold'), C(fgreen)),
+    ], bg=(239, 232, 216))
+    build_sign_atlas('T_Sign_ForLease.png', [
+        ('forlease', 1.4, 1.0, 300, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#FFFFFF')),
+                                                cv.rect(0, cv.h_m * 0.62, cv.w_m, cv.h_m, C('#C62828')),
+                                                cv.fit_text(cv.w_m / 2, cv.h_m * 0.81, 'FOR LEASE', 'arial_black', 1.25,
+                                                            0.26, C('#FFFFFF')),
+                                                cv.fit_text(cv.w_m / 2, cv.h_m * 0.45, 'RETAIL SPACE', 'helv_bold', 1.2, 0.13,
+                                                            C('#C62828')),
+                                                cv.fit_text(cv.w_m / 2, cv.h_m * 0.28, '1,200 SQ FT', 'helv_bold', 1.0, 0.1,
+                                                            C('#333333')),
+                                                cv.fit_text(cv.w_m / 2, cv.h_m * 0.1, 'CALL 555-0142', 'arial_black', 1.1,
+                                                            0.12, C('#333333'))), C('#FFFFFF')),
+        ('agent', 0.6, 0.8, 300, text_card([('AVAILABLE', 'arial_black', 0.55), ('NOW', 'arial_black', 0.7),
+                                            ('555-0142', 'helv_bold', 0.5)], '#FFF59D', '#C62828'), C('#FFF59D')),
+        ('fascia_old', 7.0, 0.6, 146, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C('#CFC5B0')),
+                                                  cv.vgrad(0, 0, cv.w_m, cv.h_m, C('#C2B79F'), C('#D6CDB9')),
+                                                  cv.fit_text(cv.w_m / 2, cv.h_m * 0.5, 'HARDWARE  &  PAINT', 'clarendon',
+                                                              cv.w_m * 0.8, cv.h_m * 0.5, (150, 140, 120, 120))),
+         C('#CFC5B0')),
+        ('number', 0.36, 0.24, 300, number_plate('64', bg='#3A3A3A', fg='#E0DCD2'), C('#3A3A3A')),
+    ], bg=(207, 197, 176))
+    navy = '#1C2A3A'
+    build_sign_atlas('T_Sign_Bank.png', [
+        ('fascia', 9.0, 0.8, 112, lambda cv: (cv.rect(0, 0, cv.w_m, cv.h_m, C(navy)),
+                                              cv.fit_text(cv.w_m / 2, cv.h_m * 0.5, 'CITY BANK', 'optima_bold', cv.w_m * 0.6,
+                                                          cv.h_m * 0.62, C('#E6E9EC'), spacing=0.12)), C(navy)),
+        ('hours', 0.4, 0.5, 300, text_card([('CITY BANK', 'optima_bold', 0.6), ('MON-FRI 9-5', 'helv_med', 0.4),
+                                            ('SAT 9-1', 'helv_med', 0.4), ('ATM 24 HOURS', 'helv_bold', 0.4)],
+                                           '#E6E9EC', navy), C('#E6E9EC')),
+        ('number', 0.6, 0.3, 300, number_plate('200', bg=navy, fg='#E6E9EC', key='optima_bold'), C(navy)),
+    ], bg=(28, 42, 58))
+
+
+def paper():
+    """Papered-over shop windows (kraft paper sheets + tape), tileable 2 m."""
+    n = 512
+    rng = np.random.default_rng(71)
+    img = Image.new('RGBA', (n, n), C('#BE9C6E'))
+    d = ImageDraw.Draw(img, 'RGBA')
+    for row in range(4):
+        y0 = row * 128 + rng.integers(-6, 6)
+        x = rng.integers(0, 60)
+        while x < n + 60:
+            w = rng.integers(130, 175)
+            col = mix(C('#C9A97A'), C('#B48E5E'), rng.uniform(0, 1))
+            if rng.random() < 0.12:
+                col = C('#E9E4D8')
+            for ox in (-n, 0, n):
+                for oy in (-n, 0, n):
+                    d.rectangle([x + ox, y0 + oy, x + w + ox, y0 + 136 + oy], fill=col, outline=shade(col, 0.85))
+                    for tx, ty in ((x + 4, y0 + 2), (x + w - 34, y0 + 2), (x + 4, y0 + 120), (x + w - 34, y0 + 120)):
+                        d.rectangle([tx + ox, ty + oy, tx + 30 + ox, ty + 12 + oy], fill=(236, 226, 196, 170))
+            x += w - rng.integers(4, 14)
+    arr = np.asarray(img.convert('RGB')).astype(np.float64) / 255
+    wr = tile_noise(n, 40, 2, 72)
+    arr *= (0.94 + 0.1 * wr)[..., None]
+    save(arr2img(arr), 'T_Paper.png')
+    register('T_Paper.png', (n, n), {}, tile_m=2.0)
+
+
+# ---------------------------------------------------------------------------------------------- tower facades
+
+def tower_tex(name, style, seed, floor_m=3.6, mod_m=1.8):
+    """Tile = 4 floors x 8 modules (1024 px). Spandrel at the bottom of each floor. UV: u = metres / (8*mod),
+    v = metres / (4*floor)."""
+    n, floors, mods = 1024, 4, 8
+    rng = np.random.default_rng(seed)
+    fh, mw = n // floors, n // mods
+    sp = int(round(fh * (0.95 / floor_m)))
+    img = Image.new('RGB', (n, n), (0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for f in range(floors):
+        y1 = n - f * fh            # bottom edge of this floor (image rows grow downward)
+        y0 = y1 - fh
+        for m in range(mods):
+            x0, x1 = m * mw, (m + 1) * mw
+            if style in ('glass', 'dark'):
+                top, bot = (C('#93A9BC'), C('#5A6E82')) if style == 'glass' else (C('#6F7E8C'), C('#2C3540'))
+                k = rng.uniform(-0.08, 0.08)
+                for yy in range(y0, y1 - sp):
+                    t = (yy - y0) / max(1, (y1 - sp - y0))
+                    col = mix(top, bot, t)
+                    d.line([(x0, yy), (x1, yy)], fill=shade(col, 1 + k)[:3])
+                r = rng.random()
+                if r < 0.1:
+                    for yy in range(y0 + 6, y1 - sp, 9):
+                        d.line([(x0, yy), (x1, yy)], fill=(196, 202, 206) if style == 'glass' else (150, 156, 160), width=4)
+                elif r < 0.14:
+                    d.rectangle([x0, y0, x1, y1 - sp], fill=(214, 204, 168) if style == 'glass' else (170, 160, 130))
+                spc = C('#3C4A57') if style == 'glass' else C('#1E252C')
+                d.rectangle([x0, y1 - sp, x1, y1], fill=spc[:3])
+                mull = (196, 204, 211) if style == 'glass' else (138, 115, 80)
+                d.rectangle([x0, y0, x0 + 3, y1], fill=mull)
+                d.rectangle([x1 - 3, y0, x1, y1], fill=mull)
+                d.rectangle([x0, y1 - sp - 3, x1, y1 - sp + 2], fill=mull)
+            elif style == 'bands':
+                band = int(fh * 1.25 / floor_m)
+                d.rectangle([x0, y1 - band, x1, y1], fill=C('#CFC6B4')[:3])
+                d.line([(x0, y1 - band + 3), (x1, y1 - band + 3)], fill=C('#B9AF9B')[:3], width=3)
+                for yy in range(y0, y1 - band):
+                    t = (yy - y0) / max(1, (y1 - band - y0))
+                    d.line([(x0, yy), (x1, yy)], fill=mix(C('#7E93A6'), C('#3F4E5E'), t)[:3])
+                if rng.random() < 0.12:
+                    d.rectangle([x0, y0, x1, y0 + (y1 - band - y0) // 2], fill=(205, 208, 206))
+                for xm in (x0, x0 + mw // 2):
+                    d.rectangle([xm, y0, xm + 3, y1 - band], fill=(60, 66, 72))
+            elif style == 'punched':
+                d.rectangle([x0, y0, x1, y1], fill=C('#C8AE92')[:3])
+                wx0, wx1 = x0 + 26, x1 - 26
+                wy0, wy1 = y0 + 40, y1 - 62
+                col = mix(C('#7F93A3'), C('#3A4552'), rng.uniform(0.2, 0.9))
+                d.rectangle([wx0, wy0, wx1, wy1], fill=col[:3])
+                r = rng.random()
+                if r < 0.25:
+                    cc = [(176, 80, 70), (90, 110, 150), (200, 186, 150), (120, 140, 100)][rng.integers(4)]
+                    d.rectangle([wx0, wy0, wx0 + (wx1 - wx0) // 3, wy1], fill=cc)
+                    d.rectangle([wx1 - (wx1 - wx0) // 3, wy0, wx1, wy1], fill=cc)
+                elif r < 0.35:
+                    d.rectangle([wx0, wy0, wx1, wy0 + (wy1 - wy0) // 2], fill=(214, 210, 200))
+                d.rectangle([wx0 - 3, wy0 - 3, wx1 + 3, wy0], fill=(236, 230, 218))
+                d.rectangle([wx0 - 6, wy1, wx1 + 6, wy1 + 6], fill=(226, 220, 206))
+                d.line([(wx0 + (wx1 - wx0) // 2, wy0), (wx0 + (wx1 - wx0) // 2, wy1)], fill=(236, 230, 218), width=3)
+                if m % 4 == 1:
+                    d.rectangle([x0 + 6, wy1 + 6, x1 - 6, wy1 + 34], outline=(70, 72, 76), width=3)
+                    for xx in range(x0 + 10, x1 - 8, 10):
+                        d.line([(xx, wy1 + 6), (xx, wy1 + 34)], fill=(70, 72, 76), width=2)
+    arr = np.asarray(img).astype(np.float64) / 255
+    arr *= (0.96 + 0.06 * tile_noise(n, 6, 2, seed + 1))[..., None]
+    save(arr2img(arr), name)
+    register(name, (n, n), {}, tile_floors=4, tile_modules=8, floor_m=floor_m, module_m=mod_m)
+
+
+def towers():
+    tower_tex('T_TowerGlass.png', 'glass', 401)
+    tower_tex('T_TowerBands.png', 'bands', 402)
+    tower_tex('T_TowerPunched.png', 'punched', 403, floor_m=3.3, mod_m=1.8)
+    tower_tex('T_TowerDark.png', 'dark', 404)
 
 
 # ------------------------------------------------------------------------------------------------------- main
@@ -1563,6 +2179,10 @@ def main():
     sign_pharmacy()
     sign_diner()
     interiors_corner()
+    signs_mid()
+    interiors_mid()
+    paper()
+    towers()
     with open(os.path.join(out, 'atlas_layout.json'), 'w') as fh:
         json.dump(LAYOUT, fh, indent=1, sort_keys=True)
     print('layout ->', os.path.join(out, 'atlas_layout.json'), len(LAYOUT), 'textures')

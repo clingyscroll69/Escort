@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fe0efd47eeb749d9813c48c68c0957c, type: 3}
+  m_Name: OpeningAssets
+  m_EditorClassIdentifier: Game.Runtime::HS.Opening.OpeningAssets
+  prefabs:
+  - id: Truck
+    prefab: {fileID: 919132149155446097, guid: 5bb83025d497f4069903d5d8c469b37d, type: 3}
+  - id: Sedan
+    prefab: {fileID: 919132149155446097, guid: 12300e0dcdd1f473fb82384260fe13e0, type: 3}
+  - id: Hatchback
+    prefab: {fileID: 919132149155446097, guid: 5b49d762112754e6eafa5e3f8f6dc2c4, type: 3}
+  - id: Taxi
+    prefab: {fileID: 919132149155446097, guid: 95abadadfecad424d8af3af36b2d1017, type: 3}
+  - id: Van
+    prefab: {fileID: 919132149155446097, guid: de1cf8b7587604132a4e8cdb717aaacb, type: 3}
+  - id: SUV
+    prefab: {fileID: 919132149155446097, guid: ed3e319c8c7844bb39a1c50338c09749, type: 3}
+  - id: AFrameSign
+    prefab: {fileID: 919132149155446097, guid: d406fb52b05d64064817ff1c5454e7a3, type: 3}
+  - id: Bench
+    prefab: {fileID: 919132149155446097, guid: e4c51a510a6bb467c8ce507477a73b2e, type: 3}
+  - id: BikeRack
+    prefab: {fileID: 919132149155446097, guid: a8e4983f73f3742718e6f674f3de2131, type: 3}
+  - id: Bollard
+    prefab: {fileID: 919132149155446097, guid: d14581f241d3c42f6a5d90b17990f9cc, type: 3}
+  - id: BusShelter
+    prefab: {fileID: 919132149155446097, guid: 6781ac6938fc046a6967178154882fd3, type: 3}
+  - id: BusStopSign
+    prefab: {fileID: 919132149155446097, guid: 557f3a2866eb9430f801350975639f6f, type: 3}
+  - id: CafeChair
+    prefab: {fileID: 919132149155446097, guid: 84efa75936a884823bdcfcfee647a3dc, type: 3}
+  - id: CafeTable
+    prefab: {fileID: 919132149155446097, guid: 73b1d23f79b6948e7955f7e3b71d5ea4, type: 3}
+  - id: Earphones
+    prefab: {fileID: 919132149155446097, guid: 20ca66ff7c9bb479bb5ea36825122bdd, type: 3}
+  - id: FireHydrant
+    prefab: {fileID: 919132149155446097, guid: 22f53e6ffab084c65a26df5918635c83, type: 3}
+  - id: ManholeCover
+    prefab: {fileID: 919132149155446097, guid: ccf4433b5823a4591a41f0353003b533, type: 3}
+  - id: NewsBox_CityWeekly
+    prefab: {fileID: 919132149155446097, guid: 77b35545dbdf0435bb9d69125b4cb6c7, type: 3}
+  - id: NewsBox_DailyNews
+    prefab: {fileID: 919132149155446097, guid: 0fa30d019676a4c1aa06128d2c850d31, type: 3}
+  - id: NoParkingSign
+    prefab: {fileID: 919132149155446097, guid: 10e6d5c509c9f4b39851f63a7e759784, type: 3}
+  - id: ParkingMeter
+    prefab: {fileID: 919132149155446097, guid: fe75ad590dd494f90bf9cfbd9fbc0a5a, type: 3}
+  - id: PedPole
+    prefab: {fileID: 919132149155446097, guid: dccf24f2d1256480bbeffc59aabb5cf1, type: 3}
+  - id: PedSignal
+    prefab: {fileID: 919132149155446097, guid: 93b7d6bc187a7437c8e7a32b27a2ec36, type: 3}
+  - id: Phone
+    prefab: {fileID: 919132149155446097, guid: 11abe2c40e36b4a26b8c99404464dc15, type: 3}
+  - id: PhoneInHand
+    prefab: {fileID: 919132149155446097, guid: e99a29c485d454e7694b2326b3c95e0f, type: 3}
+  - id: Pigeon
+    prefab: {fileID: 919132149155446097, guid: 7bab8de08ff3a411c85b1232d7a16f62, type: 3}
+  - id: Planter
+    prefab: {fileID: 919132149155446097, guid: 4a4fb2c48eafb42148790811d5a633f3, type: 3}
+  - id: SignPost
+    prefab: {fileID: 919132149155446097, guid: 0918f5014461d43b2bbec06af6ec7478, type: 3}
+  - id: StormDrain
+    prefab: {fileID: 919132149155446097, guid: 6671c3fa89445474bb0750bd61e776db, type: 3}
+  - id: StreetLamp
+    prefab: {fileID: 919132149155446097, guid: 40cb0a7b7cc214e28bc5db486bdf8895, type: 3}
+  - id: TrafficSignalMast
+    prefab: {fileID: 919132149155446097, guid: 95afd5f2b32714e4a9b36b7414d37bb6, type: 3}
+  - id: TrashCan
+    prefab: {fileID: 919132149155446097, guid: ac16d845f5fc44bc0b9969a2171ad284, type: 3}
+  - id: TreeGrate
+    prefab: {fileID: 919132149155446097, guid: 6684ca20d012944db9b7656dd796d990, type: 3}
+  - id: Bakery
+    prefab: {fileID: 919132149155446097, guid: af1018a7c36ac449d938bbdf9a59e4af, type: 3}
+  - id: Bank
+    prefab: {fileID: 919132149155446097, guid: 12d5e286d73a1495ba9680772d7ac5b8, type: 3}
+  - id: Books
+    prefab: {fileID: 919132149155446097, guid: eb8fc9f30c2a946cbab2a7026accd57e, type: 3}
+  - id: CornerCafe
+    prefab: {fileID: 919132149155446097, guid: ee97273bfe18b48cd86807fca2757862, type: 3}
+  - id: CornerDiner
+    prefab: {fileID: 919132149155446097, guid: 122b259b922d3422d9717d7f023a9c44, type: 3}
+  - id: CornerMart
+    prefab: {fileID: 919132149155446097, guid: da6ad03f0f0ef4c9f9cbaf98f7e84114, type: 3}
+  - id: CornerPharmacy
+    prefab: {fileID: 919132149155446097, guid: 97b02809e966f40c9ac524084b69baa1, type: 3}
+  - id: Florist
+    prefab: {fileID: 919132149155446097, guid: d4f9b64955b1a4772a6f89de25e7d480, type: 3}
+  - id: ForLease
+    prefab: {fileID: 919132149155446097, guid: 66d5e4dee6e764d4aa7d521dd83f2892, type: 3}
+  - id: Laundromat
+    prefab: {fileID: 919132149155446097, guid: abd30a111a3e54c618ace193a0c29692, type: 3}
+  - id: NoodleBar
+    prefab: {fileID: 919132149155446097, guid: 3ff0258963a4f4f7c8e487854df00978, type: 3}
+  - id: PhoneRepair
+    prefab: {fileID: 919132149155446097, guid: 8718fe4dc03ad46ff851bfb2f64aecaf, type: 3}
+  - id: Tower1
+    prefab: {fileID: 919132149155446097, guid: 8dbc6656c1f42490eafd1aad8d0b1bdc, type: 3}
+  - id: Tower2
+    prefab: {fileID: 919132149155446097, guid: 1a16c4579568747b2924004433e3f085, type: 3}
+  - id: Tower3
+    prefab: {fileID: 919132149155446097, guid: 664a9668722cb47a0ae964739cb2aaac, type: 3}
+  - id: Tower4
+    prefab: {fileID: 919132149155446097, guid: 31cf2af15ea784a2595bf0c8b5711001, type: 3}
+  - id: DeadTree_1
+    prefab: {fileID: 919132149155446097, guid: 9a31b7a59002f4d79a4c335f130e65df, type: 3}
+  - id: DeadTree_2
+    prefab: {fileID: 919132149155446097, guid: c416992cb632640dca03f08f44ad046d, type: 3}
+  - id: DeadTree_3
+    prefab: {fileID: 919132149155446097, guid: 138decee1f0f04fb3b42b6fb428bf4ff, type: 3}
+  - id: DeadTree_4
+    prefab: {fileID: 919132149155446097, guid: fad54990f288d4410b0b3811fe1ad7b2, type: 3}
+  - id: DeadTree_5
+    prefab: {fileID: 919132149155446097, guid: 5132466dac5304b6184d2924a038c2f4, type: 3}
+  - id: CommonTree_1
+    prefab: {fileID: 919132149155446097, guid: 81c021f042a784f779f8f4997dab7752, type: 3}
+  - id: CommonTree_2
+    prefab: {fileID: 919132149155446097, guid: 805340ddc86ac415a8957ee2123f66b5, type: 3}
+  - id: CommonTree_3
+    prefab: {fileID: 919132149155446097, guid: dbbbd2a68886e492ebd904ff378faaaa, type: 3}
+  - id: CommonTree_4
+    prefab: {fileID: 919132149155446097, guid: 13d207908028b4dbbbd7aaac62c95a59, type: 3}
+  - id: CommonTree_5
+    prefab: {fileID: 919132149155446097, guid: bce39549ad83744d6b014ec0543a2f29, type: 3}
+  road: {fileID: 2100000, guid: 5413be83f36644b2d89cc1f041d51e5f, type: 2}
+  sidewalk: {fileID: 2100000, guid: 3c2d976fdd29249be834c75c56327201, type: 2}
+  curb: {fileID: 2100000, guid: d1c1448d15ccd4faa88d0e91ec79f2ca, type: 2}
+  tactile: {fileID: 2100000, guid: 4b220225c9fa64cb8a037c46a5eb6af6, type: 2}
+  paintWhite: {fileID: 2100000, guid: 91ae9300cccd849569db15c62146f603, type: 2}
+  paintYellow: {fileID: 2100000, guid: 9cb99a74449784cdaba0b3c27e6b4dca, type: 2}
+  gutter: {fileID: 2100000, guid: 7c2547388e09747428de2b63cb4de4e8, type: 2}
+  cable: {fileID: 2100000, guid: a668d8f7f184344148ccaf236e04baa1, type: 2}
+  placeholder: {fileID: 2100000, guid: 02ff674f560434f0c842df5c23ed71f9, type: 2}
+  sky: {fileID: 2100000, guid: 0f4cb910f09f346e488c94757072cfa1, type: 2}
+  smoke: {fileID: 2100000, guid: 8777e06f297fc45f7afdbca61ba01e52, type: 2}
+  glow: {fileID: 2100000, guid: fd5838b3dbc194ee581c1ffc145a1e47, type: 2}
+  placeholderTexture: {fileID: 0}

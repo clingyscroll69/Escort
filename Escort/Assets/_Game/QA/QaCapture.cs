@@ -12,9 +12,12 @@ namespace HS.QA
         {
             if (cam == null) cam = Camera.main;
             if (cam == null) return null;
-            var rt = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGB32);
+            // A fresh, cleared target per shot: a pooled one would hand back the previous shot if a render ever failed.
+            var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
             var prev = cam.targetTexture;
             var prevActive = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(true, true, Color.black);
             // Overlay canvases aren't drawn by cameras: borrow camera space for this one render so the UI is captured.
             var overlays = new System.Collections.Generic.List<Canvas>();
             foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
@@ -35,7 +38,8 @@ namespace HS.QA
             tex.Apply();
             cam.targetTexture = prev;
             RenderTexture.active = prevActive;
-            RenderTexture.ReleaseTemporary(rt);
+            rt.Release();
+            Object.Destroy(rt);
             Directory.CreateDirectory(ShotsDir);
             var file = Path.Combine(ShotsDir, name + ".png");
             File.WriteAllBytes(file, tex.EncodeToPNG());

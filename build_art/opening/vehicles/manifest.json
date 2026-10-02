@@ -2,7 +2,7 @@
   "models": {
     "Truck": {
       "file": "fbx/Truck.fbx",
-      "tris": 44249,
+      "tris": 43529,
       "locators": [
         "HL_L",
         "HL_R",
@@ -31,6 +31,143 @@
         "MV_Tire"
       ],
       "notes": "Hero cab-over box truck, 7.6 m. Children: Body (static), Wheel_FL/FR (front singles), Wheel_RL/RR (rear duals, one object per side). Locators: HL_L/HL_R headlamp lens centres, Grille centre, Horn between the roof air horns. Interior (dash, wheel, seats, driver) is visible through MV_Glass, which must render transparent. Nose-dive: pitch Body about the rear axle (y = 5.35 m) or the root."
+    },
+    "Sedan": {
+      "file": "fbx/Sedan.fbx",
+      "tris": 11096,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "TL_L",
+        "TL_R"
+      ],
+      "materials": [
+        "MV_Black",
+        "MV_CarPaint",
+        "MV_CarRim",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Mirror",
+        "MV_Plate",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_Tire"
+      ],
+      "notes": "4.7 m sedan. Body paint MV_CarPaint (neutral grey: tint per instance). Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + dim driver visible through MV_Glass."
+    },
+    "Hatchback": {
+      "file": "fbx/Hatchback.fbx",
+      "tris": 10792,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "TL_L",
+        "TL_R"
+      ],
+      "materials": [
+        "MV_Black",
+        "MV_CarPaint",
+        "MV_CarRim",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Mirror",
+        "MV_Plate",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_Tire"
+      ],
+      "notes": "4.1 m hatchback. Body paint MV_CarPaint (neutral grey: tint per instance). Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + dim driver visible through MV_Glass."
+    },
+    "Taxi": {
+      "file": "fbx/Taxi.fbx",
+      "tris": 11284,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "TL_L",
+        "TL_R"
+      ],
+      "materials": [
+        "MV_Black",
+        "MV_CarRim",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Mirror",
+        "MV_Plate",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_TaxiChecker",
+        "MV_TaxiPaint",
+        "MV_TaxiSign",
+        "MV_Tire"
+      ],
+      "notes": "4.7 m taxi. Body paint MV_TaxiPaint. Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + dim driver visible through MV_Glass."
+    },
+    "Van": {
+      "file": "fbx/Van.fbx",
+      "tris": 10308,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "TL_L",
+        "TL_R"
+      ],
+      "materials": [
+        "MV_Black",
+        "MV_CarPaint",
+        "MV_CarRim",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Mirror",
+        "MV_Plate",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_Tire"
+      ],
+      "notes": "5.0 m van. Body paint MV_CarPaint (neutral grey: tint per instance). Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + dim driver visible through MV_Glass."
+    },
+    "SUV": {
+      "file": "fbx/SUV.fbx",
+      "tris": 13036,
+      "locators": [
+        "HL_L",
+        "HL_R",
+        "TL_L",
+        "TL_R"
+      ],
+      "materials": [
+        "MV_Black",
+        "MV_CarPaint",
+        "MV_CarRim",
+        "MV_Chrome",
+        "MV_Driver",
+        "MV_Glass",
+        "MV_HeadLamp",
+        "MV_Interior",
+        "MV_LensClear",
+        "MV_Mirror",
+        "MV_Plate",
+        "MV_Signal",
+        "MV_TailLamp",
+        "MV_Tire"
+      ],
+      "notes": "4.6 m suv. Body paint MV_CarPaint (neutral grey: tint per instance). Children: Body, Wheel_FL/FR/RL/RR (hub pivots, spin X). Locators HL_L/HL_R headlamp centres, TL_L/TL_R tail-lamp centres. Hollow shell with real window openings; interior + dim driver visible through MV_Glass."
     }
   },
   "materials": {
@@ -62,7 +199,7 @@
       "color": "#FFFFFF",
       "texture": "T_V_GlassReflect.png",
       "emission": null,
-      "note": "Window glass. Colour + opacity come from the texture (RGBA, alpha 0.55-0.95): render transparent so the interior shows; each pane is UV 0-1.",
+      "note": "Window glass. Colour + opacity come from the texture (RGBA, alpha ~0.4 low to ~0.9 in the sky band and highlight streak): render transparent so the interior shows; each pane is UV 0-1.",
       "transparent": true
     },
     "MV_Mirror": {
@@ -155,8 +292,42 @@
       "emission": null,
       "note": "Dim driver silhouette (keep dark / unlit-ish)."
     },
+    "MV_CarPaint": {
+      "color": "#C9CBCD",
+      "texture": null,
+      "emission": null,
+      "note": "Car body paint, neutral light grey: tint per instance in Unity."
+    },
+    "MV_TaxiPaint": {
+      "color": "#F2B705",
+      "texture": null,
+      "emission": null,
+      "note": "Taxi yellow body paint."
+    },
+    "MV_TaxiSign": {
+      "color": "#FFFFFF",
+      "texture": "T_V_TaxiSign.png",
+      "emission": {
+        "color": "#FFF0B8",
+        "intensity": 2
+      },
+      "note": "Lit TAXI roof sign faces (texture is also the emission map)."
+    },
+    "MV_TaxiChecker": {
+      "color": "#FFFFFF",
+      "texture": "T_V_Checker.png",
+      "emission": null,
+      "note": "Taxi checker band; texture tiles in U (wrap = repeat).",
+      "wrap": "repeat"
+    },
+    "MV_CarRim": {
+      "color": "#A9AFB6",
+      "texture": null,
+      "emission": null,
+      "note": "Car alloy wheels."
+    },
     "MV_Interior": {
-      "color": "#34373C",
+      "color": "#4A4E55",
       "texture": null,
       "emission": null,
       "note": "Cab / car interior: dashboard, seats, inner shell walls."

@@ -21,6 +21,11 @@ namespace HS.QA
 
         IEnumerator Start()
         {
+#if UNITY_EDITOR
+            // captures must show real shaders, not the editor's cyan stand-in while variants compile in the background
+            bool async = UnityEditor.ShaderUtil.allowAsyncCompilation;
+            UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+#endif
             var view = OpeningView.Show(UIRoot.Ensure(), Short);
             view.ManualClock = true;
             var log = new StringBuilder("{\"files\":[");
@@ -40,10 +45,14 @@ namespace HS.QA
                 string name = Prefix + "_" + i.ToString("00") + "_t" + view.Elapsed.ToString("00.0", CultureInfo.InvariantCulture).Replace('.', '_');
                 var file = QaCapture.Capture(null, name, Width, Height);
                 log.Append(i > 0 ? "," : "").Append('"').Append(Path.GetFileName(file)).Append('"');
+                var st = view.Street;
+                Debug.Log($"[Scrub] {name}: t={view.Elapsed:0.000} phase={view.Current} truck={(st != null ? st.TruckFront : -1f):0.00} " +
+                          $"eye={(st != null ? st.EyeStreet : Vector3.zero)} yaw={(st != null ? st.HeadYaw : 0f):0.0} cam={(Camera.main != null ? Camera.main.name : "none")}");
             }
             log.Append("]}");
             File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "../Library/Agent/scrub.json")), log.ToString());
 #if UNITY_EDITOR
+            UnityEditor.ShaderUtil.allowAsyncCompilation = async;
             if (QuitWhenDone) UnityEditor.EditorApplication.ExitPlaymode();
 #endif
         }

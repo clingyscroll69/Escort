@@ -44,14 +44,19 @@ namespace HS.Opening
         {
             public Transform T, WingL, WingR;
             public Vector3 Home, Flight;
+            public Quaternion Import = Quaternion.identity;
             public float Yaw, TakeOff, Phase;
         }
 
-        /// <summary>One lamp face on a signal: a material slot we light or darken.</summary>
+        /// <summary>
+        /// One lamp face on a signal. Unlit lenses go dark (their authored colour would still show in daylight); the
+        /// pedestrian icons share one panel, so an unlit icon is clipped away entirely.
+        /// </summary>
         struct Lamp
         {
             public Material Mat;
-            public Color On, Off;
+            public Color On, Off, Base;
+            public bool Clip;
         }
 
         // -------------------------------------------------------------------------------------------------- build
@@ -274,7 +279,11 @@ namespace HS.Opening
             go.name = id;
             go.transform.SetParent(parent != null ? parent : _staticRoot, false);
             go.transform.localPosition = pos;
-            go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+            // Keep the import's own root turn (Blender's Z-up → Y-up lives on the FBX root). Kit models face -Z once
+            // imported (stand-ins face +Z), so they turn round to face the same way.
+            go.transform.localRotation = prefab != null
+                ? Quaternion.Euler(0f, yaw + 180f, 0f) * prefab.transform.localRotation
+                : Quaternion.Euler(0f, yaw, 0f);
             if (scale != 1f) go.transform.localScale *= scale;
             return go;
         }
@@ -353,8 +362,8 @@ namespace HS.Opening
             // our corner: street names, hydrant, news boxes, a bin; the café's tables and board
             Place("SignPost", new Vector3(WestCurbE + 0.4f, g, SouthCurb - 1.55f), 45f);
             Place("FireHydrant", new Vector3(WestCurbE + 0.5f, g, 7.4f), -90f);
-            Place("NewsBox", new Vector3(WestCurbE + 0.55f, g, 5.3f), 90f);
-            Place("NewsBox", new Vector3(WestCurbE + 0.55f, g, 6.05f), 90f);
+            Place("NewsBox_DailyNews", new Vector3(WestCurbE + 0.55f, g, 5.3f), 90f);
+            Place("NewsBox_CityWeekly", new Vector3(WestCurbE + 0.55f, g, 6.05f), 90f);
             Place("TrashCan", new Vector3(WestCurbE + 0.55f, g, 1.6f), 90f);
             Place("ParkingMeter", new Vector3(WestCurbE + 0.35f, g, -6f), -90f);
             Place("ParkingMeter", new Vector3(WestCurbE + 0.35f, g, -12f), -90f);
@@ -371,7 +380,9 @@ namespace HS.Opening
             Place("Bollard", new Vector3(XwalkX0 - 0.35f, g, NorthCurb + 0.45f), 0f);
             Place("BusShelter", new Vector3(10.5f, g, NorthCurb + 1.6f), 180f);
             Place("Planter", new Vector3(FrontE - 0.7f, g, NorthCurb + 3.0f), 0f);
-            Place("NewsBox", new Vector3(5.3f, g, NorthCurb + 0.55f), 0f);
+            Place("NewsBox_DailyNews", new Vector3(5.3f, g, NorthCurb + 0.55f), 0f);
+            Place("BusStopSign", new Vector3(7.4f, g, NorthCurb + 0.45f), 180f);
+            Place("NoParkingSign", new Vector3(WestCurbE + 0.35f, g, -9.5f), -90f);
             Place("FireHydrant", new Vector3(EastCurbW - 0.5f, g, NorthCurb + 2.4f), 90f);
             Place("SignPost", new Vector3(EastCurbW - 0.4f, g, SouthCurb - 1.4f), -45f);
             Place("TrashCan", new Vector3(EastCurbW - 0.55f, g, -3f), -90f);
@@ -440,10 +451,11 @@ namespace HS.Opening
         {
             const float g = Curb;
             // the one we watch: across the street, facing us
-            var ped = Place("PedPole", new Vector3(WestCurbE + 0.35f, g, NorthCurb + 0.75f), 180f);
+            // at the open end of the crossing, clear of the signal masts on the corners
+            var ped = Place("PedPole", new Vector3(XwalkX1 + 0.45f, g, NorthCurb + 0.7f), 180f);
             Hook(ped, _pedHand, _pedWalk, true);
             // ours, facing back the other way (its back to us), and the avenue crossings
-            Hook(Place("PedPole", new Vector3(WestCurbE + 0.35f, g, SouthCurb - 0.75f), 0f), _pedHand, _pedWalk, false);
+            Hook(Place("PedPole", new Vector3(XwalkX1 + 0.45f, g, SouthCurb - 0.7f), 0f), _pedHand, _pedWalk, false);
             Hook(Place("PedPole", new Vector3(EastCurbW - 0.35f, g, NorthCurb + 0.75f), 180f), _pedHand, _pedWalk, true);
             Hook(Place("PedPole", new Vector3(EastCurbW - 0.35f, g, SouthCurb - 0.75f), 0f), _pedHand, _pedWalk, false);
             // vehicle signals: the avenue's heads over its lanes (north side faces us), the cross street's heads
@@ -464,8 +476,8 @@ namespace HS.Opening
                 {
                     if (mats[i] == null) continue;
                     string n = mats[i].name;
-                    if (n.StartsWith("MS_PedHand")) { mats[i] = new Material(mats[i]); hand.Add(new Lamp { Mat = mats[i], On = new Color(1f, 0.42f, 0.08f) * 3.2f, Off = Color.black }); changed = true; }
-                    else if (n.StartsWith("MS_PedWalk")) { mats[i] = new Material(mats[i]); walk.Add(new Lamp { Mat = mats[i], On = new Color(0.9f, 0.95f, 1f) * 3.4f, Off = Color.black }); changed = true; }
+                    if (n.StartsWith("MS_PedHand")) { mats[i] = new Material(mats[i]); hand.Add(new Lamp { Mat = mats[i], On = new Color(1f, 0.42f, 0.08f) * 3.2f, Off = Color.black, Base = mats[i].GetColor("_BaseColor"), Clip = true }); changed = true; }
+                    else if (n.StartsWith("MS_PedWalk")) { mats[i] = new Material(mats[i]); walk.Add(new Lamp { Mat = mats[i], On = new Color(0.9f, 0.95f, 1f) * 3.4f, Off = Color.black, Base = mats[i].GetColor("_BaseColor"), Clip = true }); changed = true; }
                 }
                 if (changed) r.sharedMaterials = mats;
             }
@@ -474,7 +486,9 @@ namespace HS.Opening
             if (anchor == null) return;
             var go = new GameObject("CountdownDigits");
             go.transform.SetParent(anchor, false);
-            go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f); // TMP faces -Z; the panel faces +Z
+            // TMP reads from its -Z side, and the kit's panels face the kit frame's -Z
+            go.transform.rotation = KitFrame(sig, "PedPole");
+            go.transform.position = anchor.position + go.transform.rotation * new Vector3(0f, 0f, -0.004f);
             var tmp = go.AddComponent<TextMeshPro>();
             tmp.font = UIKit.Mono;
             tmp.fontSize = 1.6f;
@@ -499,11 +513,18 @@ namespace HS.Opening
                     if (list == null) continue;
                     mats[i] = new Material(mats[i]);
                     var on = list == red ? new Color(1f, 0.12f, 0.08f) : list == amber ? new Color(1f, 0.6f, 0.05f) : new Color(0.15f, 1f, 0.55f);
-                    list.Add(new Lamp { Mat = mats[i], On = on * 3.5f, Off = Color.black });
+                    list.Add(new Lamp { Mat = mats[i], On = on * 3.5f, Off = Color.black, Base = mats[i].GetColor("_BaseColor") });
                     changed = true;
                 }
                 if (changed) r.sharedMaterials = mats;
             }
+        }
+
+        /// <summary>The world rotation of a kit model's own frame (its root minus the import's Z-up → Y-up turn).</summary>
+        Quaternion KitFrame(GameObject inst, string id)
+        {
+            var prefab = _assets != null ? _assets.Get(id) : null;
+            return prefab != null ? inst.transform.rotation * Quaternion.Inverse(prefab.transform.localRotation) : inst.transform.rotation;
         }
 
         static Transform Find(Transform t, string name)
@@ -525,6 +546,18 @@ namespace HS.Opening
                 l.Mat.SetFloat("_EmissionTexMul", 1f);
                 l.Mat.SetFloat("_DirectStrength", on ? 0.4f : 0.9f);
                 l.Mat.SetFloat("_AmbientStrength", on ? 0.3f : 0.4f);
+                if (l.Clip)
+                {
+                    // icons: the texture's alpha keeps only the figure; an unlit icon disappears from the shared panel
+                    l.Mat.EnableKeyword("_ALPHATEST_ON");
+                    l.Mat.SetFloat("_AlphaClip", 1f);
+                    l.Mat.SetFloat("_Cull", 0f); // double-sided: the icon faces' winding can't hide them
+                    l.Mat.SetFloat("_Cutoff", 0.5f);
+                    var c = l.Base;
+                    c.a = on ? 1f : 0f;
+                    l.Mat.SetColor("_BaseColor", c);
+                }
+                else l.Mat.SetColor("_BaseColor", on ? l.Base : new Color(l.Base.r * 0.16f, l.Base.g * 0.16f, l.Base.b * 0.16f, 1f));
             }
         }
 
@@ -587,9 +620,14 @@ namespace HS.Opening
             {
                 var anchor = Find(_truck, hl);
                 if (anchor == null) continue;
+                // The locators' axes follow the import's root turn, so the beams are aimed in street space: down the cross
+                // street (the truck drives toward -x), dipped toward the road, from just in front of the lens. (A light
+                // sitting on its own lens overflows the HDR buffer at ~1 cm and bloom smears the NaN over the frame.)
+                var beamDir = new Vector3(-1f, -0.1f, 0f).normalized;
                 var lgo = new GameObject("Beam_" + hl);
                 lgo.transform.SetParent(anchor, false);
-                lgo.transform.localRotation = Quaternion.Euler(6f, 0f, 0f); // dipped a little toward the road
+                lgo.transform.localPosition = anchor.InverseTransformDirection(beamDir) * 0.3f;
+                lgo.transform.rotation = Quaternion.LookRotation(beamDir, Vector3.up);
                 var light = lgo.AddComponent<Light>();
                 light.type = LightType.Spot;
                 light.range = 48f;
@@ -604,7 +642,7 @@ namespace HS.Opening
                 Destroy(flare.GetComponent<Collider>());
                 flare.name = "Flare_" + hl;
                 flare.transform.SetParent(anchor, false);
-                flare.transform.localPosition = new Vector3(0f, 0f, 0.05f);
+                flare.transform.localPosition = anchor.InverseTransformDirection(new Vector3(-1f, 0f, 0f)) * 0.06f;
                 var fr = flare.GetComponent<Renderer>();
                 fr.sharedMaterial = flareMat;
                 fr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -625,6 +663,7 @@ namespace HS.Opening
                 {
                     T = go.transform, WingL = Find(go.transform, "Wing_L"), WingR = Find(go.transform, "Wing_R"), Home = spots[i], Yaw = yaw,
                     TakeOff = 3.15f + i * 0.11f, Phase = i * 1.7f,
+                    Import = _assets != null && _assets.Get("Pigeon") != null ? _assets.Get("Pigeon").transform.localRotation : Quaternion.identity,
                     // scatter up and away from the walker, mostly over the avenue
                     Flight = new Vector3(-2.6f + i * 0.9f, 3.1f + 0.3f * i, 2.2f + 0.4f * i),
                 };
@@ -697,20 +736,20 @@ namespace HS.Opening
             var phone = prefab != null ? Instantiate(prefab) : StandIn("PhoneInHand");
             phone.name = "PhoneInHand";
             phone.transform.SetParent(_phoneRig, false);
-            var screen = Find(phone.transform, "ScreenCenter") ?? phone.transform;
             _cableStart = Find(phone.transform, "CableStart");
 
             // the lock screen (OpeningView builds it): a world-space canvas over the display, facing away from its own +Z
+            // In the rig's frame the display faces -Z (towards the eyes), its top is +Y; the root sits on the glass.
             var cgo = new GameObject("PhoneScreen", typeof(RectTransform));
-            cgo.transform.SetParent(screen, false);
+            cgo.transform.SetParent(_phoneRig, false);
             var canvas = cgo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvas.worldCamera = Camera;
             var rt = (RectTransform)cgo.transform;
             rt.sizeDelta = new Vector2(414f, 854f);
             rt.localScale = Vector3.one * (0.0692f / 414f);
-            rt.localPosition = new Vector3(0f, 0f, 0.0004f);
-            rt.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            rt.localPosition = new Vector3(0f, 0f, -0.0003f);
+            rt.localRotation = Quaternion.identity; // a canvas is read looking along its +Z
             PhoneScreen = rt;
 
             var mat = _assets != null && _assets.cable != null ? _assets.cable : Mat(null, new Color(0.95f, 0.95f, 0.93f));
@@ -764,13 +803,19 @@ namespace HS.Opening
                 _truck.localPosition = new Vector3(TruckX(tt), 0f, TruckLane);
                 float sinceBrake = tt - BrakeAt;
                 float dive = sinceBrake > 0f ? 2.4f * (1f - Mathf.Exp(-sinceBrake / 0.12f)) * (1f + 0.15f * Mathf.Sin(sinceBrake * 18f) * Mathf.Exp(-sinceBrake / 0.2f)) : 0f;
-                if (_truckBody != _truck) _truckBody.localRotation = Quaternion.Euler(dive, 0f, 0f);
+                if (_truckBody != _truck)
+                {
+                    // nose dive about a point mid-wheelbase: the front dips, the rear lifts a little
+                    _truckBody.localPosition = Vector3.zero;
+                    _truckBody.localRotation = Quaternion.identity;
+                    _truckBody.RotateAround(_truck.position + _root.TransformDirection(new Vector3(3.2f, 1f, 0f)), _root.forward, -dive);
+                }
                 float spin = (TruckX(TruckAt) - TruckX(tt)) / 0.45f * Mathf.Rad2Deg;
                 foreach (var w in _truckWheels) w.localRotation = Quaternion.Euler(spin, 0f, 0f);
             }
             float near = 1f - Mathf.Clamp01((TruckX(tt) - WalkX) / 46f);
             bool horn = !_short && ((tt >= OpeningView.HornAt + 0.45f && tt < OpeningView.HornAt + 0.85f) || tt >= OpeningView.HornAt + 1.25f);
-            float beam = TruckVisible ? Mathf.Lerp(220f, 900f, near * near) * (horn ? 1.45f : 1f) : 0f;
+            float beam = TruckVisible ? Mathf.Lerp(110f, 430f, near * near) * (horn ? 1.4f : 1f) : 0f;
             foreach (var l in _headlights) l.intensity = beam;
             Glow = _short ? Mathf.Clamp01(t / OpeningView.ShortFlash) : t < OpeningView.HornAt || t >= OpeningView.CutAt ? 0f : Mathf.Pow(Smooth(OpeningView.HornAt, OpeningView.CutAt, t), 1.4f);
             for (int i = 0; i < _flares.Count; i++)
@@ -798,7 +843,7 @@ namespace HS.Opening
             if (_cable != null && _phoneRig != null)
             {
                 var start = _cableStart != null ? _cableStart : _phoneRig;
-                var dir = _cableStart != null ? -_cableStart.up : -_phoneRig.up;
+                var dir = -_phoneRig.up; // out of the plug, along the phone's "down"
                 _cable.Step(start.position, dir, _head, _body, dt);
                 _cable.Object.SetActive(t < OpeningView.CutAt);
             }
@@ -812,7 +857,7 @@ namespace HS.Opening
                 // pecking about
                 float peck = Mathf.Max(0f, Mathf.Sin((t + p.Phase) * 5.3f)) * 18f;
                 p.T.localPosition = p.Home;
-                p.T.localRotation = Quaternion.Euler(peck, p.Yaw + Mathf.Sin((t + p.Phase) * 0.9f) * 25f, 0f);
+                p.T.localRotation = Quaternion.Euler(peck, p.Yaw + Mathf.Sin((t + p.Phase) * 0.9f) * 25f, 0f) * p.Import;
                 Flap(p, 0f, t);
                 return;
             }
@@ -825,15 +870,22 @@ namespace HS.Opening
             var pos = p.Home + new Vector3(v.x * since, v.y * since + 0.6f * since * since, v.z * since);
             p.T.localPosition = pos;
             var heading = new Vector3(v.x, 0f, v.z);
-            p.T.localRotation = Quaternion.LookRotation(heading.normalized, Vector3.up) * Quaternion.Euler(-25f, 0f, 0f);
-            Flap(p, 1f, t);
+            // the kit bird faces its frame's -Z: point that along the heading, nose up a little
+            p.T.localRotation = Quaternion.LookRotation(-heading.normalized, Vector3.up) * Quaternion.Euler(25f, 0f, 0f) * p.Import;
+            Flap(p, Mathf.Clamp01(since / 0.12f), t);
         }
 
+        /// <summary>
+        /// Wings: modelled folded, so they swing open (±70° about the bird's up) and then beat about its long axis.
+        /// Expressed in the kit's frame, then taken into the wings' local frame (which carries the import's turn).
+        /// </summary>
         static void Flap(Pigeon p, float amount, float t)
         {
-            float a = amount * Mathf.Sin(t * Mathf.PI * 2f * 11f) * 62f;
-            if (p.WingL != null) p.WingL.localRotation = Quaternion.Euler(0f, 0f, -a);
-            if (p.WingR != null) p.WingR.localRotation = Quaternion.Euler(0f, 0f, a);
+            float beat = amount * Mathf.Sin(t * Mathf.PI * 2f * 11f) * 55f;
+            float open = amount * 70f;
+            var toLocal = Quaternion.Inverse(p.Import);
+            if (p.WingL != null) p.WingL.localRotation = toLocal * (Quaternion.AngleAxis(beat, Vector3.forward) * Quaternion.AngleAxis(open, Vector3.up)) * p.Import;
+            if (p.WingR != null) p.WingR.localRotation = toLocal * (Quaternion.AngleAxis(-beat, Vector3.forward) * Quaternion.AngleAxis(-open, Vector3.up)) * p.Import;
         }
 
         // ------------------------------------------------------------------------------------------------ stand-ins
@@ -889,9 +941,9 @@ namespace HS.Opening
                     Box(new Vector3(1.6f, 0.6f, 2.2f), new Vector3(0f, 1.35f, -2.5f), new Color(0.2f, 0.24f, 0.3f));
                     break;
                 case "PhoneInHand":
-                    Box(new Vector3(0.0736f, 0.1471f, 0.008f), new Vector3(0f, 0f, -0.0042f), new Color(0.05f, 0.05f, 0.07f));
+                    Box(new Vector3(0.0736f, 0.1471f, 0.008f), new Vector3(0f, 0f, 0.0042f), new Color(0.05f, 0.05f, 0.07f));
                     Node("ScreenCenter", Vector3.zero);
-                    Node("CableStart", new Vector3(-0.012f, -0.083f, -0.004f));
+                    Node("CableStart", new Vector3(-0.012f, -0.083f, 0.004f));
                     break;
                 case "Pigeon":
                     Box(new Vector3(0.12f, 0.12f, 0.28f), new Vector3(0f, 0.12f, 0f), new Color(0.45f, 0.47f, 0.52f));

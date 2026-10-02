@@ -1,0 +1,1822 @@
+{
+ "kit": "buildings",
+ "materials": {
+  "MB_ACBody": {
+   "color": "#D8D3C7",
+   "texture": null,
+   "emission": null,
+   "note": "AC unit / HVAC casing",
+   "transparent": false
+  },
+  "MB_Awning": {
+   "color": "#FFFFFF",
+   "texture": "T_Awnings.png",
+   "emission": null,
+   "note": "awning fabric atlas: 4 rows (solid green, red, green, navy stripes), each tiles in u",
+   "transparent": false
+  },
+  "MB_BeaconRed": {
+   "color": "#FF3030",
+   "texture": null,
+   "emission": {
+    "color": "#FF3030",
+    "intensity": 4.0
+   },
+   "note": "aircraft warning beacon",
+   "transparent": false
+  },
+  "MB_Brass": {
+   "color": "#C9A45C",
+   "texture": null,
+   "emission": null,
+   "note": "door handles, kick plates, house-number frames",
+   "transparent": false
+  },
+  "MB_BrickBrown": {
+   "color": "#FFFFFF",
+   "texture": "T_BrickBrown.png",
+   "emission": null,
+   "note": "brown brick #7A4B3A; tileable 2 m",
+   "transparent": false
+  },
+  "MB_BrickCommon": {
+   "color": "#FFFFFF",
+   "texture": "T_BrickCommon.png",
+   "emission": null,
+   "note": "common brick for party/back walls and parapet insides; tileable 2 m",
+   "transparent": false
+  },
+  "MB_BrickRed": {
+   "color": "#FFFFFF",
+   "texture": "T_BrickRed.png",
+   "emission": null,
+   "note": "red brick #9B4A3A; tileable, UV 1 unit = 2 m",
+   "transparent": false
+  },
+  "MB_BrickSlate": {
+   "color": "#FFFFFF",
+   "texture": "T_BrickSlate.png",
+   "emission": null,
+   "note": "slate-painted brick #4A4F5A; tileable 2 m",
+   "transparent": false
+  },
+  "MB_BrickTeal": {
+   "color": "#FFFFFF",
+   "texture": "T_BrickTeal.png",
+   "emission": null,
+   "note": "teal-painted brick #4F7D7A; tileable 2 m",
+   "transparent": false
+  },
+  "MB_Chrome": {
+   "color": "#D3D8DD",
+   "texture": null,
+   "emission": null,
+   "note": "diner chrome trim",
+   "transparent": false
+  },
+  "MB_Concrete": {
+   "color": "#A9A59C",
+   "texture": null,
+   "emission": null,
+   "note": "steps, thresholds, plinths, rooftop curbs",
+   "transparent": false
+  },
+  "MB_Details": {
+   "color": "#FFFFFF",
+   "texture": "T_Details.png",
+   "emission": null,
+   "note": "AC fronts, louvres, doors, intercom, fan grilles, meter, skylight",
+   "transparent": false
+  },
+  "MB_Foliage": {
+   "color": "#FFFFFF",
+   "texture": "T_Foliage.png",
+   "emission": null,
+   "note": "leaves with flowers; tileable 1 unit = 1 m",
+   "transparent": false
+  },
+  "MB_Granite": {
+   "color": "#8E8A82",
+   "texture": null,
+   "emission": null,
+   "note": "granite base course, plinths",
+   "transparent": false
+  },
+  "MB_Grate": {
+   "color": "#FFFFFF",
+   "texture": "T_Grate.png",
+   "emission": null,
+   "note": "fire-escape grating (top of platforms)",
+   "transparent": false
+  },
+  "MB_Int_Bakery": {
+   "color": "#666666",
+   "texture": "T_Int_Bakery.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Bakery fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Bank": {
+   "color": "#666666",
+   "texture": "T_Int_Bank.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Bank fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Books": {
+   "color": "#666666",
+   "texture": "T_Int_Books.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Books fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Cafe": {
+   "color": "#666666",
+   "texture": "T_Int_Cafe.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Cafe fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Diner": {
+   "color": "#666666",
+   "texture": "T_Int_Diner.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Diner fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Florist": {
+   "color": "#666666",
+   "texture": "T_Int_Florist.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Florist fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Laundry": {
+   "color": "#666666",
+   "texture": "T_Int_Laundry.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Laundry fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Mart": {
+   "color": "#666666",
+   "texture": "T_Int_Mart.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Mart fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Noodle": {
+   "color": "#666666",
+   "texture": "T_Int_Noodle.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Noodle fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_Int_Pharmacy": {
+   "color": "#666666",
+   "texture": "T_Int_Pharmacy.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 0.85
+   },
+   "note": "Pharmacy fake interior on recessed boxes behind the glass; emission map = texture",
+   "transparent": false
+  },
+  "MB_LampGlow": {
+   "color": "#FFE7B8",
+   "texture": null,
+   "emission": {
+    "color": "#FFE7B8",
+    "intensity": 3.0
+   },
+   "note": "bulbs, wall lamps, pendant lamps",
+   "transparent": false
+  },
+  "MB_LanternRed": {
+   "color": "#E0392B",
+   "texture": null,
+   "emission": {
+    "color": "#FF5A3C",
+    "intensity": 1.6
+   },
+   "note": "paper lanterns (emissive)",
+   "transparent": false
+  },
+  "MB_Metal": {
+   "color": "#26292D",
+   "texture": null,
+   "emission": null,
+   "note": "black iron: fire escape, railings, brackets, pipes",
+   "transparent": false
+  },
+  "MB_MetalDark": {
+   "color": "#3A3F45",
+   "texture": null,
+   "emission": null,
+   "note": "modern window surrounds, canopies, fins",
+   "transparent": false
+  },
+  "MB_NeonBlue": {
+   "color": "#4FC3FF",
+   "texture": null,
+   "emission": {
+    "color": "#4FC3FF",
+    "intensity": 3.0
+   },
+   "note": "diner neon tubes",
+   "transparent": false
+  },
+  "MB_NeonGreen": {
+   "color": "#3CDC78",
+   "texture": null,
+   "emission": {
+    "color": "#3CDC78",
+    "intensity": 3.0
+   },
+   "note": "pharmacy cross edge tubes",
+   "transparent": false
+  },
+  "MB_NeonPink": {
+   "color": "#FF4F9A",
+   "texture": null,
+   "emission": {
+    "color": "#FF4F9A",
+    "intensity": 3.0
+   },
+   "note": "diner neon tubes",
+   "transparent": false
+  },
+  "MB_PanelGrey": {
+   "color": "#8C939B",
+   "texture": "T_PanelLight.png",
+   "emission": null,
+   "note": "grey stone panels (bank); colour multiplies T_PanelLight",
+   "transparent": false
+  },
+  "MB_PanelLight": {
+   "color": "#FFFFFF",
+   "texture": "T_PanelLight.png",
+   "emission": null,
+   "note": "light stone cladding panels (modern); tileable 2 m",
+   "transparent": false
+  },
+  "MB_Paper": {
+   "color": "#FFFFFF",
+   "texture": "T_Paper.png",
+   "emission": null,
+   "note": "kraft paper over vacant shop windows; tileable 2 m",
+   "transparent": false
+  },
+  "MB_Roof": {
+   "color": "#FFFFFF",
+   "texture": "T_Roof.png",
+   "emission": null,
+   "note": "tar/gravel roof; tileable 2 m",
+   "transparent": false
+  },
+  "MB_RoofDark": {
+   "color": "#3E3C3A",
+   "texture": null,
+   "emission": null,
+   "note": "water-tower cone, bulkhead roofs",
+   "transparent": false
+  },
+  "MB_ShopGlass": {
+   "color": "#CFE0E8",
+   "texture": "T_GlassSheen.png",
+   "emission": null,
+   "note": "TRANSPARENT glass: alpha-blended, opacity ~6-9% from the texture alpha, no shadow casting. Only on the optional <Name>_Glass child in front of the fake shop interiors; disable that child if see-through glass is not wanted.",
+   "transparent": true
+  },
+  "MB_Shutter": {
+   "color": "#FFFFFF",
+   "texture": "T_Shutter.png",
+   "emission": null,
+   "note": "roll-down shutter; tileable 2 m",
+   "transparent": false
+  },
+  "MB_Sign_Bakery": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Bakery.png",
+   "emission": null,
+   "note": "Bakery signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Bank": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Bank.png",
+   "emission": null,
+   "note": "Bank signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Books": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Books.png",
+   "emission": null,
+   "note": "Books signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Cafe": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Cafe.png",
+   "emission": null,
+   "note": "Cafe signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Diner": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Diner.png",
+   "emission": null,
+   "note": "Diner signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Florist": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Florist.png",
+   "emission": null,
+   "note": "Florist signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_ForLease": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_ForLease.png",
+   "emission": null,
+   "note": "ForLease signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Laundry": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Laundry.png",
+   "emission": null,
+   "note": "Laundry signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Mart": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Mart.png",
+   "emission": null,
+   "note": "Mart signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Noodle": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Noodle.png",
+   "emission": null,
+   "note": "Noodle signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Pharmacy": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Pharmacy.png",
+   "emission": null,
+   "note": "Pharmacy signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_Sign_Phone": {
+   "color": "#FFFFFF",
+   "texture": "T_Sign_Phone.png",
+   "emission": null,
+   "note": "Phone signs, posters and number plates (atlas)",
+   "transparent": false
+  },
+  "MB_SignsLit": {
+   "color": "#FFFFFF",
+   "texture": "T_SignsLit.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 2.2
+   },
+   "note": "lightboxes and neon; emission map = texture (dark backgrounds stay dark)",
+   "transparent": false
+  },
+  "MB_Steel": {
+   "color": "#8F969D",
+   "texture": null,
+   "emission": null,
+   "note": "brushed steel / aluminium",
+   "transparent": false
+  },
+  "MB_StoneCream": {
+   "color": "#FFFFFF",
+   "texture": "T_StoneCream.png",
+   "emission": null,
+   "note": "cream ashlar #D8CDB5; tileable 2 m",
+   "transparent": false
+  },
+  "MB_StoneTrim": {
+   "color": "#DDD4BF",
+   "texture": null,
+   "emission": null,
+   "note": "sills, lintels, cornices, copings, quoins",
+   "transparent": false
+  },
+  "MB_Terracotta": {
+   "color": "#A85A3C",
+   "texture": null,
+   "emission": null,
+   "note": "pots and flower boxes",
+   "transparent": false
+  },
+  "MB_TowerBands": {
+   "color": "#FFFFFF",
+   "texture": "T_TowerBands.png",
+   "emission": null,
+   "note": "SOLID toon surface, not see-through: tower ribbon windows + stone bands; tile = 4 floors x 8 modules",
+   "transparent": false
+  },
+  "MB_TowerCrown": {
+   "color": "#6F7780",
+   "texture": null,
+   "emission": null,
+   "note": "tower mechanical crowns / caps",
+   "transparent": false
+  },
+  "MB_TowerDark": {
+   "color": "#FFFFFF",
+   "texture": "T_TowerDark.png",
+   "emission": null,
+   "note": "SOLID toon surface, not see-through: tower dark glass + bronze mullions; tile = 4 floors x 8 modules",
+   "transparent": false
+  },
+  "MB_TowerGlass": {
+   "color": "#FFFFFF",
+   "texture": "T_TowerGlass.png",
+   "emission": null,
+   "note": "SOLID toon surface, not see-through: tower curtain wall; UV tile = 4 floors x 8 modules",
+   "transparent": false
+  },
+  "MB_TowerPunched": {
+   "color": "#FFFFFF",
+   "texture": "T_TowerPunched.png",
+   "emission": null,
+   "note": "SOLID toon surface, not see-through: residential tower punched windows; tile = 4 floors x 8 modules",
+   "transparent": false
+  },
+  "MB_TowerTrim": {
+   "color": "#B4BAC0",
+   "texture": null,
+   "emission": null,
+   "note": "tower rims, crown frames, masts",
+   "transparent": false
+  },
+  "MB_TrimBottle": {
+   "color": "#1F4D3A",
+   "texture": null,
+   "emission": null,
+   "note": "bottle-green shopfront paint (bookshop, florist)",
+   "transparent": false
+  },
+  "MB_TrimCream": {
+   "color": "#E6DCC4",
+   "texture": null,
+   "emission": null,
+   "note": "cream painted woodwork",
+   "transparent": false
+  },
+  "MB_TrimDark": {
+   "color": "#2B2F33",
+   "texture": null,
+   "emission": null,
+   "note": "dark frames, shop mullions, lamp shades",
+   "transparent": false
+  },
+  "MB_TrimGreen": {
+   "color": "#2F6B4F",
+   "texture": null,
+   "emission": null,
+   "note": "cafe green shopfront paint",
+   "transparent": false
+  },
+  "MB_TrimTeal": {
+   "color": "#2E5553",
+   "texture": null,
+   "emission": null,
+   "note": "dark teal trim",
+   "transparent": false
+  },
+  "MB_TrimWhite": {
+   "color": "#ECE7DB",
+   "texture": null,
+   "emission": null,
+   "note": "painted window frames",
+   "transparent": false
+  },
+  "MB_Vinyl": {
+   "color": "#B8322B",
+   "texture": null,
+   "emission": null,
+   "note": "diner booth / stool vinyl",
+   "transparent": false
+  },
+  "MB_WaterTower": {
+   "color": "#FFFFFF",
+   "texture": "T_WoodStaves.png",
+   "emission": null,
+   "note": "water tower staves; tileable 2 m",
+   "transparent": false
+  },
+  "MB_WindowDark": {
+   "color": "#FFFFFF",
+   "texture": "T_WindowDark.png",
+   "emission": null,
+   "note": "SOLID toon surface, not see-through: painted window glass atlas (sky/street reflection, blinds, curtains), 4x3 cells",
+   "transparent": false
+  },
+  "MB_WindowLit": {
+   "color": "#808080",
+   "texture": "T_WindowLit.png",
+   "emission": {
+    "color": "#FFFFFF",
+    "intensity": 1.0
+   },
+   "note": "SOLID toon surface + emission, not see-through: lit window atlas (warm homes, cool offices); emission map = texture",
+   "transparent": false
+  },
+  "MB_Wood": {
+   "color": "#6B4A32",
+   "texture": null,
+   "emission": null,
+   "note": "dark stained wood",
+   "transparent": false
+  },
+  "MB_WoodLight": {
+   "color": "#A8825A",
+   "texture": null,
+   "emission": null,
+   "note": "light wood: tables, planters, A-frame",
+   "transparent": false
+  }
+ },
+ "models": {
+  "Bakery": {
+   "file": "fbx/Bakery.fbx",
+   "tris": 6422,
+   "glass_tris": 8,
+   "footprint": {
+    "w": 16.0,
+    "d": 16.0
+   },
+   "height": 18.12,
+   "height_max": 20.09,
+   "floors": 5,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -8.07,
+     -1.5,
+     0.0
+    ],
+    "max": [
+     8.07,
+     16.07,
+     20.09
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Awning",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickTeal",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Int_Bakery",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Bakery",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimCream",
+    "MB_TrimDark",
+    "MB_TrimTeal",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit",
+    "MB_Wood",
+    "MB_WoodLight"
+   ],
+   "locators": [
+    "Bakery_Shop_0_10",
+    "Bakery_Lamp_0_139"
+   ],
+   "previews": [
+    "previews/Bakery_34.jpg",
+    "previews/Bakery_street.jpg"
+   ],
+   "notes": "Red/cream striped awning, two bistro tables and an A-frame on the sidewalk."
+  },
+  "Bank": {
+   "file": "fbx/Bank.fbx",
+   "tris": 10340,
+   "glass_tris": 16,
+   "footprint": {
+    "w": 18.0,
+    "d": 18.0
+   },
+   "height": 24.52,
+   "height_max": 28.4,
+   "floors": 7,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -9.07,
+     -1.6,
+     0.0
+    ],
+    "max": [
+     9.07,
+     18.07,
+     28.4
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Granite",
+    "MB_Int_Bank",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_MetalDark",
+    "MB_PanelGrey",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Bank",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "Bank_Shop_0_10",
+    "Bank_Shop_0_130"
+   ],
+   "previews": [
+    "previews/Bank_34.jpg",
+    "previews/Bank_street.jpg"
+   ],
+   "notes": "Granite base, steel-framed glazed lobby with canopy, extruded steel CITY BANK letters on a dark band, curtain-wall floors (1.5 m modules, steel fins every 3 m), rooftop penthouse."
+  },
+  "Books": {
+   "file": "fbx/Books.fbx",
+   "tris": 5792,
+   "glass_tris": 8,
+   "footprint": {
+    "w": 12.0,
+    "d": 16.0
+   },
+   "height": 18.12,
+   "height_max": 24.0,
+   "floors": 5,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -6.07,
+     -1.05,
+     0.0
+    ],
+    "max": [
+     6.07,
+     16.07,
+     24.0
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickRed",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Int_Books",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_RoofDark",
+    "MB_ShopGlass",
+    "MB_Sign_Books",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimBottle",
+    "MB_TrimCream",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_Vinyl",
+    "MB_WaterTower",
+    "MB_WindowDark",
+    "MB_WindowLit",
+    "MB_Wood",
+    "MB_WoodLight"
+   ],
+   "locators": [
+    "Books_Shop_0_9",
+    "Books_Lamp_0_108"
+   ],
+   "previews": [
+    "previews/Books_34.jpg",
+    "previews/Books_street.jpg"
+   ],
+   "notes": "Bottle-green small-paned shopfront, $1 book cart on the sidewalk, rooftop water tower."
+  },
+  "CornerCafe": {
+   "file": "fbx/CornerCafe.fbx",
+   "tris": 12371,
+   "glass_tris": 14,
+   "footprint": {
+    "w": 14.0,
+    "d": 14.0
+   },
+   "height": 18.12,
+   "height_max": 24.8,
+   "floors": 5,
+   "side_facade": "left",
+   "bounds_blender": {
+    "min": [
+     -1.45,
+     -1.45,
+     0.0
+    ],
+    "max": [
+     14.06,
+     14.33,
+     24.8
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Awning",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickRed",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Grate",
+    "MB_Int_Cafe",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_RoofDark",
+    "MB_ShopGlass",
+    "MB_Sign_Cafe",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimCream",
+    "MB_TrimDark",
+    "MB_TrimGreen",
+    "MB_TrimWhite",
+    "MB_WaterTower",
+    "MB_WindowDark",
+    "MB_WindowLit",
+    "MB_Wood",
+    "MB_WoodLight"
+   ],
+   "locators": [
+    "CornerCafe_Shop_2_6",
+    "CornerCafe_Shop_2_51",
+    "CornerCafe_Lamp_2_101",
+    "CornerCafe_Shop_1_1",
+    "CornerCafe_Shop_0_56",
+    "CornerCafe_Entrance",
+    "CornerCafe_Door_Apartments"
+   ],
+   "previews": [
+    "previews/CornerCafe_34.jpg",
+    "previews/CornerCafe_street.jpg",
+    "previews/CornerCafe_walk.jpg",
+    "previews/CornerCafe_pan.jpg"
+   ],
+   "notes": "Shop wraps the chamfered corner (1.6 m chamfer, entrance on the chamfer). Fire escape and service door on the side facade; water tower at the back corner of the roof."
+  },
+  "CornerDiner": {
+   "file": "fbx/CornerDiner.fbx",
+   "tris": 7818,
+   "glass_tris": 22,
+   "footprint": {
+    "w": 16.0,
+    "d": 15.4
+   },
+   "height": 14.92,
+   "height_max": 16.8,
+   "floors": 4,
+   "side_facade": "right",
+   "bounds_blender": {
+    "min": [
+     -16.06,
+     -1.02,
+     0.0
+    ],
+    "max": [
+     0.84,
+     15.47,
+     16.8
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickTeal",
+    "MB_Chrome",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Int_Diner",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_NeonBlue",
+    "MB_NeonPink",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Diner",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_Terracotta",
+    "MB_TrimDark",
+    "MB_TrimTeal",
+    "MB_TrimWhite",
+    "MB_Vinyl",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "CornerDiner_Lamp_0_14",
+    "CornerDiner_Shop_0_29",
+    "CornerDiner_Shop_curve",
+    "CornerDiner_Shop_7_4",
+    "CornerDiner_Entrance"
+   ],
+   "previews": [
+    "previews/CornerDiner_34.jpg",
+    "previews/CornerDiner_street.jpg",
+    "previews/CornerDiner_walk.jpg"
+   ],
+   "notes": "Rounded corner (r 2.6 m, 6 facets) with wrap-around glazing and corner windows above; chrome trim, red vinyl booths behind the glass; vertical neon DINER blade on the corner."
+  },
+  "CornerMart": {
+   "file": "fbx/CornerMart.fbx",
+   "tris": 8006,
+   "glass_tris": 12,
+   "footprint": {
+    "w": 15.4,
+    "d": 15.0
+   },
+   "height": 21.32,
+   "height_max": 24.7,
+   "floors": 6,
+   "side_facade": "left",
+   "bounds_blender": {
+    "min": [
+     -0.9,
+     -1.33,
+     0.0
+    ],
+    "max": [
+     15.46,
+     15.07,
+     24.7
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Granite",
+    "MB_Int_Mart",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_MetalDark",
+    "MB_PanelLight",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Mart",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "CornerMart_Shop_1_4",
+    "CornerMart_Shop_1_69",
+    "CornerMart_Shop_0_44",
+    "CornerMart_Lamp_0_19",
+    "CornerMart_Entrance"
+   ],
+   "previews": [
+    "previews/CornerMart_34.jpg",
+    "previews/CornerMart_street.jpg",
+    "previews/CornerMart_walk.jpg"
+   ],
+   "notes": "Sharp corner with a slim steel corner column; sliding glass doors at the corner under a steel canopy; offices above with large windows in dark projecting frames (40% lit, cool white)."
+  },
+  "CornerPharmacy": {
+   "file": "fbx/CornerPharmacy.fbx",
+   "tris": 14567,
+   "glass_tris": 14,
+   "footprint": {
+    "w": 15.4,
+    "d": 17.0
+   },
+   "height": 24.52,
+   "height_max": 28.65,
+   "floors": 7,
+   "side_facade": "right",
+   "bounds_blender": {
+    "min": [
+     -15.46,
+     -1.14,
+     0.0
+    ],
+    "max": [
+     0.96,
+     17.07,
+     28.65
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Granite",
+    "MB_Int_Pharmacy",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_NeonGreen",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Pharmacy",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_StoneCream",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimDark",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "CornerPharmacy_Shop_0_8",
+    "CornerPharmacy_Shop_0_74",
+    "CornerPharmacy_Shop_1_8",
+    "CornerPharmacy_Shop_1_92",
+    "CornerPharmacy_Lamp_1_144",
+    "CornerPharmacy_SignLight_Cross",
+    "CornerPharmacy_Entrance"
+   ],
+   "previews": [
+    "previews/CornerPharmacy_34.jpg",
+    "previews/CornerPharmacy_street.jpg",
+    "previews/CornerPharmacy_walk.jpg"
+   ],
+   "notes": "Classic cream stone: granite base, quoins, piano nobile with pediments and two balconettes per street facade, dentil + modillion main cornice. Emissive green cross blade sign at the corner."
+  },
+  "Florist": {
+   "file": "fbx/Florist.fbx",
+   "tris": 5054,
+   "glass_tris": 8,
+   "footprint": {
+    "w": 10.0,
+    "d": 14.0
+   },
+   "height": 14.92,
+   "height_max": 16.98,
+   "floors": 4,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -5.07,
+     -1.44,
+     0.0
+    ],
+    "max": [
+     5.07,
+     14.07,
+     16.98
+    ]
+   },
+   "materials": [
+    "MB_Awning",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickRed",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Int_Florist",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Florist",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimBottle",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit",
+    "MB_Wood",
+    "MB_WoodLight"
+   ],
+   "locators": [
+    "Florist_Shop_0_6",
+    "Florist_Lamp_0_89"
+   ],
+   "previews": [
+    "previews/Florist_34.jpg",
+    "previews/Florist_street.jpg"
+   ],
+   "notes": "Tiered stand of flower buckets on the sidewalk, green striped awning, flower boxes upstairs."
+  },
+  "ForLease": {
+   "file": "fbx/ForLease.fbx",
+   "tris": 3560,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 12.0,
+    "d": 15.0
+   },
+   "height": 11.72,
+   "height_max": 13.33,
+   "floors": 3,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -6.07,
+     -0.64,
+     0.0
+    ],
+    "max": [
+     6.07,
+     15.07,
+     13.33
+    ]
+   },
+   "materials": [
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Granite",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Paper",
+    "MB_Roof",
+    "MB_Sign_ForLease",
+    "MB_Steel",
+    "MB_StoneCream",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "ForLease_Shop_0_8",
+    "ForLease_Lamp_0_107"
+   ],
+   "previews": [
+    "previews/ForLease_34.jpg",
+    "previews/ForLease_street.jpg"
+   ],
+   "notes": "Vacant shop: windows papered over (MB_Paper, kraft sheets + tape), faded sign of the old hardware store."
+  },
+  "Laundromat": {
+   "file": "fbx/Laundromat.fbx",
+   "tris": 2776,
+   "glass_tris": 8,
+   "footprint": {
+    "w": 10.0,
+    "d": 14.0
+   },
+   "height": 11.72,
+   "height_max": 14.06,
+   "floors": 3,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -5.07,
+     -0.64,
+     0.0
+    ],
+    "max": [
+     5.1,
+     14.07,
+     14.06
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_BrickSlate",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Int_Laundry",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Laundry",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "Laundromat_Shop_0_5",
+    "Laundromat_Lamp_0_90"
+   ],
+   "previews": [
+    "previews/Laundromat_34.jpg",
+    "previews/Laundromat_street.jpg"
+   ],
+   "notes": "Bright fluorescent interior: rows of washers/dryers on the back wall, orange chairs at the window."
+  },
+  "NoodleBar": {
+   "file": "fbx/NoodleBar.fbx",
+   "tris": 4448,
+   "glass_tris": 8,
+   "footprint": {
+    "w": 12.0,
+    "d": 15.0
+   },
+   "height": 14.92,
+   "height_max": 17.03,
+   "floors": 4,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -6.07,
+     -0.96,
+     0.0
+    ],
+    "max": [
+     6.07,
+     15.07,
+     17.03
+    ]
+   },
+   "materials": [
+    "MB_Brass",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Granite",
+    "MB_Int_Noodle",
+    "MB_LampGlow",
+    "MB_LanternRed",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_ShopGlass",
+    "MB_Sign_Noodle",
+    "MB_SignsLit",
+    "MB_Steel",
+    "MB_StoneCream",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit",
+    "MB_Wood"
+   ],
+   "locators": [
+    "NoodleBar_Lamp_0_12",
+    "NoodleBar_Shop_0_26",
+    "NoodleBar_Lantern_32",
+    "NoodleBar_Lantern_56",
+    "NoodleBar_Lantern_80",
+    "NoodleBar_Lantern_108"
+   ],
+   "previews": [
+    "previews/NoodleBar_34.jpg",
+    "previews/NoodleBar_street.jpg"
+   ],
+   "notes": "Dark wood shopfront, four emissive red paper lanterns on a beam under the sign, noren over the door."
+  },
+  "PhoneRepair": {
+   "file": "fbx/PhoneRepair.fbx",
+   "tris": 9478,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 14.0,
+    "d": 16.0
+   },
+   "height": 21.32,
+   "height_max": 23.37,
+   "floors": 6,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -7.07,
+     -1.28,
+     0.0
+    ],
+    "max": [
+     7.07,
+     16.07,
+     23.37
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Brass",
+    "MB_BrickBrown",
+    "MB_BrickCommon",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Foliage",
+    "MB_Grate",
+    "MB_LampGlow",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_Shutter",
+    "MB_Sign_Phone",
+    "MB_Steel",
+    "MB_StoneTrim",
+    "MB_Terracotta",
+    "MB_TrimCream",
+    "MB_TrimDark",
+    "MB_TrimWhite",
+    "MB_WindowDark",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "PhoneRepair_Lamp_0_106"
+   ],
+   "previews": [
+    "previews/PhoneRepair_34.jpg",
+    "previews/PhoneRepair_street.jpg"
+   ],
+   "notes": "Shop closed at 7:52: roll-down shutter down. Apartment entrance with a 4-step stoop and rails; front fire escape over the middle bays."
+  },
+  "Tower1": {
+   "file": "fbx/Tower1.fbx",
+   "tris": 1294,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 30.0,
+    "d": 30.0
+   },
+   "height": 86.52,
+   "height_max": 103.55,
+   "floors": 24,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -15.12,
+     -0.12,
+     0.0
+    ],
+    "max": [
+     15.12,
+     30.12,
+     103.55
+    ]
+   },
+   "materials": [
+    "MB_BeaconRed",
+    "MB_Roof",
+    "MB_TowerCrown",
+    "MB_TowerGlass",
+    "MB_TowerTrim",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "Tower1_Beacon"
+   ],
+   "previews": [
+    "previews/Tower1_34.jpg",
+    "previews/Tower1_street.jpg"
+   ],
+   "notes": "24 floors x 3.6 m glass curtain wall (1.8 m modules), louvred mechanical crown, mast + red beacon."
+  },
+  "Tower2": {
+   "file": "fbx/Tower2.fbx",
+   "tris": 1292,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 32.0,
+    "d": 24.0
+   },
+   "height": 108.12,
+   "height_max": 115.0,
+   "floors": 30,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -16.12,
+     -0.12,
+     0.0
+    ],
+    "max": [
+     16.12,
+     24.12,
+     115.0
+    ]
+   },
+   "materials": [
+    "MB_Roof",
+    "MB_TowerBands",
+    "MB_TowerCrown",
+    "MB_TowerTrim",
+    "MB_WindowLit"
+   ],
+   "locators": [],
+   "previews": [
+    "previews/Tower2_34.jpg",
+    "previews/Tower2_street.jpg"
+   ],
+   "notes": "30 floors, horizontal ribbon windows with stone bands; setbacks at floors 22 and 27; open frame crown."
+  },
+  "Tower3": {
+   "file": "fbx/Tower3.fbx",
+   "tris": 1648,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 24.0,
+    "d": 24.0
+   },
+   "height": 59.52,
+   "height_max": 67.6,
+   "floors": 18,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -12.12,
+     -0.12,
+     0.0
+    ],
+    "max": [
+     12.12,
+     24.12,
+     67.6
+    ]
+   },
+   "materials": [
+    "MB_ACBody",
+    "MB_Concrete",
+    "MB_Details",
+    "MB_Metal",
+    "MB_Roof",
+    "MB_RoofDark",
+    "MB_TowerPunched",
+    "MB_TowerTrim",
+    "MB_WaterTower",
+    "MB_WindowLit",
+    "MB_Wood",
+    "MB_WoodLight"
+   ],
+   "locators": [],
+   "previews": [
+    "previews/Tower3_34.jpg",
+    "previews/Tower3_street.jpg"
+   ],
+   "notes": "18-floor residential tower: punched windows with curtains, small balconies, rooftop water tower."
+  },
+  "Tower4": {
+   "file": "fbx/Tower4.fbx",
+   "tris": 1454,
+   "glass_tris": 0,
+   "footprint": {
+    "w": 34.0,
+    "d": 30.0
+   },
+   "height": 129.72,
+   "height_max": 154.65,
+   "floors": 36,
+   "side_facade": null,
+   "bounds_blender": {
+    "min": [
+     -17.12,
+     -0.12,
+     0.0
+    ],
+    "max": [
+     17.12,
+     30.12,
+     154.65
+    ]
+   },
+   "materials": [
+    "MB_BeaconRed",
+    "MB_Roof",
+    "MB_TowerCrown",
+    "MB_TowerDark",
+    "MB_TowerTrim",
+    "MB_WindowLit"
+   ],
+   "locators": [
+    "Tower4_Beacon"
+   ],
+   "previews": [
+    "previews/Tower4_34.jpg",
+    "previews/Tower4_street.jpg"
+   ],
+   "notes": "36 floors of dark glass with bronze mullions, two setbacks, pyramid cap + spire with red beacon."
+  }
+ },
+ "draft_copy": [
+  {
+   "model": "CornerCafe",
+   "where": "fascia",
+   "text": "DAILY GRIND / COFFEE \u00b7 ESPRESSO \u00b7 PASTRY"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "awning valance",
+   "text": "DAILY GRIND \u00b7 COFFEE"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "corner board",
+   "text": "Daily Grind"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "blade sign",
+   "text": "COFFEE (cup icon)"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "A-frame",
+   "text": "TODAY: FLAT WHITE \u00b7 OAT LATTE \u00b7 COLD BREW \u00b7 BANANA BREAD \u00b7 7AM-7PM"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "menu board (interior)",
+   "text": "MENU: ESPRESSO 2.80 \u00b7 AMERICANO 3.20 \u00b7 FLAT WHITE 3.90 \u00b7 LATTE 4.20 \u00b7 CROISSANT 3.50"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "door plaque",
+   "text": "OPEN MON-FRI 7-7 / SAT-SUN 8-6 / WIFI \u00b7 OAT MILK"
+  },
+  {
+   "model": "CornerCafe",
+   "where": "house number",
+   "text": "27"
+  },
+  {
+   "model": "CornerMart",
+   "where": "lightbox fascia (front + side)",
+   "text": "24/7 MART"
+  },
+  {
+   "model": "CornerMart",
+   "where": "window LED",
+   "text": "OPEN"
+  },
+  {
+   "model": "CornerMart",
+   "where": "posters",
+   "text": "HOT COFFEE $1 \u00b7 COLD DRINKS 2/$3 \u00b7 SNACK DEAL 3/$5 \u00b7 ATM INSIDE \u00b7 FRESH FRUIT 99c \u00b7 ICE"
+  },
+  {
+   "model": "CornerMart",
+   "where": "door plaque",
+   "text": "OPEN 24 HOURS"
+  },
+  {
+   "model": "CornerMart",
+   "where": "office plaque",
+   "text": "300 / OFFICES 2-6"
+  },
+  {
+   "model": "CornerMart",
+   "where": "interior",
+   "text": "GROCERY \u00b7 COLD DRINKS \u00b7 SNACKS \u00b7 CANDY \u00b7 HOT COFFEE \u00b7 ATM"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "fascia (front)",
+   "text": "PHARMACY / PRESCRIPTIONS \u00b7 HEALTH \u00b7 BEAUTY"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "fascia (side)",
+   "text": "PHARMACY / OPEN 8 AM - 9 PM"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "blade sign",
+   "text": "green cross (no text)"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "window LED",
+   "text": "PHARMACY"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "posters",
+   "text": "FLU SHOTS - NO APPOINTMENT NEEDED \u00b7 SPRING ALLERGY RELIEF \u00b7 VITAMINS BUY 1 GET 1 HALF PRICE"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "door plaque",
+   "text": "HOURS MON-SAT 8-9 / SUN 10-6 / PHARMACIST ON DUTY"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "house number",
+   "text": "401"
+  },
+  {
+   "model": "CornerPharmacy",
+   "where": "interior",
+   "text": "PRESCRIPTIONS \u00b7 HEALTH & BEAUTY \u00b7 VITAMINS"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "neon fascia",
+   "text": "Diner \u00b7 OPEN 24H"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "vertical blade (neon)",
+   "text": "DINER"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "window neon",
+   "text": "OPEN 24H"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "side fascia",
+   "text": "EAT \u00b7 DRINK \u00b7 SINCE 1954"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "window posters",
+   "text": "BREAKFAST ALL DAY / PANCAKES \u00b7 EGGS \u00b7 HASH \u00b7 FREE COFFEE REFILLS"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "house number",
+   "text": "88"
+  },
+  {
+   "model": "CornerDiner",
+   "where": "interior",
+   "text": "BURGERS 9.50 \u00b7 PANCAKES 7.25 \u00b7 SHAKES 5.00 \u00b7 PIE 4.50"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "fascia",
+   "text": "NOODLE BAR / RAMEN \u00b7 DUMPLINGS \u00b7 BAO"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "noren (door curtain)",
+   "text": "OPEN + bowl icon"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "window menu",
+   "text": "MENU: SHOYU RAMEN 12 \u00b7 MISO RAMEN 13 \u00b7 UDON 11 \u00b7 GYOZA 7 \u00b7 BAO 6 \u00b7 LUNCH 11-3"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "window neon",
+   "text": "OPEN"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "interior boards",
+   "text": "RAMEN 12 \u00b7 UDON 11 \u00b7 GYOZA 7 \u00b7 BAO 6"
+  },
+  {
+   "model": "NoodleBar",
+   "where": "house number",
+   "text": "112"
+  },
+  {
+   "model": "Books",
+   "where": "fascia",
+   "text": "BOOKS / USED & NEW \u00b7 EST. 1972"
+  },
+  {
+   "model": "Books",
+   "where": "book cart",
+   "text": "ALL BOOKS $1"
+  },
+  {
+   "model": "Books",
+   "where": "door plaque",
+   "text": "BOOKS / OPEN 10-8 / CLOSED MON"
+  },
+  {
+   "model": "Books",
+   "where": "interior",
+   "text": "FICTION \u00b7 HISTORY \u00b7 NEW ARRIVALS"
+  },
+  {
+   "model": "Books",
+   "where": "house number",
+   "text": "106"
+  },
+  {
+   "model": "Laundromat",
+   "where": "fascia",
+   "text": "LAUNDROMAT / COIN WASH \u00b7 DRY \u00b7 FOLD"
+  },
+  {
+   "model": "Laundromat",
+   "where": "posters",
+   "text": "WASH $3.50 / DRY 25c / 8 MIN \u00b7 DROP-OFF SERVICE / READY BY 5PM"
+  },
+  {
+   "model": "Laundromat",
+   "where": "window neon",
+   "text": "OPEN"
+  },
+  {
+   "model": "Laundromat",
+   "where": "door plaque",
+   "text": "OPEN 6AM-11PM / LAST WASH 10PM"
+  },
+  {
+   "model": "Laundromat",
+   "where": "interior",
+   "text": "WASHERS \u00b7 DRYERS"
+  },
+  {
+   "model": "Laundromat",
+   "where": "house number",
+   "text": "96"
+  },
+  {
+   "model": "PhoneRepair",
+   "where": "fascia",
+   "text": "PHONE REPAIR / SCREENS \u00b7 BATTERIES \u00b7 UNLOCK \u00b7 ACCESSORIES"
+  },
+  {
+   "model": "PhoneRepair",
+   "where": "shutter sticker",
+   "text": "OPEN 10AM-8PM / WALK-INS WELCOME"
+  },
+  {
+   "model": "PhoneRepair",
+   "where": "house number",
+   "text": "118"
+  },
+  {
+   "model": "Bakery",
+   "where": "fascia",
+   "text": "Bakery / FRESH BREAD DAILY \u00b7 SINCE 1961"
+  },
+  {
+   "model": "Bakery",
+   "where": "window decal",
+   "text": "SOURDOUGH \u00b7 CROISSANTS / COFFEE TO GO"
+  },
+  {
+   "model": "Bakery",
+   "where": "A-frame",
+   "text": "FRESH TODAY: CINNAMON BUNS \u00b7 RYE LOAF \u00b7 PAIN AU CHOC \u00b7 BAGELS \u00b7 OPEN 6:30"
+  },
+  {
+   "model": "Bakery",
+   "where": "window neon",
+   "text": "OPEN"
+  },
+  {
+   "model": "Bakery",
+   "where": "interior",
+   "text": "TODAY'S BREAD: SOURDOUGH 6 \u00b7 BAGUETTE 3 \u00b7 RYE 5 \u00b7 CROISSANT 3.5"
+  },
+  {
+   "model": "Bakery",
+   "where": "house number",
+   "text": "74"
+  },
+  {
+   "model": "Florist",
+   "where": "fascia",
+   "text": "FLORIST / FLOWERS \u00b7 PLANTS \u00b7 GIFTS"
+  },
+  {
+   "model": "Florist",
+   "where": "A-frame",
+   "text": "SPRING: TULIPS 3 FOR $10 \u00b7 DAFFODILS \u00b7 POTTED HERBS \u00b7 BOUQUETS FROM $15"
+  },
+  {
+   "model": "Florist",
+   "where": "bucket tags",
+   "text": "$8"
+  },
+  {
+   "model": "Florist",
+   "where": "house number",
+   "text": "58"
+  },
+  {
+   "model": "ForLease",
+   "where": "window poster",
+   "text": "FOR LEASE / RETAIL SPACE / 1,200 SQ FT / CALL 555-0142"
+  },
+  {
+   "model": "ForLease",
+   "where": "agent posters",
+   "text": "AVAILABLE NOW / 555-0142"
+  },
+  {
+   "model": "ForLease",
+   "where": "faded old fascia",
+   "text": "HARDWARE & PAINT"
+  },
+  {
+   "model": "ForLease",
+   "where": "house number",
+   "text": "64"
+  },
+  {
+   "model": "Bank",
+   "where": "3D letters",
+   "text": "CITY BANK"
+  },
+  {
+   "model": "Bank",
+   "where": "ATM sign (lit)",
+   "text": "ATM 24H"
+  },
+  {
+   "model": "Bank",
+   "where": "door plaque",
+   "text": "CITY BANK / MON-FRI 9-5 / SAT 9-1 / ATM 24 HOURS"
+  },
+  {
+   "model": "Bank",
+   "where": "house number",
+   "text": "200"
+  },
+  {
+   "model": "Bank",
+   "where": "interior",
+   "text": "CITY BANK \u00b7 ATM \u00b7 WELCOME / OPEN 9-5"
+  }
+ ],
+ "conventions": {
+  "units": "metres; z=0 (Unity y=0) is sidewalk level; front facade faces Blender -Y = Unity +Z",
+  "origin": "corner buildings: exterior corner where the front and side facade lines meet (virtual corner for chamfered/rounded corners); mid-block: centre of the front facade base line, body toward +Y (Unity -Z); towers: same as mid-block (front facade centre, base)",
+  "material_colors": "color multiplies the texture (white = use texture as-is); emission uses the texture as emission map when a texture is set",
+  "uv": "tileable surfaces 1 UV unit = 2 m; signs, windows, interiors use atlas UVs (see atlas_layout.json)",
+  "children": "<Name>_Mesh (opaque), optional <Name>_Glass (transparent shop glass), <Name>_LOC_* locators (empties: shop interior light centres, wall lamps, entrances)"
+ }
+}

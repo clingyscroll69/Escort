@@ -320,10 +320,12 @@ namespace HS.Opening
 
             // ---- the head: up the street, down to the phone, up at the signal, back; then the truck
             float pitch = -7f, yaw = 0f;
-            pitch = Mathf.Lerp(pitch, -17f, Smooth(0.9f, 1.9f, t));
+            pitch = Mathf.Lerp(pitch, -20f, Smooth(0.9f, 1.9f, t));
+            pitch = Mathf.Lerp(pitch, -22f, Smooth(4.25f, 4.7f, t));    // reading the first notification
+            pitch = Mathf.Lerp(pitch, -20f, Smooth(6.0f, 6.6f, t));
             pitch = Mathf.Lerp(pitch, -1.5f, Smooth(7.05f, 7.5f, t));
             yaw = Mathf.Lerp(yaw, -5f, Smooth(7.05f, 7.5f, t));
-            pitch = Mathf.Lerp(pitch, -17.5f, Smooth(8.15f, 8.65f, t));
+            pitch = Mathf.Lerp(pitch, -22f, Smooth(8.15f, 8.65f, t));
             yaw = Mathf.Lerp(yaw, 0f, Smooth(8.15f, 8.65f, t));
             float whip = EaseOutBack(OpeningView.LookUpAt, OpeningView.LookUpAt + 0.42f, t, 1.2f);
             pitch = Mathf.Lerp(pitch, 2.5f, whip);
@@ -339,13 +341,14 @@ namespace HS.Opening
             HeadYaw = yaw;
             _head.localPosition = new Vector3(0f, 0f, 0f);
             _head.localRotation = Quaternion.Euler(-pitch, yaw, roll * (1f - whip));
-            Camera.fieldOfView = Mathf.Lerp(58f, 54f, Smooth(14.6f, 16f, t));
+            Camera.fieldOfView = Mathf.Lerp(60f, 54f, Smooth(14.4f, 16f, t));
 
             // ---- the phone, held in the right hand: low, raised to read, lowered for the glance, dropped at the end
             if (_phoneRig != null)
             {
-                Vector3 low = new Vector3(0.11f, -0.46f, 0.24f), walk = new Vector3(0.07f, -0.215f, 0.3f),
-                    read = new Vector3(0.055f, -0.185f, 0.27f), glance = new Vector3(0.09f, -0.27f, 0.29f),
+                // close enough to read (the lock screen is the star), high enough to leave the street in view above it
+                Vector3 low = new Vector3(0.11f, -0.46f, 0.24f), walk = new Vector3(0.065f, -0.135f, 0.25f),
+                    read = new Vector3(0.045f, -0.11f, 0.21f), glance = new Vector3(0.09f, -0.27f, 0.27f),
                     drop = new Vector3(0.17f, -0.66f, 0.16f);
                 var p = low;
                 p = Vector3.Lerp(p, walk, Smooth(0.9f, 1.9f, t));
@@ -360,9 +363,8 @@ namespace HS.Opening
                 float lag = Mathf.Sin(Mathf.PI * (k - 0.25f)) * walking;
                 p += new Vector3(0.004f * lag, -0.004f * impact * walking + 0.002f * Mathf.Sin(2f * Mathf.PI * (k - 0.2f)) * walking, 0f);
                 _phoneRig.localPosition = p;
-                // screen toward the eyes, tilted a touch, swaying with the steps; it tips away as it falls
-                var toEye = (-p).normalized;
-                var rot = Quaternion.LookRotation(toEye, Vector3.up) * Quaternion.Euler(0f, 0f, -4f + 1.2f * lag);
+                // screen toward the eyes (it faces the rig's -Z), tilted a touch, swaying with the steps; it tips away as it falls
+                var rot = Quaternion.LookRotation(p.normalized, Vector3.up) * Quaternion.Euler(0f, 0f, 4f - 1.2f * lag);
                 rot = Quaternion.Slerp(rot, rot * Quaternion.Euler(-70f, 15f, 25f), fall);
                 _phoneRig.localRotation = rot;
                 PhoneInView = _phoneRig.gameObject.activeSelf && InView(_phoneRig.position, 0.05f);
@@ -371,9 +373,10 @@ namespace HS.Opening
 
             // ---- focus: the street, the phone, the signal, the phone, the truck
             float focus = 14f;
-            focus = Mathf.Lerp(focus, 0.31f, Smooth(1.0f, 1.8f, t));
+            float phoneDist = _phoneRig != null ? _phoneRig.localPosition.magnitude : 0.3f;
+            focus = Mathf.Lerp(focus, phoneDist, Smooth(1.0f, 1.8f, t));
             focus = Mathf.Lerp(focus, 15f, Smooth(7.1f, 7.5f, t));
-            focus = Mathf.Lerp(focus, 0.3f, Smooth(8.15f, 8.6f, t));
+            focus = Mathf.Lerp(focus, phoneDist, Smooth(8.15f, 8.6f, t));
             focus = Mathf.Lerp(focus, Mathf.Max(1.2f, TruckX(t) - WalkX), Smooth(OpeningView.LookUpAt, OpeningView.LookUpAt + 0.3f, t));
             _dof.focusDistance.value = focus;
             _dof.aperture.value = Mathf.Lerp(9f, 5.6f, Smooth(OpeningView.LookUpAt, 16f, t));

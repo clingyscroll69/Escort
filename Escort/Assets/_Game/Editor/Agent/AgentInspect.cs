@@ -58,6 +58,29 @@ namespace HS.Agent
             AgentBridge.Write("inspect.json", sb.ToString());
         }
 
+        /// <summary>Every transform of model assets as imported (local pos/rot/scale) plus overall bounds. Args {"paths":"..."}</summary>
+        [MenuItem("Tools/Agent/Inspect Model Hierarchy")]
+        public static void InspectModelHierarchy()
+        {
+            var args = AgentBridge.ReadArgs("inspect_args.json");
+            var sb = new StringBuilder("[");
+            foreach (var path in (args.TryGetValue("paths", out var p) ? p : "").Split(','))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path.Trim());
+                if (asset == null) continue;
+                var go = (GameObject)Object.Instantiate(asset);
+                var rs = go.GetComponentsInChildren<Renderer>();
+                var b = rs.Length > 0 ? rs[0].bounds : new Bounds();
+                foreach (var r in rs) b.Encapsulate(r.bounds);
+                sb.Append($"\"{asset.name}: bounds size={b.size:F2} center={b.center:F2}\",");
+                foreach (var t in go.GetComponentsInChildren<Transform>())
+                    sb.Append($"\"  {GetPath(t)} pos={t.localPosition:F3} rot={t.localEulerAngles:F1} scale={t.localScale:F2}\",");
+                Object.DestroyImmediate(go);
+            }
+            sb.Append("\"end\"]");
+            AgentBridge.Write("inspect.json", sb.ToString());
+        }
+
         /// <summary>World-space arm/leg directions of model assets in their default pose. Args {"paths":"..."}</summary>
         [MenuItem("Tools/Agent/Inspect Pose")]
         public static void InspectPose()
