@@ -39,6 +39,8 @@ namespace HS.Tutorial
                 case "pause": return First(input.Pause, pad);
                 case "confirm": return First(input.Confirm, pad);
                 case "cancel": return First(input.Cancel, pad);
+                case "demoskip": return First(input.DemoSkip, pad);
+                case "demoreplay": return First(input.DemoReplay, pad);
             }
             if (token != null && token.StartsWith("skill") && int.TryParse(token.Substring(5), out int n) && n >= 1 && n <= input.Skills.Length)
                 return First(input.Skills[n - 1], pad);

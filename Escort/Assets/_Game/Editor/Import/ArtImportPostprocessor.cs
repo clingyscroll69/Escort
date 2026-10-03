@@ -98,6 +98,7 @@ namespace HS.EditorTools
                 float b = n.StartsWith("panel") ? 20f : n switch { "bar" => 10f, "keycap" => 14f, "slot" => 22f, "card" => 24f, _ => 0f };
                 ui.spriteBorder = new Vector4(b, b, b, b);
                 // Tiled fills (the demo stage's floor grid, locked-entry hatching) need repeat wrapping and a full-rect mesh.
+                if (n == "grid_disc") ui.mipmapEnabled = true; // a floor seen at an angle: mips keep its lines from shimmering
                 if (n == "grid" || n == "hatch")
                 {
                     ui.wrapMode = TextureWrapMode.Repeat;

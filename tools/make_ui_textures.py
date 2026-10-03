@@ -184,6 +184,26 @@ def tutorial():
             fx = smoothstep(0, 32, x) * smoothstep(0, 32, 127 - x)
             lp[x, y] = (255, 255, 255, int(round(255 * vy * fx)))
     ln.save(f'{OUT}/line.png')
+    # grid_disc: the demo stage's floor — a dark disc that fades out at its rim, with a fine glowing grid on it
+    # (16 cells across, a brighter line every 4)
+    S0 = 1024
+    gd = Image.new('RGBA', (S0, S0), (0, 0, 0, 0))
+    gp = gd.load()
+    for y in range(S0):
+        for x in range(S0):
+            r = ((x + 0.5 - S0 / 2) ** 2 + (y + 0.5 - S0 / 2) ** 2) ** 0.5 / (S0 / 2)
+            fade = 1.0 - smoothstep(0.5, 1.0, r)
+            if fade <= 0:
+                continue
+            major = (x % 256 < 3) or (y % 256 < 3)
+            minor = (x % 64 < 2) or (y % 64 < 2)
+            if major:
+                gp[x, y] = (110, 214, 245, int(round(255 * 0.5 * fade)))
+            elif minor:
+                gp[x, y] = (96, 190, 225, int(round(255 * 0.26 * fade)))
+            else:
+                gp[x, y] = (12, 26, 42, int(round(255 * 0.94 * fade)))
+    gd.save(f'{OUT}/grid_disc.png')
     print('tutorial sprites written to', OUT)
 
 

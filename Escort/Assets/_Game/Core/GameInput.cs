@@ -18,6 +18,8 @@ namespace HS.Core
         public readonly InputAction Move, AimPointer, AimStick, Attack, Dodge, Ping, Interact, Crouch, Walk, Pause, Insight;
         public readonly InputAction[] Skills = new InputAction[4];
         public readonly InputAction Navigate, Confirm, Cancel, Any;
+        /// <summary>Skill demos (picker, Field Guide): skip to the end card / play again.</summary>
+        public readonly InputAction DemoSkip, DemoReplay;
 
         public bool UsingGamepad { get; private set; }
 
@@ -84,6 +86,10 @@ namespace HS.Core
             Cancel = UI.AddAction("Cancel", InputActionType.Button, "<Keyboard>/escape");
             Cancel.AddBinding("<Keyboard>/backspace");
             Cancel.AddBinding("<Gamepad>/buttonEast");
+            DemoSkip = UI.AddAction("DemoSkip", InputActionType.Button, "<Keyboard>/f");
+            DemoSkip.AddBinding("<Gamepad>/buttonWest");
+            DemoReplay = UI.AddAction("DemoReplay", InputActionType.Button, "<Keyboard>/r");
+            DemoReplay.AddBinding("<Gamepad>/buttonNorth");
             Any = UI.AddAction("Any", InputActionType.Button, "<Keyboard>/anyKey");
             Any.AddBinding("<Mouse>/leftButton");
             Any.AddBinding("<Gamepad>/buttonSouth");

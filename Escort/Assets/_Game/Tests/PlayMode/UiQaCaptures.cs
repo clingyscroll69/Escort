@@ -60,6 +60,51 @@ namespace HS.Tests
 
         static void Shot(string name) => QaCapture.Capture(Camera.main, name, 1600, 900);
 
+        /// <summary>Each skill's demo in a large viewport, captured at two moments that carry its point.</summary>
+        [UnityTest]
+        [Timeout(300000)]
+        public IEnumerator Skill_Demos_Mid_Play()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            SimLoop.Ensure().Paused = true;
+            var sun = new GameObject("TestSun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            sun.intensity = 1.35f;
+            sun.color = new Color(1f, 0.95f, 0.86f);
+            sun.shadows = LightShadows.Soft;
+            sun.transform.rotation = Quaternion.Euler(48f, -38f, 0f);
+            RenderSettings.sun = sun;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.66f, 0.74f, 0.86f);
+            RenderSettings.ambientEquatorColor = new Color(0.56f, 0.58f, 0.52f);
+            RenderSettings.ambientGroundColor = new Color(0.32f, 0.3f, 0.26f);
+            var cam = new GameObject("Main Camera") { tag = "MainCamera" }.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.03f, 0.04f, 0.07f);
+            HS.Audio.AudioDirector.Ensure();
+            var vp = HS.UI.DemoViewport.Create(HS.UI.UIKit.Stretch(HS.UI.UIRoot.Ensure().Overlay, "Host"), new Vector2(1280f, 720f));
+            var moments = new (string id, int rank, float[] at)[]
+            {
+                ("pocket_sand", 1, new[] { 3.6f, 7.9f }), ("loosen_bolt", 1, new[] { 2.4f, 6.3f }), ("quiet_feet", 1, new[] { 2.8f, 6.8f }),
+                ("crossbow", 2, new[] { 1.85f, 6.3f }), ("bandage", 1, new[] { 2.6f, 5.2f }), ("cover_story", 1, new[] { 3.6f, 6.4f }),
+            };
+            foreach (var (id, rank, at) in moments)
+            {
+                vp.Play(id, rank);
+                for (int k = 0; k < at.Length; k++)
+                {
+                    yield return TestUi.WaitUntil(() => vp.Time >= at[k] || vp.AtEndCard, 20f, $"{id} at {at[k]} s");
+                    yield return null;
+                    Shot($"ui_demo_{id}_{k}");
+                }
+                vp.Skip();
+                yield return new WaitForSecondsRealtime(0.5f);
+                if (id == "pocket_sand") Shot("ui_demo_endcard");
+            }
+            vp.Stop();
+            TestUi.TearDownAll();
+        }
+
         [UnityTest]
         [Timeout(240000)]
         public IEnumerator Tutorial_And_Hud_On_The_Old_Road()

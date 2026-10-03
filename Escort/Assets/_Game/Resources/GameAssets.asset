@@ -38,3 +38,14 @@ MonoBehaviour:
     prefab: {fileID: 2258511670446075465, guid: 71d0f6da417684131b5af041c3cc1fdb, type: 3}
   - id: ashgrave
     prefab: {fileID: 4666745564200112433, guid: 13096d9c1738f4a068c29d6162e6d787, type: 3}
+  demoProps:
+  - id: barrel_stack
+    prefab: {fileID: 5136621309628842892, guid: b81027a719c15436dbd2544eb860c0ab, type: 3}
+  - id: crate_perch
+    prefab: {fileID: 6502456168443677656, guid: a95915ba2d5db47b0a585eba593e4def, type: 3}
+  - id: bush
+    prefab: {fileID: 4837807293414791598, guid: 8efc1b3cbd8fa4f52b904074b637c82e, type: 3}
+  - id: stone
+    prefab: {fileID: 897250466392082100, guid: 7a518b57a19364f26b1d415ef1c208eb, type: 3}
+  - id: rock
+    prefab: {fileID: 6542348255413604660, guid: c1d82e5d99c004a66ac8755d9f987013, type: 3}

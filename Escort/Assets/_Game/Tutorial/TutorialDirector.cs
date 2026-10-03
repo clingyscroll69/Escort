@@ -56,6 +56,7 @@ namespace HS.Tutorial
         public static TutorialDirector Create(GameFlow flow)
         {
             var go = new GameObject("TutorialDirector");
+            if (flow != null) go.transform.SetParent(flow.transform, false); // the flow's: it goes when the flow goes
             var d = go.AddComponent<TutorialDirector>();
             d.Flow = flow;
             var hud = flow != null && flow.Chapter != null ? flow.Chapter.Hud : null;
