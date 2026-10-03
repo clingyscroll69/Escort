@@ -241,12 +241,22 @@ namespace HS.Tutorial
             if (_flow.Camp != null && (fade == null || !fade.Busy)) _d.Offer("camp");
         }
 
+        float _termsSince = -1f;
+
         void TickDuel(HeroAgent hero)
         {
             if (_flow.Duel != null && _duel != _flow.Duel) _duel = _flow.Duel;
             var fade = ScreenFade.Instance;
-            if (_duel != null && _duel.Current == RiggedDuelDirector.Phase.Terms && (fade == null || !fade.Busy))
-                _d.Offer("duel", spotlight: DuelSpot);
+            bool terms = _duel != null && _duel.Current == RiggedDuelDirector.Phase.Terms && (fade == null || !fade.Busy);
+            if (!terms)
+            {
+                _termsSince = -1f;
+                return;
+            }
+            // Give the camera a moment to arrive at the arena (the terms last 8 s), so the lesson shows the duel.
+            if (_termsSince < 0f) _termsSince = Time.unscaledTime;
+            // The lesson is about his oath: the light is on him (Ashgrave may still be off the top of the screen).
+            if (Time.unscaledTime - _termsSince >= 1.6f) _d.Offer("duel", spotlight: HeroSpot);
         }
 
         void ScanEnemies(HeroAgent hero)
@@ -368,14 +378,6 @@ namespace HS.Tutorial
             var left = Quaternion.Euler(0f, -half, 0f) * f * range;
             var right = Quaternion.Euler(0f, half, 0f) * f * range;
             return ScreenRect(30f, h.Position, h.Position + Vector3.up * 2.4f, h.Position + left, h.Position + right, h.Position + f * range);
-        }
-
-        Rect? DuelSpot()
-        {
-            var h = Hero;
-            if (h == null) return null;
-            var a = _duel != null && _duel.Ashgrave != null ? _duel.Ashgrave.Position : h.Position + h.Forward * 4f;
-            return ScreenRect(70f, h.Position, h.Position + Vector3.up * 2.6f, a, a + Vector3.up * 2.6f);
         }
     }
 }

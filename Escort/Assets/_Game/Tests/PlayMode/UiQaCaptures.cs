@@ -90,6 +90,41 @@ namespace HS.Tests
             yield return null;
         }
 
+        /// <summary>The rigged duel from its Restore Point: the "formal duel" freeze-frame, then the boss bar mid-fight.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Duel_Lesson_And_Boss_Bar()
+        {
+            var point = new RunState.Point { Seed = 2, Level = 2, Xp = 130, HeroStage = Stage.S0 };
+            foreach (var id in new[] { "pocket_sand", "crossbow", "quiet_feet" })
+            {
+                point.Skills.Add((id, 1));
+                if (HS.Skills.SkillCatalog.Load().Get(id).UsesSlot) point.Loadout.Add(id);
+            }
+            RunState.ChapterStart = point;
+            RunState.Campfire = point;
+            RunState.Resume = "campfire";
+            RunState.Runs = 1;
+            foreach (var id in new[] { "move", "hero_rules", "cone", "insight", "salute" }) HS.Tutorial.TutorialProgress.MarkSeen(id);
+#if UNITY_EDITOR
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(MainScene, new LoadSceneParameters(LoadSceneMode.Single));
+#endif
+            yield return null;
+            var flow = Object.FindAnyObjectByType<GameFlow>();
+            var sk = flow.Chapter.Sidekick;
+            var pc = sk.GetComponent<HS.Sidekick.PlayerCommands>();
+            if (pc != null) pc.enabled = false;
+            sk.Commands = HS.Bots.BotFactory.Make("follow", sk);
+            var dir = flow.Tutorial;
+            yield return TestUi.WaitUntil(() => dir.Showing == "duel" && dir.FocusOpen, 20f, "the duel lesson");
+            yield return new WaitForSecondsRealtime(0.6f);
+            Shot("ui_focus_duel");
+            dir.ContinueFocus();
+            yield return TestUi.WaitUntil(() => flow.Duel != null && flow.Duel.Current == HS.Boss.RiggedDuelDirector.Phase.Duel, 20f, "the duel proper");
+            yield return new WaitForSecondsRealtime(4f);
+            Shot("ui_boss_duel");
+        }
+
         /// <summary>The pause menu's pages and the Field Guide's tabs, over the road.</summary>
         [UnityTest]
         [Timeout(240000)]

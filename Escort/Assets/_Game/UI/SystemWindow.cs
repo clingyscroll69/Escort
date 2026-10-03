@@ -25,7 +25,7 @@ namespace HS.UI
         }
 
         readonly Queue<Msg> _queue = new Queue<Msg>();
-        RectTransform _panel;
+        RectTransform _panel, _rule;
         CanvasGroup _group;
         TextMeshProUGUI _title, _body;
         Image _border;
@@ -51,9 +51,16 @@ namespace HS.UI
             _group = _panel.gameObject.AddComponent<CanvasGroup>();
             UIKit.Image(_panel, "Bg", UIKit.Panel, UIKit.SystemBg);
             _border = UIKit.Image(_panel, "Border", UIKit.Border, UIKit.SystemCyan);
+            UIKit.Brackets(_panel, UIKit.SystemCyan, 16f, -4f);
             _title = UIKit.Text(_panel, "Title", "» SYSTEM", UIKit.Mono, 20, UIKit.SystemCyan, TextAlignmentOptions.TopLeft);
             _title.rectTransform.offsetMin = new Vector2(22f, 0f);
             _title.rectTransform.offsetMax = new Vector2(-22f, -12f);
+            // A soft rule under the header (the System's window chrome).
+            _rule = UIKit.Rect(_panel, "Rule", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(Width - 44f, 4f), new Vector2(22f, -38f));
+            var rule = _rule.gameObject.AddComponent<Image>();
+            rule.sprite = UIKit.UISprite("line");
+            rule.color = new Color(UIKit.SystemCyan.r, UIKit.SystemCyan.g, UIKit.SystemCyan.b, 0.45f);
+            rule.raycastTarget = false;
             _body = UIKit.Text(_panel, "Body", "", UIKit.Mono, 25, new Color(0.88f, 0.97f, 1f), TextAlignmentOptions.TopLeft);
             _body.rectTransform.offsetMin = new Vector2(24f, 18f);
             _body.rectTransform.offsetMax = new Vector2(-24f, -44f);
@@ -96,6 +103,9 @@ namespace HS.UI
                 var col = _cur.Error ? UIKit.Danger : UIKit.SystemCyan;
                 _border.color = col;
                 _title.color = col;
+                foreach (var img in _panel.GetComponentsInChildren<Image>())
+                    if (img.name.StartsWith("Bracket")) img.color = col;
+                _rule.GetComponent<Image>().color = new Color(col.r, col.g, col.b, 0.45f);
                 _title.text = _cur.Error ? "» SYSTEM  <size=80%>ERROR</size>" : "» SYSTEM";
                 float h = _body.GetPreferredValues(_cur.Text, Width - 48f, 0f).y + 70f;
                 _panel.sizeDelta = new Vector2(Width, Mathf.Max(110f, h));

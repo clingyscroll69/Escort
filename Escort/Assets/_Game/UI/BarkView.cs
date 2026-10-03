@@ -185,7 +185,7 @@ namespace HS.UI
             b.Root.anchoredPosition = p;
         }
 
-        const float TopBand = 150f; // keep clear of the hero panel / boss bar
+        const float TopBand = 205f; // keep clear of the hero card / boss bar
 
         /// <summary>Two bubbles must never cover each other: push the newer one up past the older.</summary>
         void Separate()
