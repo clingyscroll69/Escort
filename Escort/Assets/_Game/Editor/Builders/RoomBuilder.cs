@@ -292,7 +292,9 @@ namespace HS.EditorTools
             Place(set, "Corner_ExteriorWide_Brick", new Vector3(1.9f, 0f, 22f), 90f, 1.2f, Col.Box);
             var lintel = Place(set, "Roof_Log", new Vector3(0f, -1.3f, 22.1f), 0f, 0.36f);
             lintel.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-            // Rubble mound the crossbowman stands behind
+            // Rubble mound the crossbowman stands behind. The rock colliders are big boxes (~6 m across), so he stands on open
+            // ground north of them, covering the corridor mouth — not inside them, where he'd be shoved up onto an unreachable
+            // invisible perch that blocks both the knife and bolts.
             Place(set, "Rock_Medium_2", new Vector3(6.4f, 0f, 29.6f), 30f, 0.8f, Col.Box);
             Place(set, "Rock_Medium_1", new Vector3(8.2f, 0f, 30.8f), 110f, 0.7f, Col.Box);
             // Alcove with a cache behind the left wall gap at z = 17
@@ -306,11 +308,11 @@ namespace HS.EditorTools
             Stone(t, new Vector3(-6.2f, 0f, 36.5f), 120f);
             Encounter(t, new Vector3(0f, 0f, 32f), 12.5f);
             var enc = Empty(t, "Spawns", Vector3.zero).transform;
-            Spawn(enc, "crossbowman", new Vector3(7.4f, 0f, 30.2f), 240f, elevated: true);
+            Spawn(enc, "crossbowman", new Vector3(6.4f, 0f, 33.8f), 290f, elevated: true);
             Spawn(enc, "thug", new Vector3(0f, 0f, 38.4f), 180f);
             var v1 = Variant(t, 1);
             Spawn(v1, "thug", new Vector3(-2.6f, 0f, 39.6f), 170f);
-            Spawn(v1, "crossbowman", new Vector3(-7.4f, 0f, 31.4f), 120f, elevated: true);
+            Spawn(v1, "crossbowman", new Vector3(-6.6f, 0f, 33.8f), 70f, elevated: true);
             Place(v1, "Rock_Medium_3", new Vector3(-6.2f, 0f, 30.2f), 60f, 0.7f, Col.Box);
             Variant(t, 0); // base layout only
             RoomKit.Route(t, (new Vector3(0, 0, 0.6f), false, false, ""), (new Vector3(0.2f, 0, 8.6f), true, true, "the gatehouse"),
@@ -355,7 +357,7 @@ namespace HS.EditorTools
             Spawn(enc, "thug", new Vector3(-4f, 0f, 28.2f), 150f);
             Spawn(enc, "thug", new Vector3(4.4f, 0f, 29.6f), 210f);
             Spawn(Variant(t, 0), "turncoat", new Vector3(2f, 0f, 31.8f), 180f);
-            Spawn(Variant(t, 1), "crossbowman", new Vector3(7.6f, 0f, 28.6f), 230f, elevated: true);
+            Spawn(Variant(t, 1), "crossbowman", new Vector3(6.6f, 0f, 30.4f), 215f, elevated: true); // behind the wagon, not on it
             RoomKit.Route(t, (new Vector3(0, 0, 0.6f), false, false, ""), (new Vector3(0.3f, 0, 7), false, false, ""),
                 (new Vector3(0, 0, 14.2f), true, true, "the camp"), (new Vector3(0, 0, 21), false, false, ""),
                 (new Vector3(0.3f, 0, 28), false, false, ""), (new Vector3(0.4f, 0, 35), false, false, ""), (new Vector3(0, 0, 41.6f), false, false, ""));

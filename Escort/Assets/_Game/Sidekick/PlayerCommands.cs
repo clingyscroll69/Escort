@@ -68,6 +68,14 @@ namespace HS.Sidekick
                     _aim = ray.GetPoint(d);
                     _hasAim = true;
                 }
+                // Pointing at a shooter up on a perch lands the ground-plane aim metres behind him (too far for skills to
+                // mark him). Pointing at his body means aiming at *him*.
+                var raised = RaisedEnemyUnder(ray, origin.y);
+                if (raised != null)
+                {
+                    _aim = new Vector3(raised.Position.x, origin.y, raised.Position.z);
+                    _hasAim = true;
+                }
             }
 
             if (_in.Attack.WasPressedThisFrame()) _latched.Attack = true;
@@ -81,6 +89,28 @@ namespace HS.Sidekick
                 if (_in.Skills[i].WasPressedThisFrame()) _latched.Skill = i;
                 if (_in.Skills[i].IsPressed()) _skillHeld = true;
             }
+        }
+
+        /// <summary>The visible enemy standing well above the sidekick's ground whose body the pointer ray passes through.</summary>
+        static Agent RaisedEnemyUnder(Ray ray, float groundY)
+        {
+            Agent best = null;
+            float bestD = 0.6f;
+            var all = AgentRegistry.All;
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (!(all[i] is HS.Enemies.EnemyAgent e) || !e.IsAlive || e.IsHidden || e.Position.y - groundY < 0.6f) continue;
+                for (float h = 0.3f; h <= 1.6f; h += 0.65f)
+                {
+                    float dist = Vector3.Cross(ray.direction, e.Position + Vector3.up * h - ray.origin).magnitude;
+                    if (dist < bestD)
+                    {
+                        bestD = dist;
+                        best = e;
+                    }
+                }
+            }
+            return best;
         }
 
         public SidekickCommand Next(SidekickAgent self)
