@@ -264,5 +264,44 @@ namespace HS.Tests
             yield return new WaitForSecondsRealtime(0.8f);
             Shot("ui_hud_fight");
         }
+
+        /// <summary>Hits on enemies on the real road: the flash, the number (Callum's white, the sidekick's ochre), the bars.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Hits_On_Enemies()
+        {
+            yield return LoadMainResumingChapter("pocket_sand", "crossbow");
+            var flow = Object.FindAnyObjectByType<GameFlow>();
+            var sk = flow.Chapter.Sidekick;
+            var pc = sk.GetComponent<HS.Sidekick.PlayerCommands>();
+            if (pc != null) pc.enabled = false;
+            sk.Commands = HS.Bots.BotFactory.Make("supportive", sk);
+            TutorialProgress.TipsEnabled = false; // the fight alone
+            string pending = null;
+            int hero = 0, side = 0;
+            RunContext.Current.Events.Damage += (d, applied) =>
+            {
+                if (!(d.Target is HS.Enemies.EnemyAgent)) return;
+                Debug.Log($"[QA] hit {d.Tag} by {(d.Source != null ? d.Source.name : "-")} on {d.Target.name}: {applied:0.#}");
+                if (pending != null) return;
+                if (d.FromSidekick && side < 2) pending = "ui_hit_sidekick_" + side++;
+                else if (d.Source == flow.Chapter.Hero && hero < 3) pending = "ui_hit_hero_" + hero++;
+            };
+            float until = Time.realtimeSinceStartup + 150f;
+            while (Time.realtimeSinceStartup < until && (hero < 3 || side < 2 || pending != null))
+            {
+                if (flow.Tutorial != null && flow.Tutorial.FocusOpen) flow.Tutorial.ContinueFocus();
+                if (pending != null)
+                {
+                    yield return new WaitForSecondsRealtime(0.07f); // the flash at its peak, the number just popped
+                    Shot(pending);
+                    pending = null;
+                    yield return new WaitForSecondsRealtime(0.9f);
+                }
+                yield return null;
+            }
+            Debug.Log($"[QA] hit captures: hero {hero}, sidekick {side}");
+            Assert.Greater(hero, 0, "Callum landed a blow on the road");
+        }
     }
 }

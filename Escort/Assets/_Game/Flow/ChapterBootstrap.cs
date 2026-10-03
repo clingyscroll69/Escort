@@ -90,6 +90,7 @@ namespace HS.Flow
             HS.UI.BarkView.Create(ui);
             HS.UI.SystemWindow.Create(ui);
             HS.UI.ThreatIndicators.Create(ui);
+            HS.UI.HitFeedback.Create(ui, Hud);
             var streamer = gameObject.AddComponent<RoomStreamer>();
             streamer.Chapter = Chapter;
             streamer.Focus = Hero.transform;

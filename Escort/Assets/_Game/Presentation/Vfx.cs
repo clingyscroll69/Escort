@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HS.Presentation
 {
-    public enum VfxKind { Sand, Dust, Sparks, Heal, Glint, Reveal }
+    public enum VfxKind { Sand, Dust, Sparks, Heal, Glint, Reveal, Hit }
 
     /// <summary>
     /// Pooled procedural particle bursts (no authored assets besides Resources/FX materials). Presentation only.
@@ -134,7 +134,7 @@ namespace HS.Presentation
             var size = ps.sizeOverLifetime;
             size.enabled = true;
             var r = go.GetComponent<ParticleSystemRenderer>();
-            r.sharedMaterial = Mat(kind == VfxKind.Sparks || kind == VfxKind.Glint ? "FX_Spark" : "FX_Soft");
+            r.sharedMaterial = Mat(kind == VfxKind.Sparks || kind == VfxKind.Glint || kind == VfxKind.Hit ? "FX_Spark" : "FX_Soft");
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             Gradient g = new Gradient();
             switch (kind)
@@ -165,6 +165,17 @@ namespace HS.Presentation
                     shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = 0.1f;
                     g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.5f, 0.2f), 1f) }, new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
                     size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.3f));
+                    break;
+                case VfxKind.Hit:
+                    // A blow landing: a quick white star of streaks that cools to red (HitFeedback).
+                    main.duration = 0.15f; main.startLifetime = new ParticleSystem.MinMaxCurve(0.1f, 0.22f);
+                    main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 9f); main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.1f);
+                    main.startColor = new Color(1f, 0.97f, 0.9f, 1f); main.gravityModifier = 0f;
+                    em.SetBursts(new[] { new ParticleSystem.Burst(0f, 10) });
+                    shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = 0.08f;
+                    g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.4f, 0.28f), 1f) }, new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+                    size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.4f));
+                    r.renderMode = ParticleSystemRenderMode.Stretch; r.lengthScale = 2.5f; r.velocityScale = 0.04f;
                     break;
                 case VfxKind.Heal:
                     main.duration = 1.2f; main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.4f);

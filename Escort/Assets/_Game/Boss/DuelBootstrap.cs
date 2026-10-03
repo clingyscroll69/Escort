@@ -52,6 +52,7 @@ namespace HS.Boss
             BarkView.Create(ui);
             SystemWindow.Create(ui);
             ThreatIndicators.Create(ui);
+            HitFeedback.Create(ui, Hud);
             Director = new GameObject("RiggedDuel").AddComponent<RiggedDuelDirector>();
             Director.Begin(Arena, Hero, Sidekick, assets.Enemy);
             Hud.ShowBoss(null, "");

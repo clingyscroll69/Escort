@@ -290,6 +290,9 @@ namespace HS.UI
         }
 
         // --------------------------------------------------------------------------------------------- public API
+        /// <summary>Whoever has the big bar at the top of the screen (null = none).</summary>
+        public Agent Boss => _boss;
+
         public void ShowBoss(Agent boss, string displayName)
         {
             _boss = boss;
