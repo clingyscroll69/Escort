@@ -40,7 +40,7 @@ namespace HS.UI
         Action _onContinue;
         float _focusT;
         bool _focusOn;
-        const float FocusDim = 0.74f, FocusInputDelay = 0.45f;
+        const float FocusDim = 0.8f, FocusInputDelay = 0.45f;
 
         // coach marks and world markers
         readonly List<(Image img, float until)> _coach = new List<(Image, float)>();

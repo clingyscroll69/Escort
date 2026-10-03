@@ -37,6 +37,7 @@ namespace HS.QA
             cam.Render();
             cam.cullingMask = mask;
             foreach (var c in overlays) c.renderMode = RenderMode.ScreenSpaceOverlay;
+            Canvas.ForceUpdateCanvases(); // back in screen space now: clicks and layout this frame must see the screen's layout
             RenderTexture.active = rt;
             var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
             tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);

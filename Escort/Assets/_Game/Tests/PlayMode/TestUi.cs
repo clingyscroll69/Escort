@@ -28,7 +28,7 @@ namespace HS.Tests
             };
             var hits = new List<RaycastResult>();
             EventSystem.current.RaycastAll(ped, hits);
-            Assert.IsNotEmpty(hits, name + " takes clicks");
+            Assert.IsNotEmpty(hits, $"{name} takes clicks (at {ped.position} on a {Screen.width}x{Screen.height} screen)");
             Assert.IsTrue(hits[0].gameObject.transform.IsChildOf(target), $"{name} is under {hits[0].gameObject.name}");
             ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, ped, ExecuteEvents.pointerClickHandler);
         }

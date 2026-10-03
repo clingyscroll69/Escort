@@ -90,6 +90,50 @@ namespace HS.Tests
             yield return null;
         }
 
+        /// <summary>The pause menu's pages and the Field Guide's tabs, over the road.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Pause_And_Field_Guide()
+        {
+            yield return LoadMainResumingChapter("pocket_sand", "quiet_feet", "crossbow");
+            var flow = Object.FindAnyObjectByType<GameFlow>();
+            HS.Tutorial.TutorialProgress.TipsEnabled = false;
+            foreach (var id in new[] { "move", "hero_rules", "insight", "cone", "salute", "dodge", "stone", "trap", "caught" })
+                HS.Tutorial.TutorialProgress.MarkSeen(id);
+            HS.Tutorial.TutorialProgress.TipsEnabled = true;
+            yield return new WaitForSecondsRealtime(1f);
+            HS.Tutorial.ModalGate.Clear();
+            flow.Pause.Open();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Shot("ui_pause");
+            TestUi.Click("Pause_SETTINGS");
+            yield return null;
+            Shot("ui_pause_settings");
+            TestUi.Click("Pause_BACK");
+            yield return null;
+            TestUi.Click("Pause_CONTROLS");
+            yield return null;
+            Shot("ui_pause_controls");
+            TestUi.Click("Pause_BACK");
+            yield return null;
+            TestUi.Click("Pause_FIELD_GUIDE");
+            yield return null;
+            TestUi.Click("Cat_TheHero");
+            yield return null;
+            TestUi.Click("Lesson_cone");
+            yield return null;
+            Shot("ui_guide_tips");
+            HS.UI.FieldGuide.Current.SelectTab("skills");
+            yield return new WaitForSecondsRealtime(2.6f);
+            Shot("ui_guide_skills");
+            HS.UI.FieldGuide.Current.SelectTab("controls");
+            yield return null;
+            Shot("ui_guide_controls");
+            HS.UI.FieldGuide.Current.Close();
+            flow.Pause.Close();
+            yield return null;
+        }
+
         /// <summary>Each skill's demo in a large viewport, captured at two moments that carry its point.</summary>
         [UnityTest]
         [Timeout(300000)]

@@ -43,6 +43,8 @@ namespace HS.Flow
         public XpTracker Xp { get; private set; }
         /// <summary>The learn-as-you-go tutorial (players only: AutoPlay runs never get one).</summary>
         public HS.Tutorial.TutorialDirector Tutorial { get; private set; }
+        /// <summary>Esc / Start (players only).</summary>
+        public PauseMenu Pause { get; private set; }
         public string Outcome { get; private set; }
         public string LastHitTag { get; private set; }
 
@@ -112,6 +114,7 @@ namespace HS.Flow
             {
                 Chapter.Hud.InsightOn = HS.Tutorial.TutorialProgress.InsightDefault;
                 Tutorial = HS.Tutorial.TutorialDirector.Create(this);
+                Pause = PauseMenu.Create(UIRoot.Ensure(), this);
             }
             _ctx.Events.Damage += (d, applied) =>
             {

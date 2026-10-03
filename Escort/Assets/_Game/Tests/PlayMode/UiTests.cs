@@ -180,6 +180,53 @@ namespace HS.Tests
         }
 
         [UnityTest]
+        public IEnumerator Pause_Freezes_The_Road_And_Resumes()
+        {
+            TutorialProgress.TipsEnabled = false; // no lesson holding the screen
+            var flow = TestUi.StartChapterAsPlayer();
+            yield return null;
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.Chapter, 5f, "the road");
+            var menu = flow.Pause;
+            Assert.IsNotNull(menu, "players get a pause menu");
+            menu.Open();
+            yield return null;
+            Assert.IsTrue(menu.IsOpen);
+            Assert.IsTrue(SimLoop.Instance.Paused, "the road holds still");
+            Assert.IsFalse(GameInput.Instance.Gameplay.enabled);
+            TestUi.Click("Pause_SETTINGS");
+            yield return null;
+            Assert.AreEqual("settings", menu.Page);
+            TestUi.Click("Pause_TIPS");
+            yield return null;
+            Assert.IsTrue(TutorialProgress.TipsEnabled, "the toggle flips the setting");
+            menu.Close();
+            yield return null;
+            Assert.IsFalse(SimLoop.Instance.Paused);
+            Assert.IsTrue(GameInput.Instance.Gameplay.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator Field_Guide_Lists_What_You_Have_Learned()
+        {
+            TutorialProgress.MarkSeen("cone");
+            var g = FieldGuide.Show(UIRoot.Ensure(), "tips", null);
+            yield return null;
+            CollectionAssert.Contains(g.ListedLessons, "cone");
+            CollectionAssert.DoesNotContain(g.ListedLessons, "duel", "lessons not met yet stay ???");
+            Assert.Greater(g.LockedCount, 0);
+            g.SelectTab("skills");
+            yield return null;
+            Assert.IsNotNull(GameObject.Find("GuideSkill_pocket_sand"));
+            g.SelectTab("controls");
+            yield return null;
+            Assert.IsNotNull(GameObject.Find("Row_ping"));
+            g.Close();
+            yield return null;
+            Assert.IsNull(FieldGuide.Current);
+            Assert.AreEqual(0, ModalGate.Count, "closing the guide releases the game");
+        }
+
+        [UnityTest]
         public IEnumerator Toast_Shows_Then_Times_Out()
         {
             var view = TipView.Create(UIRoot.Ensure(), null);

@@ -27,22 +27,21 @@ namespace HS.UI
         public bool LoadoutEditable { get; private set; }
         public string Selected => _selected;
         public string Shown => _shown;
-        public DemoViewport Demo { get; private set; }
-        public IReadOnlyList<string> SynergyPartners => _partners;
+        public DemoViewport Demo => _panel != null ? _panel.Demo : null;
+        public IReadOnlyList<string> SynergyPartners => _panel != null ? _panel.SynergyPartners : (IReadOnlyList<string>)new string[0];
 
         SkillSystem _sys;
         string _selected, _shown, _titleText, _continueLabel;
-        readonly List<string> _partners = new List<string>();
         readonly Dictionary<string, Row> _rows = new Dictionary<string, Row>();
-        RectTransform _window, _list, _detail, _synergies, _loadout, _flourish;
-        TextMeshProUGUI _title, _picks, _hint, _name, _meta, _tagline, _stats, _conduct, _uses, _loadoutHeader, _flourishText;
-        Image _conductBg;
+        RectTransform _window, _list, _loadout, _flourish;
+        TextMeshProUGUI _title, _picks, _hint, _loadoutHeader, _flourishText;
+        SkillDetailPanel _panel;
         Button _continue;
         CanvasGroup _flourishGroup;
         float _flourishT = -1f;
         object _gate;
 
-        const float W = 1640f, H = 940f, ListW = 470f, CardH = 88f, ViewW = 620f, ViewH = 349f;
+        const float W = 1640f, H = 940f, ListW = 470f, CardH = 88f;
 
         sealed class Row
         {
@@ -83,7 +82,7 @@ namespace HS.UI
         // ------------------------------------------------------------------------------------------------------ build
         void Build()
         {
-            var dim = UIKit.Image(transform, "Dim", null, new Color(0.01f, 0.02f, 0.04f, 0.72f), false);
+            var dim = UIKit.Image(transform, "Dim", null, new Color(0.01f, 0.02f, 0.04f, 0.82f), false);
             dim.raycastTarget = true;
             _window = UIKit.Rect(transform, "Window", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(W, H), Vector2.zero);
             var bg = UIKit.Image(_window, "Bg", UIKit.UISprite("card"), new Color(0.035f, 0.06f, 0.1f, 1f));
@@ -102,8 +101,7 @@ namespace HS.UI
             int i = 0;
             foreach (var def in Pool) _rows[def.id] = BuildRow(def, i++);
             // Right: the selected skill in detail.
-            _detail = UIKit.Rect(_window, "Detail", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(W - ListW - 36f - 70f, 760f), new Vector2(36f + ListW + 34f, -104f));
-            BuildDetail();
+            _panel = SkillDetailPanel.Create(_window, new Vector2(36f + ListW + 34f, -104f), new Vector2(W - ListW - 36f - 70f, 760f));
             // Footer: loadout (camp) and Continue.
             _loadoutHeader = UIKit.Text(_window, "LoadoutHeader", "", UIKit.Mono, 20, UIKit.Gold, TextAlignmentOptions.BottomLeft);
             UIKit.Place(_loadoutHeader.rectTransform, new Vector2(0f, 0f), new Vector2(36f, 92f), new Vector2(800f, 26f));
@@ -114,7 +112,7 @@ namespace HS.UI
             crt.pivot = new Vector2(1f, 0f);
             crt.anchoredPosition = new Vector2(-36f, 28f);
             // "New synergy" flourish: over the detail pane's tagline for a moment.
-            _flourish = UIKit.Rect(_detail, "Flourish", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(_detail.sizeDelta.x, 46f), new Vector2(0f, -58f));
+            _flourish = UIKit.Rect(_panel.Root, "Flourish", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(_panel.Root.sizeDelta.x, 46f), new Vector2(0f, -58f));
             _flourishGroup = _flourish.gameObject.AddComponent<CanvasGroup>();
             _flourishGroup.alpha = 0f;
             _flourishGroup.blocksRaycasts = false;
@@ -155,42 +153,6 @@ namespace HS.UI
                 r.Ranks[k].rectTransform.pivot = new Vector2(1f, 1f);
             }
             return r;
-        }
-
-        void BuildDetail()
-        {
-            float dw = _detail.sizeDelta.x;
-            _name = UIKit.Text(_detail, "Name", "", UIKit.Sans, 40, Color.white, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(dw, 50f));
-            _name.fontStyle = FontStyles.Bold;
-            _meta = UIKit.Text(_detail, "Meta", "", UIKit.Mono, 17, UIKit.Dim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_meta.rectTransform, new Vector2(0f, 1f), new Vector2(2f, -50f), new Vector2(dw, 24f));
-            _tagline = UIKit.Text(_detail, "Tagline", "", UIKit.Sans, 20, new Color(0.8f, 0.88f, 0.95f), TextAlignmentOptions.TopLeft);
-            UIKit.Place(_tagline.rectTransform, new Vector2(0f, 1f), new Vector2(2f, -76f), new Vector2(dw, 28f));
-            _tagline.fontStyle = FontStyles.Italic;
-            // The demo, with the numbers and Callum's view beside it.
-            var host = UIKit.Rect(_detail, "DemoHost", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(ViewW, ViewH), new Vector2(0f, -112f));
-            Demo = DemoViewport.Create(host, new Vector2(ViewW, ViewH));
-            var side = UIKit.Rect(_detail, "Side", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(dw - ViewW - 24f, ViewH), new Vector2(ViewW + 24f, -112f));
-            UIKit.Image(side, "Bg", UIKit.Panel, new Color(0.06f, 0.1f, 0.16f, 0.8f)).pixelsPerUnitMultiplier = 2f;
-            var statsHead = UIKit.Text(side, "StatsHead", "AT EACH RANK", UIKit.Mono, 15, UIKit.Dim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(statsHead.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -12f), new Vector2(300f, 20f));
-            _stats = UIKit.Text(side, "Stats", "", UIKit.Sans, 18, Color.white, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_stats.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -36f), new Vector2(side.sizeDelta.x - 32f, 150f));
-            var callumHead = UIKit.Text(side, "CallumHead", "HOW CALLUM SEES IT", UIKit.Mono, 15, UIKit.Dim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(callumHead.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -192f), new Vector2(300f, 20f));
-            var chip = UIKit.Rect(side, "Conduct", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(220f, 26f), new Vector2(16f, -216f));
-            _conductBg = UIKit.Image(chip, "Bg", UIKit.Panel, Color.clear);
-            _conductBg.pixelsPerUnitMultiplier = 2.4f;
-            var conductLabel = UIKit.Text(chip, "Label", "", UIKit.Mono, 15, Color.white, TextAlignmentOptions.Center);
-            conductLabel.name = "ConductLabel";
-            _conduct = UIKit.Text(side, "CallumView", "", UIKit.Sans, 17, new Color(0.86f, 0.92f, 1f), TextAlignmentOptions.TopLeft);
-            UIKit.Place(_conduct.rectTransform, new Vector2(0f, 1f), new Vector2(16f, -250f), new Vector2(side.sizeDelta.x - 32f, 96f));
-            // What it does and how to use it.
-            _uses = UIKit.Text(_detail, "Uses", "", UIKit.Sans, 20, new Color(0.9f, 0.95f, 1f), TextAlignmentOptions.TopLeft);
-            UIKit.Place(_uses.rectTransform, new Vector2(0f, 1f), new Vector2(0f, -112f - ViewH - 18f), new Vector2(dw, 92f));
-            // Synergies with your kit.
-            _synergies = UIKit.Rect(_detail, "Synergies", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(dw, 150f), new Vector2(0f, -112f - ViewH - 120f));
         }
 
         void WireNavigation()
@@ -299,91 +261,12 @@ namespace HS.UI
         // ------------------------------------------------------------------------------------------------ detail
         void ShowSkill(string id)
         {
-            var def = SkillCatalog.Load()?.Get(id);
-            if (def == null) return;
-            bool changed = _shown != id;
+            if (!_rows.ContainsKey(id)) return;
             _shown = id;
-            int rank = _sys.RankOf(id);
-            int demoRank = Mathf.Min(rank + 1, SkillSystem.MaxRank);
-            var fam = UIKit.Family(def.family);
-            _name.text = def.displayName;
-            _meta.text = $"<color=#{ColorUtility.ToHtmlStringRGB(fam)}>{def.family.ToString().ToUpperInvariant()}</color>  ·  " +
-                         (def.type == SkillType.Passive ? "PASSIVE (no slot)" : "ACTIVE") +
-                         (rank > 0 ? $"  ·  <color=#F2C14E>KNOWN: RANK {(rank >= 2 ? "II" : "I")}</color>" : "");
-            var guide = SkillGuides.Get(id);
-            _tagline.text = guide?.Tagline ?? "";
-            // Stats: both ranks, the one your next pick would give in gold.
-            var sb = new System.Text.StringBuilder();
-            sb.Append("<color=#8FB8C8><size=85%>RANK<pos=58%>I<pos=80%>II</size></color>\n");
-            foreach (var (label, r1, r2) in SkillGuides.StatLines(def))
-            {
-                string c1 = demoRank == 1 ? "#F2C14E" : "#FFFFFF", c2 = demoRank == 2 ? "#F2C14E" : "#9AA3AD";
-                sb.Append(label).Append("<pos=58%><color=").Append(c1).Append('>').Append(r1).Append("</color><pos=80%><color=")
-                  .Append(c2).Append('>').Append(r2).Append("</color>\n");
-            }
-            _stats.text = sb.ToString();
-            var conduct = SkillGuides.Conduct(def);
-            var cc = def.dishonor == SabotageSeverity.Major ? UIKit.Danger : def.dishonor == SabotageSeverity.Minor ? UIKit.Ochre : new Color32(112, 204, 124, 255);
-            _conductBg.color = new Color(cc.r * 0.25f, cc.g * 0.25f, cc.b * 0.25f, 0.95f);
-            var cl = _conductBg.transform.parent.Find("ConductLabel").GetComponent<TextMeshProUGUI>();
-            cl.text = conduct;
-            cl.color = cc;
-            _conduct.text = guide?.CallumView ?? "";
-            _uses.text = def.uses + (guide != null ? "\n<color=#8FB8C8>" + KeyGlyphs.Format(guide.HowTo) + "</color>" : "");
-            BuildSynergies(def);
-            if (changed || !Demo.Playing) Demo.Play(id, demoRank);
+            _panel.Show(id, _sys);
         }
 
-        void BuildSynergies(SkillDefinition def)
-        {
-            for (int i = _synergies.childCount - 1; i >= 0; i--) Destroy(_synergies.GetChild(i).gameObject);
-            _partners.Clear();
-            var kit = _sys.Known.Keys.Where(k => k != def.id).ToList();
-            var with = SkillSynergies.With(def.id, kit);
-            var without = SkillSynergies.Without(def.id, kit).Where(w => w.other != def.id).ToList();
-            float y = 0f;
-            var head = UIKit.Text(_synergies, "Head", with.Count > 0 ? "SYNERGIES WITH YOUR KIT" : kit.Count > 0 ? "SYNERGIES" : "PAIRS WELL WITH", UIKit.Mono, 15, UIKit.Dim);
-            UIKit.Place(head.rectTransform, new Vector2(0f, 1f), new Vector2(0f, y), new Vector2(_synergies.sizeDelta.x, 20f));
-            y -= 26f;
-            int lines = 0;
-            foreach (var (other, note) in with)
-            {
-                _partners.Add(other);
-                y = SynergyLine(other, $"With your <b>{Name(other)}</b>: {note}", UIKit.Gold, Color.white, y);
-                lines++;
-            }
-            if (with.Count == 0 && kit.Count > 0)
-            {
-                var none = UIKit.Text(_synergies, "None", "No direct synergy with your current kit.", UIKit.Sans, 17, UIKit.Dim);
-                UIKit.Place(none.rectTransform, new Vector2(0f, 1f), new Vector2(0f, y), new Vector2(_synergies.sizeDelta.x, 22f));
-                y -= 28f;
-            }
-            if (without.Count > 0 && lines < 3 && (with.Count > 0 || kit.Count > 0))
-            {
-                var also = UIKit.Text(_synergies, "Also", "ALSO PAIRS WITH", UIKit.Mono, 13, new Color(0.56f, 0.72f, 0.78f, 0.7f));
-                UIKit.Place(also.rectTransform, new Vector2(0f, 1f), new Vector2(0f, y - 2f), new Vector2(_synergies.sizeDelta.x, 18f));
-                y -= 22f;
-            }
-            foreach (var (other, note) in without)
-            {
-                if (lines >= 3) break;
-                y = SynergyLine(other, $"<b>{Name(other)}</b>: {note}", new Color(1f, 1f, 1f, 0.35f), new Color(1f, 1f, 1f, 0.5f), y);
-                lines++;
-            }
-        }
-
-        float SynergyLine(string other, string text, Color iconTint, Color textColor, float y)
-        {
-            var rt = UIKit.Rect(_synergies, "Syn_" + other, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(_synergies.sizeDelta.x, 26f), new Vector2(0f, y));
-            UIKit.SpriteImage(rt, "Icon", UIKit.Icon(SkillGuides.IconId(other)), iconTint, new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(24f, 24f));
-            var t = UIKit.Text(rt, "Text", text, UIKit.Sans, 17, textColor, TextAlignmentOptions.TopLeft);
-            t.rectTransform.offsetMin = new Vector2(34f, 0f);
-            float h = Mathf.Max(24f, t.GetPreferredValues(text, _synergies.sizeDelta.x - 34f, 0f).y);
-            rt.sizeDelta = new Vector2(_synergies.sizeDelta.x, h);
-            return y - h - 6f;
-        }
-
-        static string Name(string id) => SkillCatalog.Load()?.Get(id)?.displayName ?? id;
+        static string Name(string id) => SkillDetailPanel.Name(id);
 
         static string Roman(int r) => r <= 0 ? "" : r == 1 ? "I" : "II";
 
