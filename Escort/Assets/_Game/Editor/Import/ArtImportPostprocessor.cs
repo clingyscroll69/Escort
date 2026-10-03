@@ -95,8 +95,17 @@ namespace HS.EditorTools
                 ui.textureCompression = TextureImporterCompression.Uncompressed;
                 ui.filterMode = FilterMode.Bilinear;
                 string n = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-                float b = n.StartsWith("panel") ? 20f : n == "bar" ? 10f : 0f;
+                float b = n.StartsWith("panel") ? 20f : n switch { "bar" => 10f, "keycap" => 14f, "slot" => 22f, "card" => 24f, _ => 0f };
                 ui.spriteBorder = new Vector4(b, b, b, b);
+                // Tiled fills (the demo stage's floor grid, locked-entry hatching) need repeat wrapping and a full-rect mesh.
+                if (n == "grid" || n == "hatch")
+                {
+                    ui.wrapMode = TextureWrapMode.Repeat;
+                    var settings = new TextureImporterSettings();
+                    ui.ReadTextureSettings(settings);
+                    settings.spriteMeshType = SpriteMeshType.FullRect;
+                    ui.SetTextureSettings(settings);
+                }
                 return;
             }
             if (assetPath.StartsWith("Assets/_Game/Resources/Icons/") || assetPath.StartsWith("Assets/_Game/Art/UI/"))
