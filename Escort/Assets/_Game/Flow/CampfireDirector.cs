@@ -6,6 +6,7 @@ using HS.Rapport;
 using HS.Rooms;
 using HS.Sidekick;
 using HS.Skills;
+using HS.Tutorial;
 using HS.UI;
 using UnityEngine;
 
@@ -23,6 +24,10 @@ namespace HS.Flow
         public Stage StageAfter { get; private set; }
         public string RestNote { get; private set; }
         public SkillPicker Picker { get; private set; }
+        /// <summary>The fireside lines have played (or were skipped): the level-up is open.</summary>
+        public bool SceneDone { get; private set; }
+        /// <summary>How long the fireside lines take before the level-up opens on its own.</summary>
+        public float SceneLength => _lines == null ? 0f : 0.6f + _lines.Length * 4.2f + 0.8f;
         public event Action Finished;
         public float AutoSceneSeconds = 15f;
         bool _finished;
@@ -37,6 +42,9 @@ namespace HS.Flow
         Transform _flame;
         float _t;
         int _line;
+        int _pendingPicks;
+        SidekickSkills _skills;
+        RectTransform _skipChip;
         bool _sawDishonour;
         string[] _lines;
 
@@ -119,15 +127,45 @@ namespace HS.Flow
             }
             else
             {
-                Picker = SkillPicker.Show(UIRoot.Instance, skills.System, picks, "» CAMP — LEVEL UP", true, "CONTINUE  »  THE RIGGED DUEL");
-                Picker.Done += Finish;
+                // The scene first (it says what he makes of you), then the level-up; a confirm skips straight to it.
+                _skills = skills;
+                _pendingPicks = picks;
+                _skipChip = SkipChip();
             }
+        }
+
+        RectTransform SkipChip()
+        {
+            var root = UIRoot.Instance;
+            if (root == null) return null;
+            var rt = UIKit.Rect(root.Overlay, "CampSkip", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(420f, 40f), new Vector2(0f, 150f));
+            var key = UIKit.Keycap(rt, "Key", KeyGlyphs.Label("confirm", KeyGlyphs.Current), 30f);
+            key.anchorMin = key.anchorMax = new Vector2(0f, 0.5f);
+            key.pivot = new Vector2(0f, 0.5f);
+            key.anchoredPosition = Vector2.zero;
+            var t = UIKit.Text(rt, "Text", "SKIP TO THE LEVEL-UP", UIKit.Mono, 20, UIKit.Dim, TMPro.TextAlignmentOptions.Left);
+            t.rectTransform.offsetMin = new Vector2(key.sizeDelta.x + 12f, 0f);
+            UIKit.Outline(t, 0.2f);
+            return rt;
+        }
+
+        /// <summary>Open the level-up now (the confirm key during the fireside scene does this).</summary>
+        public void SkipScene()
+        {
+            if (SceneDone || _finished) return;
+            SceneDone = true;
+            if (_lines != null) _line = _lines.Length; // the rest of the scene stays unsaid
+            if (_skipChip != null) Destroy(_skipChip.gameObject);
+            if (_skills == null || UIRoot.Instance == null) return;
+            Picker = SkillPicker.Show(UIRoot.Instance, _skills.System, _pendingPicks, "» CAMP  ·  LEVEL UP", true, "CONTINUE  »  THE RIGGED DUEL");
+            Picker.Done += Finish;
         }
 
         void Update()
         {
             if (_lines == null || _finished) return;
             _t += Time.deltaTime;
+            if (_skills != null && !SceneDone && (_t >= SceneLength || GameInput.Instance.Confirm.WasPressedThisFrame())) SkipScene();
             if (_light != null) _light.intensity *= 1f + 0.06f * Mathf.Sin(_t * 17f) * Time.deltaTime * 10f;
             if (_line < _lines.Length && _t >= 0.6f + _line * 4.2f)
             {
@@ -138,10 +176,16 @@ namespace HS.Flow
             }
         }
 
+        void OnDestroy()
+        {
+            if (_skipChip != null) Destroy(_skipChip.gameObject);
+        }
+
         void Finish()
         {
             if (_finished) return;
             _finished = true;
+            if (_skipChip != null) Destroy(_skipChip.gameObject);
             if (_sk != null)
             {
                 _sk.Presenter?.PlayAction("none");

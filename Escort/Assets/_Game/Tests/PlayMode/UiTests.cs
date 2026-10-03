@@ -140,6 +140,46 @@ namespace HS.Tests
         }
 
         [UnityTest]
+        public IEnumerator Camp_Picker_Waits_For_The_Fireside_Scene()
+        {
+            var assets = GameAssets.Load();
+            var camp = Object.Instantiate(assets.campfire, new Vector3(300f, 0f, 0f), Quaternion.identity).GetComponent<HS.Rooms.RoomModule>();
+            var hero = Object.Instantiate(assets.hero, new Vector3(300f, 0.05f, 2f), Quaternion.identity).GetComponent<HeroAgent>();
+            var sk = Object.Instantiate(assets.sidekick, new Vector3(302f, 0.05f, 2f), Quaternion.identity).GetComponent<SidekickAgent>();
+            var pc = sk.GetComponent<PlayerCommands>();
+            if (pc != null) pc.enabled = false;
+            sk.Commands = new ScriptedCommands();
+            RunContext.Current.Hero = hero;
+            RunContext.Current.Sidekick = sk;
+            UIRoot.Ensure();
+            var c = new GameObject("Campfire").AddComponent<CampfireDirector>();
+            c.Begin(camp, hero, sk, 1, false, new string[0]);
+            yield return null;
+            Assert.IsNull(c.Picker, "the fireside scene plays first");
+            Assert.IsFalse(c.SceneDone);
+            Assert.Greater(c.SceneLength, 10f);
+            Assert.IsNotNull(GameObject.Find("CampSkip"), "with a way to skip to the level-up");
+            c.SkipScene();
+            yield return null;
+            Assert.IsNotNull(c.Picker, "the level-up opens");
+            Assert.IsTrue(c.SceneDone);
+            Assert.IsNull(GameObject.Find("CampSkip"));
+            Object.Destroy(camp.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator End_Screen_Shows_A_First_Time_Hint()
+        {
+            var m = new EndScreen.Model { Title = "HERO: CALLUM. DECEASED", Error = true, Hint = Lessons.Get("restore").Body };
+            m.Buttons.Add(("QUIT", () => { }));
+            EndScreen.Show(UIRoot.Ensure(), m);
+            yield return null;
+            var hint = GameObject.Find("Hint");
+            Assert.IsNotNull(hint);
+            StringAssert.Contains("Restore Points", hint.GetComponent<TMPro.TMP_Text>().text);
+        }
+
+        [UnityTest]
         public IEnumerator Toast_Shows_Then_Times_Out()
         {
             var view = TipView.Create(UIRoot.Ensure(), null);

@@ -283,6 +283,12 @@ namespace HS.Flow
                 Quote = quote,
                 Lines = ledger != null ? PostMortem.From(ledger) : new List<PostMortem.Line>(),
             };
+            // First loss: what a Restore Point is (the tutorial's inline lesson; players only).
+            if (!won && !AutoPlay && HS.Tutorial.TutorialProgress.TipsEnabled && !HS.Tutorial.TutorialProgress.IsSeen("restore"))
+            {
+                m.Hint = HS.Tutorial.Lessons.Get("restore")?.Body;
+                HS.Tutorial.TutorialProgress.MarkSeen("restore");
+            }
             if (won) m.Buttons.Add(("PLAY AGAIN · NEW ROAD", PlayAgain));
             else
             {

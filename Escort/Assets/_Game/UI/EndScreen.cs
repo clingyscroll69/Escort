@@ -21,6 +21,8 @@ namespace HS.UI
             public string Quote;               // the hero's line (win)
             public List<PostMortem.Line> Lines = new List<PostMortem.Line>();
             public List<(string label, Action action)> Buttons = new List<(string, Action)>();
+            /// <summary>A first-time note above the buttons (the tutorial's Restore Points lesson).</summary>
+            public string Hint;
         }
 
         public static EndScreen Current { get; private set; }
@@ -74,6 +76,12 @@ namespace HS.UI
                 sb.Append(l.Good ? "<color=#E4A84E>+</color>  " : "<color=#9AA3AD>-</color>  ").Append(l.Text).Append('\n');
             if (_m.Lines.Count == 0) sb.Append("<color=#9AA3AD>Nothing was offered, nothing was taken.</color>");
             _pm.text = sb.ToString();
+            if (!string.IsNullOrEmpty(_m.Hint))
+            {
+                var hint = UIKit.Text(lower, "Hint", "<color=#7BE6FF>»</color> " + _m.Hint, UIKit.Sans, 23, UIKit.Dim, TextAlignmentOptions.Bottom);
+                hint.rectTransform.offsetMin = new Vector2(260f, 168f);
+                hint.rectTransform.offsetMax = new Vector2(-260f, 0f);
+            }
             _buttons = UIKit.Rect(lower, "Buttons", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(1400f, 80f), new Vector2(0f, 70f));
             float w = 420f, gap = 30f, total = _m.Buttons.Count * w + (_m.Buttons.Count - 1) * gap;
             for (int i = 0; i < _m.Buttons.Count; i++)
