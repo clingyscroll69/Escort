@@ -41,6 +41,8 @@ namespace HS.Flow
         public CampfireDirector Camp { get; private set; }
         public RiggedDuelDirector Duel { get; private set; }
         public XpTracker Xp { get; private set; }
+        /// <summary>The learn-as-you-go tutorial (players only: AutoPlay runs never get one).</summary>
+        public HS.Tutorial.TutorialDirector Tutorial { get; private set; }
         public string Outcome { get; private set; }
         public string LastHitTag { get; private set; }
 
@@ -84,6 +86,7 @@ namespace HS.Flow
         void Start()
         {
             if (!Application.isEditor) ReadCommandLine();
+            HS.Tutorial.ModalGate.Clear(); // a reloaded scene (Restore Point) starts with nothing paused or blocked
             _ctx = RunContext.Current;
             string resume = RunState.Resume;
             RunState.Resume = null;
@@ -105,6 +108,11 @@ namespace HS.Flow
             Xp.Bind(_ctx);
             _ctx.Register(Xp);
             _ctx.Register(this);
+            if (!AutoPlay)
+            {
+                Chapter.Hud.InsightOn = HS.Tutorial.TutorialProgress.InsightDefault;
+                Tutorial = HS.Tutorial.TutorialDirector.Create(this);
+            }
             _ctx.Events.Damage += (d, applied) =>
             {
                 if (d.Target == Hero) LastHitTag = d.Tag;

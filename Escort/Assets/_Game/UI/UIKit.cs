@@ -19,6 +19,40 @@ namespace HS.UI
         public static readonly Color HpRed = new Color32(214, 66, 58, 255);
         public static readonly Color Track = new Color32(0, 0, 0, 160);
         public static readonly Color PanelDark = new Color32(14, 14, 20, 200);
+        /// <summary>HUD card body (blue-black, see-through enough to keep the road readable behind it).</summary>
+        public static readonly Color CardBg = new Color32(11, 17, 29, 222);
+        public static readonly Color KeyFace = new Color32(236, 230, 214, 255);
+        public static readonly Color Dim = new Color32(143, 184, 200, 255);
+
+        /// <summary>One colour per skill family, used on slots, picker cards and chips.</summary>
+        public static Color Family(HS.Skills.SkillFamily f) => f switch
+        {
+            HS.Skills.SkillFamily.Fixer => new Color32(232, 150, 64, 255),
+            HS.Skills.SkillFamily.Handler => new Color32(178, 132, 242, 255),
+            HS.Skills.SkillFamily.Provisioner => new Color32(112, 204, 124, 255),
+            HS.Skills.SkillFamily.Scholar => new Color32(98, 172, 255, 255),
+            HS.Skills.SkillFamily.Combat => new Color32(234, 94, 82, 255),
+            _ => Gold,
+        };
+
+        static readonly System.Collections.Generic.Dictionary<string, Sprite> _icons = new System.Collections.Generic.Dictionary<string, Sprite>();
+        static readonly System.Collections.Generic.Dictionary<string, Sprite> _ui = new System.Collections.Generic.Dictionary<string, Sprite>();
+
+        /// <summary>Resources/Icons/&lt;id&gt; (cached; null for an empty id).</summary>
+        public static Sprite Icon(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (!_icons.TryGetValue(id, out var s)) _icons[id] = s = Resources.Load<Sprite>("Icons/" + id);
+            return s;
+        }
+
+        /// <summary>Resources/UI/&lt;id&gt; (cached).</summary>
+        public static Sprite UISprite(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (!_ui.TryGetValue(id, out var s)) _ui[id] = s = Resources.Load<Sprite>("UI/" + id);
+            return s;
+        }
 
         static Sprite _panel, _border, _bar, _pip, _glow, _tail;
         public static Sprite Panel => _panel != null ? _panel : _panel = Resources.Load<Sprite>("UI/panel");
@@ -44,6 +78,113 @@ namespace HS.UI
         {
             _panel = _border = _bar = _pip = _glow = _tail = null;
             _sans = _mono = null;
+            _icons.Clear();
+            _ui.Clear();
+        }
+
+        /// <summary>Anchor + pivot at the same corner/edge, then size and position (the HUD's layout idiom).</summary>
+        public static RectTransform Place(RectTransform rt, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            rt.anchorMin = rt.anchorMax = anchor;
+            rt.pivot = anchor;
+            rt.sizeDelta = size;
+            rt.anchoredPosition = pos;
+            return rt;
+        }
+
+        /// <summary>An Image of a sprite at a fixed size (icons, badges).</summary>
+        public static Image SpriteImage(Transform parent, string name, Sprite sprite, Color color, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var rt = Rect(parent, name, anchor, anchor, size, pos);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.sprite = sprite;
+            img.color = color;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+            if (sprite != null && sprite.border != Vector4.zero) img.type = UnityEngine.UI.Image.Type.Sliced;
+            return img;
+        }
+
+        /// <summary>
+        /// A keycap: light key with a darker lip and a dark mono label; grows to fit its label. <see cref="SetKey"/>
+        /// relabels it (the HUD follows whichever device was used last).
+        /// </summary>
+        public static RectTransform Keycap(Transform parent, string name, string label, float height)
+        {
+            var rt = Rect(parent, name, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(height, height), Vector2.zero);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.sprite = UISprite("keycap");
+            img.type = UnityEngine.UI.Image.Type.Sliced;
+            img.color = KeyFace;
+            img.raycastTarget = false;
+            var t = Text(rt, "Label", label, Mono, height * 0.56f, Ink, TextAlignmentOptions.Center);
+            t.fontStyle = FontStyles.Bold;
+            t.rectTransform.offsetMin = new Vector2(0f, height * 0.12f);
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            SetKey(rt, label);
+            return rt;
+        }
+
+        public static void SetKey(RectTransform keycap, string label)
+        {
+            if (keycap == null) return;
+            var t = keycap.GetComponentInChildren<TMP_Text>();
+            if (t.text == label && keycap.sizeDelta.x > 0f) return;
+            t.text = label ?? "";
+            float h = keycap.sizeDelta.y;
+            float w = t.GetPreferredValues(t.text, 999f, h).x + h * 0.6f;
+            keycap.sizeDelta = new Vector2(Mathf.Max(h, w), h);
+        }
+
+        /// <summary>A pill-shaped label (status chips, family tags). Grows to fit; returns its text.</summary>
+        public static TextMeshProUGUI Chip(Transform parent, string name, string text, Color color, float height = 24f)
+        {
+            var rt = Rect(parent, name, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(80f, height), Vector2.zero);
+            var bg = rt.gameObject.AddComponent<Image>();
+            bg.sprite = Panel;
+            bg.type = UnityEngine.UI.Image.Type.Sliced;
+            bg.pixelsPerUnitMultiplier = 2.4f;
+            bg.color = new Color(color.r * 0.22f, color.g * 0.22f, color.b * 0.22f, 0.88f);
+            bg.raycastTarget = false;
+            var t = Text(rt, "Text", text, Mono, height * 0.62f, color, TextAlignmentOptions.Center);
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            FitChip(t);
+            return t;
+        }
+
+        public static void FitChip(TMP_Text t)
+        {
+            var rt = (RectTransform)t.transform.parent;
+            float h = rt.sizeDelta.y;
+            rt.sizeDelta = new Vector2(t.GetPreferredValues(t.text, 999f, h).x + h * 0.9f, h);
+        }
+
+        /// <summary>Four corner brackets (the System-window look) on a panel.</summary>
+        public static void Brackets(RectTransform panel, Color color, float size = 18f, float inset = -3f)
+        {
+            var s = UISprite("corner");
+            for (int i = 0; i < 4; i++)
+            {
+                var a = new Vector2(i % 2, i / 2);       // (0,0) (1,0) (0,1) (1,1)
+                float half = size * 0.5f + inset;         // inset < 0 sits the bracket just outside the panel
+                var rt = Rect(panel, "Bracket" + i, a, new Vector2(0.5f, 0.5f), new Vector2(size, size),
+                    new Vector2(a.x > 0 ? -half : half, a.y > 0 ? -half : half));
+                // The sprite is a top-left bracket: rotate it into each corner.
+                rt.localRotation = Quaternion.Euler(0f, 0f, a.x < 0.5f ? (a.y > 0.5f ? 0f : 90f) : (a.y > 0.5f ? -90f : 180f));
+                var img = rt.gameObject.AddComponent<Image>();
+                img.sprite = s;
+                img.color = color;
+                img.raycastTarget = false;
+            }
+        }
+
+        /// <summary>A HUD card: bevelled body plus corner brackets in an accent colour.</summary>
+        public static Image Card(RectTransform panel, Color accent, float alpha = 1f)
+        {
+            var bg = Image(panel, "Card", UISprite("card"), new Color(CardBg.r, CardBg.g, CardBg.b, CardBg.a * alpha));
+            bg.pixelsPerUnitMultiplier = 1.4f;
+            Brackets(panel, new Color(accent.r, accent.g, accent.b, 0.85f * alpha));
+            return bg;
         }
 
         public static RectTransform Rect(Transform parent, string name, Vector2 anchor, Vector2 pivot, Vector2 size, Vector2 pos)
@@ -157,6 +298,27 @@ namespace HS.UI
             get => _fillImg.color;
             set => _fillImg.color = value;
         }
+
+        /// <summary>Thin dark notches dividing the bar into <paramref name="parts"/> (reads health at a glance).</summary>
+        public void AddTicks(int parts, float alpha = 0.55f)
+        {
+            for (int i = 1; i < parts; i++) AddMarker((float)i / parts, new Color(0f, 0f, 0f, alpha), 2f);
+        }
+
+        /// <summary>A vertical line at a fraction of the bar (e.g. the Honor "low" line), drawn over the fill.</summary>
+        public RectTransform AddMarker(float fraction, Color color, float width = 3f, float overhang = 0f)
+        {
+            var rt = UIKit.Rect(Root, "Marker", new Vector2(fraction, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(width, Root.sizeDelta.y + overhang * 2f), Vector2.zero);
+            rt.anchorMin = new Vector2(fraction, 0f);
+            rt.anchorMax = new Vector2(fraction, 1f);
+            rt.sizeDelta = new Vector2(width, overhang * 2f);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.color = color;
+            img.raycastTarget = false;
+            return rt;
+        }
+
+        public float Value => _value;
 
         public void Set(float fraction, string text = null)
         {

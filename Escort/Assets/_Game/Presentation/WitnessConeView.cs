@@ -17,6 +17,8 @@ namespace HS.Presentation
         public Color Base = new Color(1f, 0.95f, 0.78f, 0.22f);
         public Color Emphasised = new Color(1f, 0.93f, 0.62f, 0.42f);
         public Color Alarm = new Color(1f, 0.25f, 0.2f, 0.55f);
+        /// <summary>The tutorial is explaining this cone: it stands out (pulsing brighter) until switched off.</summary>
+        public bool Spotlight;
         float _emph;
         const int Segments = 28;
 
@@ -82,8 +84,10 @@ namespace HS.Presentation
                 _mesh.RecalculateBounds();
             }
             _flash = Mathf.MoveTowards(_flash, 0f, Time.deltaTime * 1.5f);
-            _emph = Mathf.MoveTowards(_emph, Emphasis != null && Emphasis() ? 1f : 0f, Time.deltaTime * 4f);
-            _mpb.SetColor("_Color", Color.Lerp(Color.Lerp(Base, Emphasised, _emph), Alarm, _flash));
+            _emph = Mathf.MoveTowards(_emph, Spotlight || (Emphasis != null && Emphasis()) ? 1f : 0f, Time.unscaledDeltaTime * 4f);
+            var col = Color.Lerp(Color.Lerp(Base, Emphasised, _emph), Alarm, _flash);
+            if (Spotlight) col = Color.Lerp(col, new Color(1f, 0.97f, 0.85f, 0.6f), 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f));
+            _mpb.SetColor("_Color", col);
             _mr.SetPropertyBlock(_mpb);
         }
     }

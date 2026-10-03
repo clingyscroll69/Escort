@@ -14,6 +14,8 @@ namespace HS.Flow
         public static readonly int[] Thresholds = { 120, 240, 420, 640, 900, 1200, 1540, 1920, 2340, 2800, 3300, 3840 };
 
         public int Xp { get; private set; }
+        /// <summary>(amount, "clear" | "assist" | "explore") — HUD feedback and the tutorial.</summary>
+        public event System.Action<int, string> Awarded;
         readonly HashSet<int> _cleared = new HashSet<int>(), _assisted = new HashSet<int>(), _explored = new HashSet<int>();
         RunContext _ctx;
         int _currentRoom = -1;
@@ -22,22 +24,23 @@ namespace HS.Flow
         {
             _ctx = ctx;
             ctx.Events.RoomEntered += r => _currentRoom = r;
-            ctx.Events.RoomCleared += r => Award(_cleared, r, PotPerRoom / 2);
+            ctx.Events.RoomCleared += r => Award(_cleared, r, PotPerRoom / 2, "clear");
             ctx.Events.SkillUsed += (id, user) =>
             {
-                if (user is HS.Sidekick.SidekickAgent && id != "dodge") Award(_assisted, _currentRoom, PotPerRoom / 4);
+                if (user is HS.Sidekick.SidekickAgent && id != "dodge") Award(_assisted, _currentRoom, PotPerRoom / 4, "assist");
             };
             ctx.Events.Damage += (d, applied) =>
             {
-                if (d.Source is HS.Sidekick.SidekickAgent && d.Target is HS.Enemies.EnemyAgent) Award(_assisted, _currentRoom, PotPerRoom / 4);
+                if (d.Source is HS.Sidekick.SidekickAgent && d.Target is HS.Enemies.EnemyAgent) Award(_assisted, _currentRoom, PotPerRoom / 4, "assist");
             };
-            ctx.Events.Explored += (r, title) => Award(_explored, r >= 0 ? r : _currentRoom, PotPerRoom / 4);
+            ctx.Events.Explored += (r, title) => Award(_explored, r >= 0 ? r : _currentRoom, PotPerRoom / 4, "explore");
         }
 
-        void Award(HashSet<int> set, int room, int amount)
+        void Award(HashSet<int> set, int room, int amount, string reason)
         {
             if (room < 0 || room >= 100 || !set.Add(room)) return;
             Xp += amount;
+            Awarded?.Invoke(amount, reason);
         }
 
         public static int LevelFor(int xp)

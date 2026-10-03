@@ -16,6 +16,10 @@ namespace HS.UI
         readonly List<RectTransform> _pool = new List<RectTransform>();
         readonly Dictionary<EnemyAgent, float> _recent = new Dictionary<EnemyAgent, float>();
         const float Inset = 70f, Linger = 1.2f;
+        /// <summary>A red chevron is on screen this frame (an off-screen shooter is drawing on someone).</summary>
+        public bool AnyThreatShown { get; private set; }
+        /// <summary>Callum is off screen and his gold edge marker is showing.</summary>
+        public bool HeroMarkerShown { get; private set; }
 
         public static ThreatIndicators Create(UIRoot root)
         {
@@ -85,6 +89,7 @@ namespace HS.UI
                 _ally.gameObject.SetActive(show);
                 _allyLabel.gameObject.SetActive(show);
             }
+            HeroMarkerShown = show;
         }
 
         void LateUpdate()
@@ -121,6 +126,7 @@ namespace HS.UI
                 }
             }
             for (int i = used; i < _pool.Count; i++) _pool[i].gameObject.SetActive(false);
+            AnyThreatShown = used > 0;
             var sz = ((RectTransform)transform).rect.size;
             UpdateAlly(Camera.main, sz, sz * 0.5f - new Vector2(Inset, Inset));
         }

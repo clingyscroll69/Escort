@@ -3,7 +3,8 @@
 # another editor). Results and logs go to Escort/Logs/headless/ (git-ignored).
 #
 #   tools/unity-tests.sh EditMode [filter]      run EditMode tests (filter = NUnit name regex, e.g. "TutorialData")
-#   tools/unity-tests.sh PlayMode [filter]      run PlayMode tests (except category NeedsGameView: run those in the editor)
+#   tools/unity-tests.sh PlayMode [filter]      run PlayMode tests (except categories NeedsGameView and QA)
+#   CATEGORY=QA tools/unity-tests.sh PlayMode   run the QA screenshot scenarios (writes docs/qa/shots/ui_*.png)
 #   tools/unity-tests.sh method <Class.Method>  run an editor method (-executeMethod ... -quit)
 #
 # Prints passed/failed/total, each failure's name and message, and any C# compile errors; exits non-zero on failure.
@@ -24,8 +25,9 @@ case "$mode" in
     name="${mode}_${stamp}"
     args=(-runTests -testPlatform "$mode" -testResults "$OUT/$name.xml")
     [[ -n "$arg" ]] && args+=(-testFilter "$arg")
-    # Tests that wait on a rendered game view (WaitForEndOfFrame) can't run headless.
-    [[ "$mode" == "PlayMode" ]] && args+=(-testCategory "!NeedsGameView")
+    # Tests that wait on a rendered game view (WaitForEndOfFrame) can't run headless; QA captures (screenshots to
+    # docs/qa/shots) run only when asked for: CATEGORY=QA tools/unity-tests.sh PlayMode
+    [[ "$mode" == "PlayMode" ]] && args+=(-testCategory "${CATEGORY:-!NeedsGameView;!QA}")
     ;;
   method)
     [[ -z "$arg" ]] && { echo "usage: $0 method <Class.Method>"; exit 2; }

@@ -47,7 +47,7 @@ namespace HS.Tutorial
 
             // ---- controls ------------------------------------------------------------------------------------------
             L("move", Tip, Controls, "route", "Moving",
-                "{move} to move. Hold {walk} to walk carefully.", priority: 10, duration: 12f, expiry: 20f),
+                "{move} to move. Hold {walk} to walk carefully.", priority: 45, duration: 12f, expiry: 20f),
             L("attack", Tip, Controls, "verb_knife", "Your knife",
                 "{attack} stabs with the kitchen knife. It isn't much. Your tricks are the real weapons.", priority: 30, expiry: 8f),
             L("tricks", Tip, Controls, "fam_fixer", "Your tricks",

@@ -55,21 +55,29 @@ namespace HS.Tutorial
         static void ResetStatics()
         {
             _store = null;
+            _cache = null;
+            _cacheFor = null;
             Changed = null;
         }
 
+        // Parsed once per store (the triggers ask every frame); every write goes through MarkSeen/ResetSeen.
+        static ITutorialStore _cacheFor;
+        static HashSet<string> _cache;
+
         static HashSet<string> ReadSeen()
         {
+            if (_cache != null && ReferenceEquals(_cacheFor, Store)) return _cache;
             var raw = Store.GetString(SeenKey, "");
             var set = new HashSet<string>();
             foreach (var id in raw.Split(','))
                 if (id.Length > 0) set.Add(id);
-            return set;
+            _cacheFor = Store;
+            return _cache = set;
         }
 
         public static bool IsSeen(string id) => !string.IsNullOrEmpty(id) && ReadSeen().Contains(id);
 
-        public static IReadOnlyCollection<string> Seen => ReadSeen();
+        public static IReadOnlyCollection<string> Seen => new List<string>(ReadSeen());
 
         public static void MarkSeen(string id)
         {
@@ -86,6 +94,7 @@ namespace HS.Tutorial
         {
             Store.SetString(SeenKey, "");
             Store.Save();
+            _cache = null;
             Changed?.Invoke();
         }
 

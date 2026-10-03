@@ -5,6 +5,7 @@
         "Game.Runtime",
         "Unity.InputSystem",
         "UnityEngine.UI",
+        "Unity.TextMeshPro",
         "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],
