@@ -1,7 +1,7 @@
 # Tutorial, Skill Demos & Synergies, HUD Pass — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
-> superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 > This plan is executed inline (as the M1 slice plan was): the code lives in the files each task names rather than
 > being duplicated here. Every task lists its files, the interfaces other tasks rely on (exact names and types), the
 > tests to write first (with their code for the contracts), and its acceptance checks.
@@ -104,11 +104,11 @@ wound_fever, wound_concussion`; families `fam_fixer, fam_handler, fam_provisione
 `blind, alert, question, check`; UI `keycap (border 14), slot (22), card (24), corner, ring, spot, grid (Repeat),
 hatch (Repeat), diamond, line (border 0)`.
 
-- [ ] **Step 1: Runner.** `tools/unity-tests.sh <EditMode|PlayMode|method> [filter-or-method]` resolves the repo root
+- [x] **Step 1: Runner.** `tools/unity-tests.sh <EditMode|PlayMode|method> [filter-or-method]` resolves the repo root
   from its own path, runs `Unity -batchmode -projectPath <root>/Escort -runTests -testPlatform <p> -testResults
   <tmp>.xml [-testFilter <f>] -logFile <tmp>.log` (or `-executeMethod <m> -quit`), then prints `passed/failed/total`,
   each failed test's name and message, and any `error CS` lines; exits non-zero on failure.
-- [ ] **Step 2: Failing test.**
+- [x] **Step 2: Failing test.**
 
 ```csharp
 [Test]
@@ -131,16 +131,16 @@ public void Tutorial_Sprites_Are_Imported()
 }
 ```
 
-- [ ] **Step 3: Run** `tools/unity-tests.sh EditMode Tutorial_Sprites` → FAIL (missing sprites).
-- [ ] **Step 4: Generate.** Icons follow `make_icons.py`'s style (white glyph, dark dilated outline, 256²). UI sprites
+- [x] **Step 3: Run** `tools/unity-tests.sh EditMode Tutorial_Sprites` → FAIL (missing sprites).
+- [x] **Step 4: Generate.** Icons follow `make_icons.py`'s style (white glyph, dark dilated outline, 256²). UI sprites
   follow `make_ui_textures.py` (white, tinted at runtime; supersampled). `spot` is a 256² radial vignette with a
   soft transparent centre (spotlight edge); `grid` a 256² tileable line grid; `card` a rounded panel with a 2 px inner
   highlight; `keycap` a rounded key with a darker bottom lip; `slot` a bevelled square frame.
-- [ ] **Step 5: Import rules.** Borders by name: `panel*`=20, `bar`=10, `keycap`=14, `slot`=22, `card`=24, else 0;
+- [x] **Step 5: Import rules.** Borders by name: `panel*`=20, `bar`=10, `keycap`=14, `slot`=22, `card`=24, else 0;
   `grid`/`hatch` → `TextureWrapMode.Repeat`, `SpriteMeshType.FullRect`.
-- [ ] **Step 6: Run** → PASS. Inspect a contact sheet of the new icons (PIL montage to the scratchpad) for legibility at
+- [x] **Step 6: Run** → PASS. Inspect a contact sheet of the new icons (PIL montage to the scratchpad) for legibility at
   48 px.
-- [ ] **Step 7: Commit** "Tutorial art: icons, UI sprites, headless test runner".
+- [x] **Step 7: Commit** "Tutorial art: icons, UI sprites, headless test runner".
 
 ### Task 2: TutorialProgress (seen lessons and settings)
 
@@ -166,7 +166,7 @@ namespace HS.Tutorial {
 }
 ```
 
-- [ ] **Step 1: Failing tests** (`[SetUp] TutorialProgress.Store = new MemoryStore();`):
+- [x] **Step 1: Failing tests** (`[SetUp] TutorialProgress.Store = new MemoryStore();`):
 
 ```csharp
 [Test] public void Progress_Remembers_Seen_Lessons_Until_Reset()
@@ -195,7 +195,7 @@ namespace HS.Tutorial {
 }
 ```
 
-- [ ] **Step 2: Run** → FAIL (types missing). **Step 3: Implement** (seen ids stored comma-joined under
+- [x] **Step 2: Run** → FAIL (types missing). **Step 3: Implement** (seen ids stored comma-joined under
   `hs.tut.seen`; parse on read; `Changed` fires on every write). **Step 4: Run** → PASS. **Step 5: Commit.**
 
 ### Task 3: KeyGlyphs (keyboard and gamepad labels)
@@ -224,7 +224,7 @@ Keyboard labels come from the first `<Keyboard>`/`<Mouse>` binding of the action
 composites: `move` → `WASD` / `LS`; `aim` → `Mouse` / `RS`; `skills` → `1–4` / `RT RB LT LB`; `walk` on gamepad →
 `LS (lightly)`.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [TestCase("ping", "Q", "Y")] [TestCase("attack", "LMB", "X")] [TestCase("dodge", "Space", "B")]
@@ -245,7 +245,7 @@ public void Glyphs_Follow_The_Real_Bindings(string token, string kb, string pad)
 }
 ```
 
-- [ ] **Step 2–4:** run (FAIL) → implement → run (PASS). **Step 5: Commit.**
+- [x] **Step 2–4:** run (FAIL) → implement → run (PASS). **Step 5: Commit.**
 
 ### Task 4: Lessons table and the copy rules
 
@@ -276,7 +276,7 @@ surrender, caught, honor_low, spoiled, fallback, wounds, ambush, stone, trap, pr
 threats, hero_offscreen, out_of_reach, xp, pause, levelup, camp, loadout, duel, restore`). Body variables beyond key
 tokens use `{coverHint}` and `{slots}`, filled by the director.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [Test] public void Lessons_Are_Unique_Complete_And_Format_On_Both_Devices()
@@ -303,7 +303,7 @@ tokens use `{coverHint}` and `{slots}`, filled by the director.
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → write the table from spec §4 → PASS. **Step 5: Commit.**
+- [x] **Step 2–4:** FAIL → write the table from spec §4 → PASS. **Step 5: Commit.**
 
 ### Task 5: SkillGuides and SkillSynergies
 
@@ -337,7 +337,7 @@ Bolt `Armed at once A`, `Arming B s`; Quiet Feet `Heard within A m`, `His cone �
 m`, `Reload`, rank 2 `Pierces`; Bandage `Heals A over 6 s`, `Channel B s`, `Cooldown`; Cover Story `Honor +A`,
 `Caught window B s`, `Cooldown`. Copy from spec §5.2–5.3.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [Test] public void Every_Implemented_Skill_Has_A_Guide_With_Live_Numbers()
@@ -373,7 +373,7 @@ m`, `Reload`, rank 2 `Pierces`; Bandage `Heals A over 6 s`, `Channel B s`, `Cool
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement → PASS. **Step 5: Commit.**
+- [x] **Step 2–4:** FAIL → implement → PASS. **Step 5: Commit.**
 
 ### Task 6: ModalGate
 
@@ -396,7 +396,7 @@ First push that pauses remembers `SimLoop.Instance.Paused` and sets it true; whe
 remembered value is restored. Same for `GameInput.Instance.Gameplay` (disable / re-enable only if it was enabled).
 Statics reset on SubsystemRegistration.
 
-- [ ] **Step 1: Failing test:**
+- [x] **Step 1: Failing test:**
 
 ```csharp
 [Test] public void Gate_Pauses_And_Restores_What_Was_There()
@@ -417,7 +417,7 @@ Statics reset on SubsystemRegistration.
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement → PASS. **Step 5: Commit.**
+- [x] **Step 2–4:** FAIL → implement → PASS. **Step 5: Commit.**
 
 ### Task 7: HUD rework (cards, skill bar, verbs strip, coach anchors)
 
@@ -455,7 +455,7 @@ bar bottom-centre: 4 × 96 px `slot` frames with icon, keycap (follows device), 
 flash, rank pips (`diamond`), family underline; passive badges right of the bar; verbs strip left (knife, dodge,
 ping, crouch keycaps + icons); prompt = keycap + text.
 
-- [ ] **Step 1: Failing tests (PlayMode, `UiTests`):**
+- [x] **Step 1: Failing tests (PlayMode, `UiTests`):**
 
 ```csharp
 [UnityTest] public IEnumerator Hud_Shows_Icons_Keys_And_Level()
@@ -474,10 +474,10 @@ ping, crouch keycaps + icons); prompt = keycap + text.
 }
 ```
 
-- [ ] **Step 2: Run** `tools/unity-tests.sh PlayMode UiTests` → FAIL.
-- [ ] **Step 3: Implement** (keep `MeetHero/TickSwap/SidekickLabel` and the label format).
-- [ ] **Step 4: Run** → PASS; then the full PlayMode suite (the opening and HERO→CALLUM tests must stay green).
-- [ ] **Step 5: Capture** `UiQaCaptures.Hud_In_A_Fight` (a built chapter at room 1 with a bot, captures
+- [x] **Step 2: Run** `tools/unity-tests.sh PlayMode UiTests` → FAIL.
+- [x] **Step 3: Implement** (keep `MeetHero/TickSwap/SidekickLabel` and the label format).
+- [x] **Step 4: Run** → PASS; then the full PlayMode suite (the opening and HERO→CALLUM tests must stay green).
+- [x] **Step 5: Capture** `UiQaCaptures.Hud_In_A_Fight` (a built chapter at room 1 with a bot, captures
   `ui_hud_fight.png`), read it back, fix overlap/legibility. **Step 6: Commit.**
 
 ### Task 8: System window, prompt, channel and boss bar polish
@@ -485,11 +485,11 @@ ping, crouch keycaps + icons); prompt = keycap + text.
 **Files:** Modify `UI/SystemWindow.cs`, `UI/HudView.cs` (boss bar, channel), `UI/BarkView.cs` (top band clears the
 taller hero card); Test: existing suites; capture `ui_system_window.png`, `ui_boss_bar.png`.
 
-- [ ] **Step 1:** System window: header strip (title + small "SYSTEM" tag), corner brackets, same typing, same queue,
+- [x] **Step 1:** System window: header strip (title + small "SYSTEM" tag), corner brackets, same typing, same queue,
   same `OccupiedFromTop/OccupiedWidth` contract. Error state keeps red.
-- [ ] **Step 2:** Boss bar: name plate with brackets, notches every 10%; channel bar shows `{dodge}`-style keycap of
+- [x] **Step 2:** Boss bar: name plate with brackets, notches every 10%; channel bar shows `{dodge}`-style keycap of
   the move key that cancels ("move to cancel").
-- [ ] **Step 3:** Run EditMode + PlayMode suites → PASS. **Step 4:** captures inspected. **Step 5: Commit.**
+- [x] **Step 3:** Run EditMode + PlayMode suites → PASS. **Step 4:** captures inspected. **Step 5: Commit.**
 
 ### Task 9: TipView (toasts, focus overlay, coach marks, world markers)
 
@@ -518,7 +518,7 @@ dim panels around the spotlight rect + `spot` vignette over it, a card (title, b
 blocks raycasts; confirm (UI `Confirm`, mouse click on the card's button) calls `onContinue`. Coach: a pulsing
 `ring`/outline over the anchor. Marker: `ring` + `tail` arrow at the world point (clamped to screen edges).
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [UnityTest] public IEnumerator Toast_Shows_Then_Times_Out()
@@ -543,7 +543,7 @@ blocks raycasts; confirm (UI `Confirm`, mouse click on the card's button) calls 
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement → PASS. **Step 5:** capture `ui_toast.png`, `ui_focus.png` (static scene),
+- [x] **Step 2–4:** FAIL → implement → PASS. **Step 5:** capture `ui_toast.png`, `ui_focus.png` (static scene),
   inspect. **Step 6: Commit.**
 
 ### Task 10: TutorialDirector and LessonTriggers, wired into the game flow
@@ -576,7 +576,7 @@ pre-empts the toast (re-queued); 2 s quiet after a Focus except its chained foll
 `GameFlow.Start`: when `!AutoPlay` → `TutorialDirector.Create(this)` after the chapter is built; the `welcome` notice is
 a `SystemNotice` raised on entering the chapter the first time.
 
-- [ ] **Step 1: Failing tests** (fixture: `TutorialProgress.Store = new MemoryStore()`, a `GameFlow` with
+- [x] **Step 1: Failing tests** (fixture: `TutorialProgress.Store = new MemoryStore()`, a `GameFlow` with
   `AutoPlay = false`, its opening skipped via `RunState.Resume = "chapter"` with a stored `RunState.ChapterStart`
   snapshot, scripted sidekick commands):
 
@@ -629,7 +629,7 @@ a `SystemNotice` raised on entering the chapter the first time.
 }
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement** the director, then `LessonTriggers` for every row of spec §4
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement** the director, then `LessonTriggers` for every row of spec §4
   (events: `SkillUsed` dodge/skills, `Damage` knife, `DuelStarted`, `SaluteFinished`, `WoundChanged`, `Revealed`,
   `Explored`, `HazardSprung`; Callum: `Caught`, `SpoiledDuel`; polls: rule ids, surrender, Honor low, stones/props/
   traps/caches in range, chevrons, hero marker, support range, channel, XP; flow: Chapter/Camp/Duel; duel phase
@@ -672,7 +672,7 @@ Puppets: instantiate the gameplay prefab under an inactive holder, take its `Vis
 `VisualInterpolator`, re-parent to a puppet root on the stage, destroy the rest, then activate. Floor: disc mesh with
 `grid` on an `HS/FX` material instance (`_Color` dark cyan); camera clear colour `#0A1422`, FOV 30°, 50° pitch.
 
-- [ ] **Step 1: Failing test:**
+- [x] **Step 1: Failing test:**
 
 ```csharp
 [UnityTest] public IEnumerator Stage_Puppets_Are_Outside_The_Simulation()
@@ -696,7 +696,7 @@ Puppets: instantiate the gameplay prefab under an inactive holder, take its `Vis
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement (+ `demoProps`: `barrel_stack` = holder + three barrels prefab built by the
+- [x] **Step 2–4:** FAIL → implement (+ `demoProps`: `barrel_stack` = holder + three barrels prefab built by the
   builder, `crate`, `stone`, `bush`) → PASS. **Step 5:** capture `ui_demo_stage.png` (stage RT with two puppets) and
   inspect lighting, outline, scale. **Step 6: Commit.**
 
@@ -746,7 +746,7 @@ public sealed class DemoViewport : MonoBehaviour {
 Demo content: spec §5.4. Ground decals: cone mesh (as `WitnessConeView`), danger ring, detection ring, aim line —
 created under `Stage.Decals`. Sand/dust/heal bursts via `Vfx.Burst`; sounds via `AudioDirector.Play(name, null, …)`.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [UnityTest] public IEnumerator Every_Demo_Plays_Through_Without_Touching_The_Run([Values(1, 2)] int rank)
@@ -777,7 +777,7 @@ created under `Stage.Decals`. Sand/dust/heal bursts via `Vfx.Burst`; sounds via 
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement engine, then the six scripts one at a time (capture each mid-demo:
+- [x] **Step 2–4:** FAIL → implement engine, then the six scripts one at a time (capture each mid-demo:
   `ui_demo_<id>.png`, inspect) → PASS. **Step 5: Commit.**
 
 ### Task 13: SkillPicker rework
@@ -795,7 +795,7 @@ public DemoViewport Demo { get; }
 public event System.Action<string, string> SynergyFormed;        // (learned, partner) after a pick
 ```
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [UnityTest] public IEnumerator Picker_Explains_Demos_And_Pairs_With_Your_Kit()
@@ -820,7 +820,7 @@ public event System.Action<string, string> SynergyFormed;        // (learned, pa
 Plus the existing `OpeningTests.The_Opening_Hands_Over_To_A_Playable_Chapter` (clicks `Skill_pocket_sand` ×2,
 `Skill_crossbow` ×2, `Continue`) must stay green.
 
-- [ ] **Step 2–4:** FAIL → implement layout (spec §5.1), detail pane, synergy lines + flourish, inline `levelup` /
+- [x] **Step 2–4:** FAIL → implement layout (spec §5.1), detail pane, synergy lines + flourish, inline `levelup` /
   `loadout` hints, loadout bar at camp, gamepad navigation (explicit Up/Down between rows, Right into the detail
   buttons) → PASS + full PlayMode suite. **Step 5:** captures `ui_picker_opening.png`, `ui_picker_camp.png` inspected.
   **Step 6: Commit.**
@@ -832,7 +832,7 @@ Plus the existing `OpeningTests.The_Opening_Hands_Over_To_A_Playable_Chapter` (c
 **Interfaces — Produces:** `CampfireDirector.SceneDone { get; }`, `CampfireDirector.SkipScene()`,
 `CampfireDirector.SceneLength` (0.6 + lines × 4.2 s); `EndScreen.Model.Hint` (string, optional).
 
-- [ ] **Step 1: Failing test:**
+- [x] **Step 1: Failing test:**
 
 ```csharp
 [UnityTest] public IEnumerator Camp_Picker_Waits_For_The_Fireside_Scene()
@@ -848,7 +848,7 @@ Plus the existing `OpeningTests.The_Opening_Hands_Over_To_A_Playable_Chapter` (c
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement (picker opens at `SceneLength` or on Confirm via `SkipScene`; a "{confirm} skip to
+- [x] **Step 2–4:** FAIL → implement (picker opens at `SceneLength` or on Confirm via `SkipScene`; a "{confirm} skip to
   the level-up" chip; `GameFlow` offers the `camp` tip on arrival; on a loss, if `restore` is unseen and tips are on,
   `m.Hint` = the lesson body and it is marked seen) → PASS + CampfireTests green. **Step 5: Commit.**
 
@@ -878,7 +878,7 @@ TITLE? → no title screen exists: RESTART FROM CHAPTER START (uses `RunState.Ch
 tabs TIPS (grouped by category; seen ones readable, unseen "???"), SKILLS (implemented skills: guide, stats, Callum's
 view, synergies, demo viewport), CONTROLS (both devices, from `KeyGlyphs`).
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
 
 ```csharp
 [UnityTest] public IEnumerator Pause_Freezes_The_Road_And_Resumes()
@@ -901,7 +901,7 @@ view, synergies, demo viewport), CONTROLS (both devices, from `KeyGlyphs`).
 }
 ```
 
-- [ ] **Step 2–4:** FAIL → implement → PASS + full suites. **Step 5:** captures `ui_pause.png`, `ui_guide_tips.png`,
+- [x] **Step 2–4:** FAIL → implement → PASS + full suites. **Step 5:** captures `ui_pause.png`, `ui_guide_tips.png`,
   `ui_guide_skills.png`, `ui_guide_controls.png` inspected. **Step 6: Commit.**
 
 ### Task 16: Integrated QA, docs, player build
@@ -909,15 +909,15 @@ view, synergies, demo viewport), CONTROLS (both devices, from `KeyGlyphs`).
 **Files:** `Tests/PlayMode/UiQaCaptures.cs` (complete set), `docs/qa/QA_LOG.md`, `GDD.md` (§4.7 and §9: one line each
 pointing at the tutorial/picker), plan checkboxes.
 
-- [ ] **Step 1:** Full EditMode + PlayMode suites green (expect 71 + new EditMode, 83 + new PlayMode).
-- [ ] **Step 2:** Run every `UiQaCaptures` scenario; read each capture; fix every overlap, clipping, contrast or
+- [x] **Step 1:** Full EditMode + PlayMode suites green (expect 71 + new EditMode, 83 + new PlayMode).
+- [x] **Step 2:** Run every `UiQaCaptures` scenario; read each capture; fix every overlap, clipping, contrast or
   legibility issue found; re-capture.
-- [ ] **Step 3:** Player build (`tools/unity-tests.sh method HS.EditorTools.PlayerBuild.BuildMac`): 0 errors (catches
+- [x] **Step 3:** Player build (`tools/unity-tests.sh method HS.EditorTools.PlayerBuild.BuildMac`): 0 errors (catches
   editor-only APIs in runtime code); run it with `-hs-autoplay supportive -hs-seed 2 -hs-quit` and check the player log
   for exceptions.
-- [ ] **Step 4:** QA_LOG section "Tutorial, skill demos, HUD pass" (what was built, tests, captures, defects found and
+- [x] **Step 4:** QA_LOG section "Tutorial, skill demos, HUD pass" (what was built, tests, captures, defects found and
   fixed, open issues); GDD one-liners.
-- [ ] **Step 5: Commit** "Tutorial + HUD pass: integrated QA and docs".
+- [x] **Step 5: Commit** "Tutorial + HUD pass: integrated QA and docs".
 
 ---
 
@@ -936,3 +936,25 @@ pointing at the tutorial/picker), plan checkboxes.
 
 Inline, task by task, with the QA gate after each (the session has no mandate for sub-agents; the M1 slice plan was
 executed the same way).
+
+---
+
+## Execution notes — deviations from this plan (2026-10-03)
+
+- **Headless verification.** Unity was open on the main checkout, so everything ran in a second, headless Unity on this
+  worktree (`tools/unity-tests.sh`). Two existing fixtures wait on `WaitForEndOfFrame`, which never fires without a game
+  view; they are tagged `NeedsGameView` and skipped headless (run them in the editor). `TestProgressLog` prints a line per
+  test. Headless PlayMode baseline on the original code: 81/85 (camera framing, the two harness tests — one times out at
+  180 s headless — and the opening test's final keyboard step, which needs real keyboard input).
+- **Order.** Tasks 2–6 were written while the baseline run held the project; their tests ran right after (the copy scan
+  caught two real hits: "moment" in a tip, and "Restore Points", now allowlisted as the feature's name).
+- **QA captures** use `[Category("QA")]`, not `[Explicit]` (the command line can't select explicit tests):
+  `CATEGORY=QA tools/unity-tests.sh PlayMode`.
+- **Extra units:** `SkillDetailPanel` (the picker's detail view, shared with the Field Guide), `SelectHandler` (pad/keys
+  selection shows a card), `DemoPropsBuilder` (+ `GameAssets.demoProps`), demo keys `DemoSkip` (F / X) and `DemoReplay`
+  (R / Y) in the UI action map.
+- **Freeze-frames:** his rules, his cone, the formal duel (the camp is a tip: its scene runs on real time). If Callum duels
+  before his first doorway, "he runs on rules" shows first. A freeze-frame pre-empts a showing tip, which comes back after
+  the freeze-frame's follow-up.
+- **The picker suspends gameplay input** (ModalGate without pausing): a click in the picker used to latch a knife stab
+  for the road's first tick.

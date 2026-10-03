@@ -52,13 +52,6 @@ namespace HS.UI
             public Image[] Ranks;
         }
 
-        /// <summary>Moving onto a card with a pad or the keys shows it (without learning it).</summary>
-        sealed class RowSelect : MonoBehaviour, ISelectHandler
-        {
-            public Action OnSelected;
-            public void OnSelect(BaseEventData e) => OnSelected?.Invoke();
-        }
-
         public static SkillPicker Show(UIRoot root, SkillSystem sys, int picks, string title, bool loadout, string continueLabel)
         {
             var go = UIKit.Stretch(root.Overlay, "SkillPicker").gameObject;
@@ -132,7 +125,8 @@ namespace HS.UI
             r.Bg = r.Button.GetComponent<Image>();
             r.Frame = rt.Find("Border").GetComponent<Image>();
             rt.Find("Label").gameObject.SetActive(false);
-            r.Button.gameObject.AddComponent<RowSelect>().OnSelected = () => ShowSkill(def.id);
+            // Moving onto a card with a pad or the keys shows it (without learning it).
+            r.Button.gameObject.AddComponent<SelectHandler>().OnSelected = () => ShowSkill(def.id);
             var fam = UIKit.Family(def.family);
             var tile = UIKit.Rect(rt, "Tile", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(62f, 62f), new Vector2(10f, 0f));
             UIKit.Image(tile, "Bg", UIKit.Panel, new Color(0.02f, 0.03f, 0.06f, 0.9f));

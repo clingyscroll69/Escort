@@ -30,7 +30,7 @@ namespace HS.Tutorial
         HazardMarker[] _hazards = new HazardMarker[0];
         ExploreAnchor[] _caches = new ExploreAnchor[0];
         RiggedDuelDirector _duel;
-        float _chapterT, _scanT;
+        float _chapterT, _scanT, _offscreenFor;
         bool _welcomed;
         int _knife, _skills, _dodges, _pings, _salutes, _insightToggles;
         bool _lastInsight;
@@ -219,7 +219,9 @@ namespace HS.Tutorial
             _scanT = 0.25f;
             if (_threats == null) _threats = UnityEngine.Object.FindAnyObjectByType<ThreatIndicators>();
             if (_threats != null && _threats.AnyThreatShown) _d.Offer("threats");
-            if (_threats != null && _threats.HeroMarkerShown) _d.Offer("hero_offscreen");
+            // Only when he has really gone (a camera move between scenes shows the marker for a moment).
+            _offscreenFor = _threats != null && _threats.HeroMarkerShown ? _offscreenFor + 0.25f : 0f;
+            if (_offscreenFor >= 1.5f) _d.Offer("hero_offscreen");
             ScanEnemies(hero);
             if (road && settled) ScanRoad(sk, hero);
         }

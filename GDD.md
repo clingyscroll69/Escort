@@ -226,6 +226,9 @@ After each chapter:
 ### 4.7 Level-up UI
 
 A System window shows all 40 skills with family filters, rank, cooldown and use notes. Tooltips describe **uses**, never recommendations.
+*Built (slice, 2026-10-03):* every skill shows its numbers at both ranks, how the hero's code reads it, a live skippable
+demo, and how it interacts with the skills you own (interactions, not advice). See
+`docs/superpowers/specs/2026-10-03-tutorial-and-hud-design.md`.
 
 ---
 
@@ -520,6 +523,10 @@ All bosses share Phase 3, the Mirror: the Curator becomes a Stage 0 copy of your
 
 - **HUD:** hero rule icons, per-hero meters (Honor, Plan checklist, ready prompt, Crowd), your skill bar (4–6 slots), wounds on the hero's portrait. No Rapport or Stage display.
 - **Accessibility:** a **Hero Insight** toggle (shows a plain label for hero state, at the cost of mystery), a longer ready-check timer, colorblind-safe icons, gamepad support.
+- **Tutorial (built 2026-10-03):** learn-as-you-go lessons, each the first time its situation happens (tips, plus three
+  freeze-frame lessons: his rules, what he sees, the formal duel), and a Field Guide in the pause menu. Mechanics are
+  explained; strategy is only hinted; the hidden stat is never named (a test scans the copy). Insight is off by default
+  and taught.
 - **Audio:** royalty-free or self-made music and SFX. Verify licenses, and disclose any AI-generated audio on Steam.
 
 ---

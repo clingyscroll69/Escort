@@ -512,3 +512,67 @@ scene in the build, was fine.
 **QA tooling:** `Tools/HS/QA/Live *` (`LiveProbe`) gives status, a capture, a click through the EventSystem, held keys,
 flow jumps and a non-blocking play (the MCP play call blocks until it times out at 60 s). Player flags
 `-hs-shots "6;12" -hs-shots-dir <dir>` (`QaShots`).
+
+## Tutorial, skill demos and synergies, HUD pass (2026-10-03)
+**Asked (owner):** a learn-as-you-go tutorial that explains everything without giving too much away; for every skill pick an
+explanation and a skippable demo, plus synergies with the current build; a better HUD/UI. Leave the opening alone.
+Spec `docs/superpowers/specs/2026-10-03-tutorial-and-hud-design.md`, plan `docs/superpowers/plans/2026-10-03-tutorial-and-hud.md`.
+
+**Built:**
+- *Tutorial* (`Tutorial/`): 33 lessons (`Lessons.cs`), each offered by `LessonTriggers` the first time its situation happens
+  (his first doorway, first duel, a surrender, a stone/trap/cache in range, a wound, an off-screen shooter, the camp, the
+  duel's terms...). `TutorialDirector` shows one tip at a time (3 s apart, a tip whose moment passed is dropped and can come
+  back), freezes the road for three lessons (his rules, what he sees, the formal duel) with a spotlight, and marks each seen
+  as it shows. Copy rule: mechanics explained, strategy only hinted, the hidden stat never named (`Lessons.CopyViolations`,
+  tested over every lesson, guide, synergy and demo caption). Key names come from the real bindings, keyboard or gamepad.
+  Settings: tips, lesson pauses, Insight at start (off), reset.
+- *Skill picks:* `SkillPicker` rebuilt around `SkillDetailPanel`: numbers at both ranks, HOW CALLUM SEES IT, uses and how
+  to use them, synergies with your kit (and "also pairs with"), a NEW SYNERGY banner on learning, the loadout at camp, and a
+  live demo. `Tutorial/Demo`: an isolated stage 2 km outside the world where the real characters (puppets: visuals without
+  Agents) act each skill out on a timeline with captions; skippable (F / X) and replayable (R / Y); end card with the
+  numbers. At camp the level-up waits for the fireside lines (a confirm skips).
+- *HUD:* hero card (rule chip, Insight label, Honor's low line, wound chips), your card (level/XP, banked level, dodge pips
+  refilling, SNEAKING / OUT OF REACH), icon skill bar with keycaps, cooldown sweep, ready flash, rank pips, family colours;
+  verbs strip, passive badges, keycap prompt, bracketed boss bar and System window. Pause menu and Field Guide (tips by
+  category with ??? for unmet lessons, skills with demos, controls). Procedural icons and UI sprites (`tools/make_icons.py`,
+  `tools/make_ui_textures.py`).
+
+**Verified (headless Unity on this worktree, `tools/unity-tests.sh`; the editor was open on the main checkout):**
+- EditMode 93/93 (22 new). PlayMode 102/106 headless (21 new, all green); the 4 failures are the baseline's own, listed
+  below (the harness determinism test passes on its own: identical hashes for one seed, different for another).
+- macOS player build: succeeded (237 MB; the 3 build-log "errors" are the MCP package's missing test meta, as before).
+  Headless autoplay run (`-batchmode -nographics -hs-autoplay supportive -hs-seed 2 -hs-quit`): opening → road → camp
+  (74 s) → duel (90 s) → end (132 s), 0 exceptions.
+- Visual QA (`CATEGORY=QA tools/unity-tests.sh PlayMode`, the Main scene; 30 captures `docs/qa/shots/ui_*`): the road with
+  every lesson in its order, the three freeze-frames, toasts, the HUD mid-fight, all six demos at two moments each and the
+  end card, the picker (first picks, new synergy, camp), the pause menu's pages, the Field Guide's tabs, the duel lesson and
+  the boss bar. Every capture was read; the defects below came from them.
+
+**Defects found and fixed (selected):**
+1. Seed 2 has a bandit before the first doorway: "what he sees" came before "he runs on rules" → the rules lesson goes
+   first whenever his first duel comes first.
+2. A cache tip at the start starved "move" → road tips wait until "move" has shown; a freeze-frame pre-empts a tip, which
+   comes back after the freeze-frame's follow-up (a test caught follow-ups queued behind the interrupted tip).
+3. The duel lesson fired before the camera reached the arena (a grey screen) → it waits 1.6 s into the terms and
+   spotlights Callum.
+4. The cone lesson's spotlight swallowed the screen → spotlights are clamped and the real witness cone lights up.
+5. Freeze-frame dimming left bands at the edges when the canvas changed size → panels anchored to the screen edges.
+6. An empty skill slot drew a white square (an Image with no sprite).
+7. Demo: a channel bar re-created by a tween ending on its removal beat; a loud grid and a far camera; pins drawn outside
+   the picture → tweens end first, finer grid and closer camera, RectMask2D and clamped pins.
+8. The demo's callout pin shared the picker rows' name (`Skill_<id>`), so a click found the pin → `Callout_<id>`.
+9. The picker window let bright HUD bleed through; dims read weak (linear colour space) → opaque window, stronger dims.
+10. A click in the picker latched a knife stab for the road's first tick (pre-existing) → gameplay input waits while the
+    picker is up.
+11. `QaCapture` left a camera-space layout for the rest of the frame (a click right after a capture missed) → re-layout.
+12. A nested MonoBehaviour in the picker failed `ScriptFileTests` → its own file.
+
+**Known / environment:** `FootSlideTests` and `StrideCalibration` need a game view (category `NeedsGameView`; run them in
+the editor). Headless baseline on the original code was 81/85: `CameraTests.FixedAngleCamera_KeepsBothTargetsInFrame` (fixed
+in its own session, uncommitted there), `HarnessTests.A_Full_Run_Per_Bot_Completes_And_Writes_A_Row` (times out at 180 s
+headless) and the determinism test that runs after it, and the opening test's final keyboard step (a virtual keyboard isn't
+processed headless; its picker clicks pass).
+
+**Open for the owner:** all lesson, guide, synergy and demo copy is draft text (in `Lessons.cs`, `SkillGuides.cs`,
+`SkillSynergies.cs`, `SkillDemos.cs`); tutorial pacing needs human playtests (the bot run's first 30 s are busy); the pad
+paths were exercised in code, not with a physical pad; new skills need a guide, synergies and a demo script.
