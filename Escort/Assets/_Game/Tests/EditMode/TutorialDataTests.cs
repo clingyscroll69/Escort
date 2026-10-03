@@ -76,6 +76,35 @@ namespace HS.Tests
         }
 
         [Test]
+        public void Progress_In_The_Editor_Starts_Fresh_Each_Play()
+        {
+            // Lessons are marked seen as they show, so a remembered editor would show its owner fewer each Play.
+            const string key = "hs.tut.seen";
+            string saved = PlayerPrefs.HasKey(key) ? PlayerPrefs.GetString(key) : null;
+            bool remember = TutorialProgress.RememberInEditor;
+            try
+            {
+                TutorialProgress.RememberInEditor = false;
+                TutorialProgress.Store = null; // the default, as a Play starts
+                TutorialProgress.MarkSeen("cone");
+                Assert.IsTrue(TutorialProgress.IsSeen("cone"), "seen for the rest of this Play");
+                Assert.AreEqual(saved, PlayerPrefs.HasKey(key) ? PlayerPrefs.GetString(key) : null, "but never saved");
+                TutorialProgress.Store = null; // the next Play
+                Assert.IsFalse(TutorialProgress.IsSeen("cone"), "the next Play shows it again");
+                TutorialProgress.RememberInEditor = true;
+                TutorialProgress.Store = null;
+                Assert.IsInstanceOf<PlayerPrefsStore>(TutorialProgress.Store, "remembering works as a build does");
+            }
+            finally
+            {
+                TutorialProgress.RememberInEditor = remember;
+                if (saved == null) PlayerPrefs.DeleteKey(key);
+                else PlayerPrefs.SetString(key, saved);
+                PlayerPrefs.Save();
+            }
+        }
+
+        [Test]
         public void Progress_Lives_In_The_Store_Not_A_Cache()
         {
             var store = new MemoryStore();

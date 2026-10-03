@@ -576,3 +576,14 @@ processed headless; its picker clicks pass).
 **Open for the owner:** all lesson, guide, synergy and demo copy is draft text (in `Lessons.cs`, `SkillGuides.cs`,
 `SkillSynergies.cs`, `SkillDemos.cs`); tutorial pacing needs human playtests (the bot run's first 30 s are busy); the pad
 paths were exercised in code, not with a physical pad; new skills need a guide, synergies and a demo script.
+
+**After hand-off ("I can't see a single tutorial"):** the editor was open on the main checkout, still on `main`; the branch
+wasn't merged yet (Editor.log: `main`'s stack lines, no `[Tutorial]` line). Two real defects turned up on the way:
+1. The editor and its batchmode test runs share PlayerPrefs, and the opening test plays as a player, so a test run had
+   saved "move, welcome" as seen: the first two lessons would never have shown in the owner's editor → the whole PlayMode
+   run uses a throwaway store (`TutorialStoreFixture`, with a test), and the leaked key was deleted.
+2. Lessons are marked seen as they show, so each Play in the editor would have shown fewer → in the editor every Play
+   starts as a first-time player (`OnePlayStore`: settings still saved); builds remember as before. Tools ▸ HS ▸ Tutorial ▸
+   Remember Lessons Between Plays switches the editor to the build's behaviour.
+The opening test now also checks that a first-time player's road starts teaching (the System window's notice, then "move").
+EditMode 94/94; PlayMode 103/107 headless (the same 4 as above).

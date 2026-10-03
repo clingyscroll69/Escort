@@ -6,6 +6,7 @@ using HS.Core;
 using HS.Flow;
 using HS.Opening;
 using HS.Skills;
+using HS.Tutorial;
 using HS.UI;
 using NUnit.Framework;
 using UnityEngine;
@@ -355,6 +356,7 @@ namespace HS.Tests
             sun.type = LightType.Directional;
             RenderSettings.sun = sun;
             RunState.Runs = 0; // a first run gets the whole opening
+            TutorialProgress.ResetSeen(); // and a first-time player's tutorial
             var flow = new GameObject("GameFlow").AddComponent<GameFlow>();
             yield return null;
             var opening = Object.FindAnyObjectByType<OpeningView>();
@@ -386,6 +388,9 @@ namespace HS.Tests
             var skills = flow.Chapter.Sidekick.GetComponent<SidekickSkills>();
             Assert.AreEqual(1, skills.System.RankOf("pocket_sand"));
             Assert.AreEqual(1, skills.System.RankOf("crossbow"));
+            yield return TestUi.WaitUntil(() => flow.Tutorial != null && flow.Tutorial.Showing != null, 5f, "the road's first tip");
+            Assert.AreEqual("move", flow.Tutorial.Showing, "the road starts teaching at once");
+            Assert.IsTrue(TutorialProgress.IsSeen("welcome"), "after the System window's tutorial notice");
 
             // WASD moves the sidekick (a test keyboard, so the real one can't interfere)
             var kb = InputSystem.AddDevice<Keyboard>();

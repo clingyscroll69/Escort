@@ -4,7 +4,10 @@ using UnityEngine;
 
 namespace HS.Tutorial
 {
-    /// <summary>Where the tutorial keeps what you've seen and your settings (PlayerPrefs in the game, memory in tests).</summary>
+    /// <summary>
+    /// Where the tutorial keeps what you've seen and your settings: PlayerPrefs in a build, PlayerPrefs for the settings
+    /// but one Play's memory for what's been seen in the editor (OnePlayStore), memory in tests.
+    /// </summary>
     public interface ITutorialStore
     {
         string GetString(string key, string def);
@@ -35,18 +38,48 @@ namespace HS.Tutorial
     }
 
     /// <summary>
+    /// The editor's default: the tutorial settings are saved as usual, but what has been seen lasts one Play, so every
+    /// Play starts as a first-time player and its owner sees the whole tutorial each time they test.
+    /// </summary>
+    public sealed class OnePlayStore : ITutorialStore
+    {
+        readonly PlayerPrefsStore _prefs = new PlayerPrefsStore();
+        readonly MemoryStore _play = new MemoryStore();
+        public string GetString(string key, string def) => key == TutorialProgress.SeenKey ? _play.GetString(key, def) : _prefs.GetString(key, def);
+
+        public void SetString(string key, string value)
+        {
+            if (key == TutorialProgress.SeenKey) _play.SetString(key, value);
+            else _prefs.SetString(key, value);
+        }
+
+        public int GetInt(string key, int def) => _prefs.GetInt(key, def);
+        public void SetInt(string key, int value) => _prefs.SetInt(key, value);
+        public void Save() => _prefs.Save();
+    }
+
+    /// <summary>
     /// What the player has been taught (a lesson is marked seen when it is shown, so Restore Points never repeat it) and
     /// the tutorial settings: tips on/off, whether big lessons pause the game, and whether Hero Insight starts on.
     /// </summary>
     public static class TutorialProgress
     {
-        const string SeenKey = "hs.tut.seen", TipsKey = "hs.tut.tips", PausesKey = "hs.tut.pauses", InsightKey = "hs.insight";
+        internal const string SeenKey = "hs.tut.seen";
+        const string TipsKey = "hs.tut.tips", PausesKey = "hs.tut.pauses", InsightKey = "hs.insight";
 
         static ITutorialStore _store;
         public static ITutorialStore Store
         {
-            get => _store ??= new PlayerPrefsStore();
+            get => _store ??= DefaultStore();
             set => _store = value;
+        }
+
+        static ITutorialStore DefaultStore()
+        {
+#if UNITY_EDITOR
+            if (!RememberInEditor) return new OnePlayStore();
+#endif
+            return new PlayerPrefsStore();
         }
 
         public static event Action Changed;
@@ -124,5 +157,16 @@ namespace HS.Tutorial
             Store.Save();
             Changed?.Invoke();
         }
+
+#if UNITY_EDITOR
+        const string RememberKey = "HS.Tutorial.RememberInEditor";
+
+        /// <summary>Editor only (Tools ▸ HS ▸ Tutorial): keep what has been seen between Plays, as a build does.</summary>
+        public static bool RememberInEditor
+        {
+            get => UnityEditor.EditorPrefs.GetBool(RememberKey, false);
+            set => UnityEditor.EditorPrefs.SetBool(RememberKey, value);
+        }
+#endif
     }
 }
