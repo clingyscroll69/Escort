@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using HS.Core;
 using HS.Flow;
 using HS.Hero;
@@ -86,6 +87,56 @@ namespace HS.Tests
             yield return null;
             var insight = GameObject.Find("Insight").GetComponent<TMPro.TMP_Text>();
             StringAssert.StartsWith("» ", insight.text, "Hero Insight spells out his current rule");
+        }
+
+        [UnityTest]
+        public IEnumerator Picker_Explains_Demos_And_Pairs_With_Your_Kit()
+        {
+            var sys = new SkillSystem(SidekickSkills.SliceBehaviours());
+            sys.Learn(SkillCatalog.Load().Get("pocket_sand"));
+            var p = SkillPicker.Show(UIRoot.Ensure(), sys, 1, "» TEST", false, "GO");
+            yield return null;
+            Assert.IsNotNull(p.Shown, "something is on show from the start");
+            TestUi.Click("Skill_quiet_feet"); // first click reads
+            yield return null;
+            Assert.AreEqual("quiet_feet", p.Selected);
+            Assert.AreEqual(0, sys.RankOf("quiet_feet"), "reading is not learning");
+            Assert.IsTrue(p.Demo.Playing);
+            Assert.AreEqual("quiet_feet", p.Demo.SkillId);
+            CollectionAssert.Contains(p.SynergyPartners, "pocket_sand", "Quiet Feet pairs with the Pocket Sand you own");
+            string formed = null;
+            p.SynergyFormed += (a, b) => formed = b;
+            TestUi.Click("Skill_quiet_feet"); // second click learns
+            yield return null;
+            Assert.AreEqual(1, sys.RankOf("quiet_feet"));
+            Assert.AreEqual("pocket_sand", formed, "learning it completes the pair");
+            Assert.IsFalse(GameInput.Instance.Gameplay.enabled, "clicks in the picker never reach the sidekick");
+            TestUi.Click("Continue");
+            yield return null;
+            Assert.IsFalse(p, "the picker closes");
+            Assert.IsTrue(GameInput.Instance.Gameplay.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator Picker_At_Camp_Edits_The_Loadout_And_Shows_Rank_II()
+        {
+            var sys = new SkillSystem(SidekickSkills.SliceBehaviours());
+            foreach (var id in new[] { "pocket_sand", "crossbow", "bandage" }) sys.Learn(SkillCatalog.Load().Get(id));
+            var p = SkillPicker.Show(UIRoot.Ensure(), sys, 1, "» CAMP", true, "ON");
+            yield return null;
+            Assert.IsTrue(p.ToggleEquip("bandage"), "bench it");
+            Assert.IsFalse(sys.Loadout.Contains("bandage"));
+            Assert.IsTrue(p.ToggleEquip("bandage"), "and bring it back");
+            Assert.IsTrue(sys.Loadout.Contains("bandage"));
+            p.Select("crossbow");
+            yield return null;
+            StringAssert.Contains("RANK II", GameObject.Find("DemoViewport").transform.Find("Header").GetComponent<TMPro.TMP_Text>().text,
+                "a skill you know is shown at the rank your next pick gives");
+            Assert.IsTrue(p.Pick("crossbow"));
+            Assert.AreEqual(2, sys.RankOf("crossbow"));
+            p.Continue();
+            yield return null;
+            Assert.IsFalse(sys.AtCamp);
         }
 
         [UnityTest]

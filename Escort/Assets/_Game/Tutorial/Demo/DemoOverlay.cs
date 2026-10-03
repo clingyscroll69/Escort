@@ -173,7 +173,7 @@ namespace HS.Tutorial.Demo
         public void SkillCallout(Puppet who, string skillId, float seconds)
         {
             if (who == null) return;
-            var holder = UIKit.Rect(_pins, "Skill_" + skillId, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0f), new Vector2(46f, 46f), Vector2.zero);
+            var holder = UIKit.Rect(_pins, "Callout_" + skillId, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0f), new Vector2(46f, 46f), Vector2.zero);
             UIKit.Image(holder, "Bg", UIKit.Panel, new Color(0.04f, 0.06f, 0.1f, 0.9f));
             UIKit.Image(holder, "Frame", UIKit.UISprite("slot"), UIKit.Gold);
             var icon = UIKit.SpriteImage(holder, "Icon", UIKit.Icon(HS.Skills.SkillGuides.IconId(skillId)), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(32f, 32f));

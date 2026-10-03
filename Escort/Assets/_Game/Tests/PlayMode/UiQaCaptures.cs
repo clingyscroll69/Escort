@@ -60,6 +60,36 @@ namespace HS.Tests
 
         static void Shot(string name) => QaCapture.Capture(Camera.main, name, 1600, 900);
 
+        /// <summary>The picker over the real road: first picks (with a demo mid-play), then the camp version with a loadout.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Picker_Over_The_Road()
+        {
+            yield return LoadMainResumingChapter("pocket_sand");
+            var flow = Object.FindAnyObjectByType<GameFlow>();
+            var skills = flow.Chapter.Sidekick.GetComponent<HS.Skills.SidekickSkills>();
+            HS.Tutorial.TutorialProgress.TipsEnabled = false; // the picker alone
+            yield return new WaitForSecondsRealtime(0.5f);
+            var p = HS.UI.SkillPicker.Show(HS.UI.UIRoot.Ensure(), skills.System, 2, "» CHOOSE YOUR FIRST TWO TRICKS", false, "SET OUT ON THE OLD ROAD");
+            p.Select("quiet_feet");
+            yield return new WaitForSecondsRealtime(2.2f);
+            Shot("ui_picker_opening");
+            p.Pick("quiet_feet");
+            yield return new WaitForSecondsRealtime(0.4f);
+            Shot("ui_picker_synergy");
+            p.Pick("crossbow");
+            p.Continue();
+            yield return null;
+            skills.System.AtCamp = true;
+            var camp = HS.UI.SkillPicker.Show(HS.UI.UIRoot.Ensure(), skills.System, 1, "» CAMP  ·  LEVEL UP", true, "CONTINUE  »  THE RIGGED DUEL");
+            camp.Select("pocket_sand");
+            yield return new WaitForSecondsRealtime(3.4f);
+            Shot("ui_picker_camp");
+            camp.Pick("pocket_sand");
+            camp.Continue();
+            yield return null;
+        }
+
         /// <summary>Each skill's demo in a large viewport, captured at two moments that carry its point.</summary>
         [UnityTest]
         [Timeout(300000)]

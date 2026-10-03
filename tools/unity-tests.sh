@@ -46,7 +46,7 @@ secs=$(( $(date +%s) - start ))
 errors=$(grep -E "error CS[0-9]+" "$OUT/$name.log" | sort -u)
 if [[ -n "$errors" ]]; then
   echo "COMPILE ERRORS:"
-  echo "$errors" | head -40
+  echo "$errors" | sed 's/^.*\(Assets\/\)/\1/' | sort -u | head -40
 fi
 
 if [[ "$mode" == "method" ]]; then
@@ -57,7 +57,7 @@ fi
 
 if [[ ! -f "$OUT/$name.xml" ]]; then
   echo "[unity-tests] no results (exit=$code, ${secs}s) — see $OUT/$name.log"
-  tail -30 "$OUT/$name.log"
+  [[ -z "$errors" ]] && tail -30 "$OUT/$name.log"
   exit 1
 fi
 
