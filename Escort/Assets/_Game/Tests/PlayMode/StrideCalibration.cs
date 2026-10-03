@@ -8,6 +8,9 @@ using UnityEngine.TestTools;
 namespace HS.Tests
 {
     /// <summary>Diagnostic: in-place stride speed of each locomotion threshold on a real character.</summary>
+    // Waits on WaitForEndOfFrame, which never fires without a game view: run these in the editor, not headless
+    // (tools/unity-tests.sh skips the category).
+    [Category("NeedsGameView")]
     public class StrideCalibration
     {
         [UnityTest]

@@ -13,6 +13,9 @@ namespace HS.Tests
     /// ground speed of the planted (lower) foot. A perfectly planted stride reads ~0 m/s; a 2x speed mismatch at
     /// 6 m/s would read ~3 m/s.
     /// </summary>
+    // Waits on WaitForEndOfFrame, which never fires without a game view: run these in the editor, not headless
+    // (tools/unity-tests.sh skips the category).
+    [Category("NeedsGameView")]
     public class FootSlideTests
     {
         GameObject _ground, _ctx, _sk;
