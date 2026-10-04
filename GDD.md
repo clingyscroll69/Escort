@@ -62,6 +62,10 @@ their modules land. See `docs/superpowers/specs/2026-10-04-callum-campaign-desig
 *Built (chapter 2, 2026-10-04):* Whisperwood's five forest modules (snare line, fern hollow, mire crossing, Quill's glade,
 poacher camp); hunger and rations; snares; sleeping enemies; Mr. Quill the scout (dull pendant, 3 s ping window, Read the
 Room); Stance I; Recall and the Downed state from chapter 3 on; Splint & Stitch, Pull Back, Sling, Read the Room.
+*Built (chapter 3, 2026-10-04):* the Catacombs' five crypt modules (sealed vault, dark gallery, crypt of sleepers, the
+Prisoner's cell, bone bridge) with crypt road caps; hidden plates; rune seals and iron gates (key, Read Runes, Lockpick, or
+Callum breaks the ward at a cost); the pit; the Prisoner (scout); Finisher I (Judgment); S2 Look Away and the 1 s wait on
+cheaters; the dossier scrap at the chapter 3 campfire; Read Runes, Lockpick, Map Sketch, Buckler.
 
 - **Modules per chapter:** about 5 (combat arena, trap corridor, ambush, seal or puzzle, social, set piece), plus a campfire.
 - **Hero death ends the run.** The game then offers **Restore Points** (chapter starts).

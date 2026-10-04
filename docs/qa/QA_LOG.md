@@ -662,3 +662,38 @@ him or uses the new skills; it learns them in plan 6. No run times out.
 **Tests:** EditMode 107/107; PlayMode 152/153 (the one failure is the camera framing test whose fix is uncommitted on
 `main`).
 
+## Chapter 3: Catacombs of Ends (2026-10-04, plan 3 of 6)
+Plan: `docs/superpowers/plans/2026-10-04-chapter-3-catacombs.md`.
+
+**What's in**
+- *Rooms* (`Editor/Builders/CatacombRooms.cs`): the Sealed Vault (always last: a rune seal, its key on a dead warden, one
+  ward guardian — two in variant 1 — if Callum breaks it), the Dark Gallery (two hidden plates, a third in variant 1, alcove
+  archers), the Crypt of Sleepers (three cultists asleep among the tombs, a tomb robber), the Prisoner's Cell (always
+  second: the scout in chains), the Bone Bridge (a 3.2 m span over the pit; shield-bearers' heavy blows shove back and to
+  one side). Crypt caps replace the Old Road's at both ends (`GameAssets.caps`, `ChapterDef.CapStart/CapEnd`). Slab floor,
+  worn aisle and pit textures; torch point lights.
+- *Mechanics:* hidden plates (`HazardMarker.Hidden`: found within 2.5 m, by sand, by Map Sketch); `SealDoor` (rune/gate,
+  key, 8 s then Callum breaks it: 10% and cracked ribs, guardians spawn late as a new encounter); `PitZone` (1 s teeter,
+  then a fall: a serious wound and a 2.5 s climb back; enemies are gone); Judgment (Finisher I: a 3 s charge, 6× blow,
+  broken by a hit of 10% of his HP, 20 s apart; Finisher II from chapter 5: 2 s); S2 Look Away (Cover Story or a ping on
+  him: his back turned 3 s, his eyes judge nothing, the Chosen blindness Moment) and the 1 s wait on a flagged cheater.
+- *The Prisoner* and per-scout scripts (`Scout.Scripts`: Quill, the Prisoner, Darian Wren). Freed, the Prisoner walks off —
+  and reports unless unmasked. *The dossier scrap* (GDD §8) is read at the chapter 3 campfire, with Callum's reaction by
+  Stage.
+- *Skills:* Read Runes, Lockpick (rank II cuts a visible trap from 2.5 m), Map Sketch (his path as a line, plates and
+  caches found), Buckler (parry; rank II catches shots meant for him within 2 m). Demos pending (plan 6).
+- *Cast:* cultist, tomb robber, ward guardian, shield-bearer, the Prisoner; alcove archers reuse the archer.
+- *UI:* the skill picker's list scrolls (masked viewport, wheel/pad, selection scrolls into view, a position thumb): 14
+  tricks no longer fit the slice's fixed column. The opening test scrolls a card into view before clicking it.
+- *Lessons:* seal, hidden plate, Judgment, Look Away (behaviour only, never a Stage), the drop.
+
+**Found and fixed while measuring** (`Balance_Catacombs`, seeds 1–10): the first cut killed 14 of 20 runs in the Dark
+Gallery — every plate he steps on wounds him, and four hidden plates cripple him. Two hidden plates (a third in variant 1)
+at 10%. Then the vault killed 15: breaking the seal woke two guardians on top of an archer. One guardian (two in variant 1),
+no archer, the ward at 10%. Final: supportive reaches the campfire 8/10; idle solos 27/30 fight rooms — too easy against the
+GDD's ~30% for chapter 3, to be tuned in plan 6 once the bots use the chapter's tools (keys, runes, splints).
+
+**Visual QA:** `ch3_cast.png`, `ch3_<module>.png`, `ui_picker_camp.png`.
+
+**Tests:** EditMode 107/107; PlayMode all green except the camera framing test (its fix is uncommitted on `main`).
+
