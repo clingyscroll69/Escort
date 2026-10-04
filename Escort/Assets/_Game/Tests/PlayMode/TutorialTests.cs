@@ -130,5 +130,24 @@ namespace HS.Tests
             Assert.IsNull(Director());
             Assert.IsNull(flow.Tutorial);
         }
+
+        [UnityTest]
+        public IEnumerator The_Hunger_Lesson_Fires_When_He_First_Gets_Hungry()
+        {
+            var point = new RunState.Point { Chapter = 2, Seed = 1, Level = 3 };
+            point.Skills.Add(("pocket_sand", 1));
+            point.Loadout.Add("pocket_sand");
+            RunState.SetChapterStart(2, point);
+            RunState.Resume = "chapter:2";
+            var flow = new GameObject("GameFlow").AddComponent<GameFlow>();
+            yield return null;
+            TestUi.Script(flow);
+            foreach (var id in new[] { "move", "welcome", "hero_rules", "insight", "cone" }) TutorialProgress.MarkSeen(id);
+            var dir = Director();
+            Assert.IsFalse(dir.IsQueued("hunger") || dir.Showing == "hunger");
+            flow.Chapter.Hero.Hunger.Restore(10f);
+            yield return TestUi.WaitUntil(() => dir.IsQueued("hunger") || dir.Showing == "hunger" || TutorialProgress.IsSeen("hunger"), 5f, "the hunger lesson");
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
     }
 }

@@ -31,6 +31,7 @@ namespace HS.Tutorial
         ExploreAnchor[] _caches = new ExploreAnchor[0];
         RiggedDuelDirector _duel;
         float _chapterT, _scanT, _offscreenFor;
+        int _scannedChapter = -1;
         bool _welcomed;
         int _knife, _skills, _dodges, _pings, _salutes, _insightToggles;
         bool _lastInsight;
@@ -224,6 +225,7 @@ namespace HS.Tutorial
             if (_offscreenFor >= 1.5f) _d.Offer("hero_offscreen");
             ScanEnemies(hero);
             if (road && settled) ScanRoad(sk, hero);
+            if (road && settled) ScanChapter2(sk, hero);
         }
 
         void LateBind(HeroAgent hero)
@@ -272,8 +274,47 @@ namespace HS.Tutorial
             }
         }
 
+        /// <summary>Hunger, snares, sleepers, scouts, the mire, being Downed (chapter 2 on).</summary>
+        void ScanChapter2(SidekickAgent sk, HeroAgent hero)
+        {
+            if (hero.Hunger.Hungry) _d.Offer("hunger");
+            if (sk.IsDowned) _d.Offer("downed");
+            if (hero.Motor.TerrainMul < 0.99f) _d.Offer("mud");
+            foreach (var h in _hazards)
+            {
+                if (h == null || !h.isActiveAndEnabled || h.Kind != HazardKind.Snare || h.State != HazardMarker.HazardState.Armed) continue;
+                if (Geo.FlatDistance(h.transform.position, sk.Position) > 12f && Geo.FlatDistance(h.transform.position, hero.Position) > 10f) continue;
+                var snare = h;
+                _d.Offer("snare", () => snare == null || snare.State == HazardMarker.HazardState.Disarmed,
+                    () => snare != null && snare.State == HazardMarker.HazardState.Armed ? snare.transform.position + Vector3.up * 0.6f : (Vector3?)null);
+                break;
+            }
+            var all = AgentRegistry.All;
+            for (int i = 0; i < all.Count; i++)
+                if (all[i] is EnemyAgent e && e.IsAlive && e.Asleep && Geo.FlatDistance(e.Position, sk.Position) <= 16f)
+                {
+                    var sleeper = e;
+                    _d.Offer("sleeper", marker: () => sleeper != null && sleeper.Asleep ? sleeper.Position + Vector3.up * 1.6f : (Vector3?)null);
+                    break;
+                }
+            foreach (var sc in HS.Curator.Scout.All)
+                if (sc != null && sc.FirstSeenAt >= 0f && !sc.Unmasked)
+                {
+                    var scout = sc;
+                    _d.Offer("scout", marker: () => scout != null && !scout.Unmasked ? scout.Position + Vector3.up * 2.1f : (Vector3?)null);
+                    break;
+                }
+        }
+
         void ScanRoad(SidekickAgent sk, HeroAgent hero)
         {
+            // Each chapter is a new road: forget the last one's traps and caches.
+            if (_ctx.Chapter != _scannedChapter)
+            {
+                _scannedChapter = _ctx.Chapter;
+                _hazards = new HazardMarker[0];
+                _caches = new ExploreAnchor[0];
+            }
             if (_hazards.Length == 0) _hazards = UnityEngine.Object.FindObjectsByType<HazardMarker>(FindObjectsSortMode.None);
             if (_caches.Length == 0) _caches = UnityEngine.Object.FindObjectsByType<ExploreAnchor>(FindObjectsSortMode.None);
             foreach (var s in ChronicleStone.All)
@@ -285,7 +326,7 @@ namespace HS.Tutorial
             }
             foreach (var h in _hazards)
             {
-                if (h == null || !h.isActiveAndEnabled || h.State != HazardMarker.HazardState.Armed) continue;
+                if (h == null || !h.isActiveAndEnabled || h.Kind == HazardKind.Snare || h.State != HazardMarker.HazardState.Armed) continue;
                 if (Geo.FlatDistance(h.transform.position, sk.Position) > 12f && Geo.FlatDistance(h.transform.position, hero.Position) > 10f) continue;
                 var trap = h;
                 _d.Offer("trap", () => trap == null || trap.State == HazardMarker.HazardState.Disarmed,

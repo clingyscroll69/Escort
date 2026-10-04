@@ -381,6 +381,24 @@ def campaign_icons():
     for x in (70, 128, 186):
         d.rounded_rectangle([x - 9, 22, x + 9, 72], 8, fill=W); d.ellipse([x - 10, 78, x + 10, 98], fill=W)
     finish(im, 'skill_read_the_room')
+    # ration: a loaf with score marks
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([34, 96, 222, 190], 46, fill=W)
+    d.ellipse([60, 70, 196, 150], fill=W)
+    for x in (92, 128, 164):
+        d.line([(x - 12, 92), (x + 12, 128)], fill=CLEAR, width=10)
+    finish(im, 'ration')
+    # pendant: a dull stone on a cord
+    im = canvas(); d = ImageDraw.Draw(im)
+    thick(d, [(60, 30), (128, 120), (196, 30)], 12)
+    d.ellipse([84, 112, 172, 214], fill=W); d.ellipse([104, 134, 152, 190], fill=CLEAR); d.ellipse([116, 146, 140, 176], fill=W)
+    finish(im, 'pendant')
+    # snare: a noose loop pegged to the ground
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([56, 110, 200, 210], outline=W, width=20)
+    thick(d, [(128, 112), (128, 40)], 14); d.rectangle([108, 22, 148, 44], fill=W)
+    thick(d, [(40, 200), (40, 236)], 14); thick(d, [(216, 200), (216, 236)], 14)
+    finish(im, 'snare')
     print('campaign icons written to', OUT)
 
 
