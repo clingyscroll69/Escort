@@ -22,6 +22,8 @@ MonoBehaviour:
     - 0.3
     - 0
     - 0
+  - id: callum_finisher
+    args: []
   - id: callum_fallback
     args:
     - 3
@@ -48,6 +50,8 @@ MonoBehaviour:
     - 0.3
     - 0
     - 0
+  - id: callum_finisher
+    args: []
   - id: callum_fallback
     args:
     - 3
@@ -74,6 +78,8 @@ MonoBehaviour:
     - 0.3
     - 1
     - 0
+  - id: callum_finisher
+    args: []
   - id: callum_fallback
     args:
     - 3
@@ -100,6 +106,8 @@ MonoBehaviour:
     - 0.5
     - 1
     - 1
+  - id: callum_finisher
+    args: []
   - id: callum_fallback
     args:
     - 3

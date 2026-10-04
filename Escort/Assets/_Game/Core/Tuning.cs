@@ -131,6 +131,16 @@ namespace HS.Core
         public float stanceIMul = 0.7f;
         public float stanceIIMul = 0.6f;
 
+        [Header("Finisher: Judgment (a charge, then one blow)")]
+        public float finisherMul = 6f;
+        public float finisherCharge = 3f;
+        public float finisherChargeII = 2f;
+        public float finisherCooldown = 20f;
+        [Tooltip("A hit of this fraction of his max HP during the charge breaks it.")]
+        public float finisherBreakFraction = 0.1f;
+        [Tooltip("He reaches for it when his opponent is under this fraction of HP.")]
+        public float finisherBelow = 0.6f;
+
         [Header("Route")]
         public float thresholdPause = 1.5f;
         public float thresholdMaxWait = 6f;

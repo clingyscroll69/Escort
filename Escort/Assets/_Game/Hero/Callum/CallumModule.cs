@@ -47,6 +47,10 @@ namespace HS.Hero.Callum
         public event Action<SabotageEvent> UnseenDeed;
         public event Action<EnemyAgent> DuelBegan;
         public event Action<EnemyAgent, DuelEndReason> DuelFinished;
+        /// <summary>Judgment (Finisher): (target) began / (target, damage) landed / broken by a blow.</summary>
+        public event Action<EnemyAgent> FinisherBegan;
+        public event Action<EnemyAgent, float> FinisherLanded;
+        public event Action FinisherBroken;
 
         enum Atk { None, Windup, Recover }
         Atk _atk;
@@ -170,6 +174,7 @@ namespace HS.Hero.Callum
             if (DoubtRemaining > 0f) DoubtRemaining -= dt;
             if (FallbackCooldown > 0f) FallbackCooldown -= dt;
             if (RiposteCooldown > 0f) RiposteCooldown -= dt;
+            if (_finCd > 0f) _finCd -= dt;
             ValidateChallenge();
             if (Challenged != null && !Challenged.IsUnreadyFor(Hero) && WaitT > 0f && Challenged.State != EnemyState.Surrendered) WaitT = 0f;
             TickOathCircle(dt);
@@ -269,6 +274,64 @@ namespace HS.Hero.Callum
 
         /// <summary>Reset the Unready wait when the target is ready again (e.g. blindness wore off).</summary>
         public void ResetWait() => WaitT = 0f;
+
+        // ------------------------------------------------------------------ Finisher: Judgment (GDD §6.1)
+        float _finT, _finCd;
+        EnemyAgent _finTarget;
+        public bool HasFinisher => (Unlocks & (Signature.FinisherI | Signature.FinisherII)) != 0;
+        public float FinisherChargeTime => (Unlocks & Signature.FinisherII) != 0 ? T.finisherChargeII : T.finisherCharge;
+        public bool FinisherCharging => _finT > 0f;
+        public float FinisherProgress => FinisherCharging ? 1f - _finT / FinisherChargeTime : 0f;
+        public float FinisherCooldown => _finCd;
+
+        /// <summary>He reaches for Judgment on a duel opponent who is ready, close, and under 60% — every 20 s at most.</summary>
+        public bool WantsFinisher =>
+            HasFinisher && _finCd <= 0f && DuelActive && Challenged.IsAlive && !Challenged.IsUnreadyFor(Hero)
+            && Challenged.Health.Fraction <= T.finisherBelow
+            && Geo.FlatDistance(Hero.Position, Challenged.Position) <= T.attackRange + Challenged.Radius + 1.2f;
+
+        public void BeginFinisher()
+        {
+            if (FinisherCharging || Challenged == null) return;
+            _finTarget = Challenged;
+            _finT = FinisherChargeTime;
+            _atk = Atk.None;
+            Hero.Presenter?.PlayAction("guard", FinisherChargeTime);
+            HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Glint, Hero.Position + Vector3.up * 1.6f, 1.2f);
+            Bark(JudgmentLines, 1);
+            FinisherBegan?.Invoke(_finTarget);
+        }
+
+        /// <summary>Called by the rule when he leaves it mid-charge (his target became Unready, a fall-back...).</summary>
+        public void CancelFinisher()
+        {
+            if (!FinisherCharging) return;
+            _finT = 0f;
+            _finCd = Mathf.Max(_finCd, 3f);
+            Hero.Presenter?.PlayAction("none");
+        }
+
+        public void TickFinisher(float dt)
+        {
+            var target = _finTarget;
+            Hero.Hold(dt);
+            if (target == null || !target.IsAlive)
+            {
+                CancelFinisher();
+                return;
+            }
+            Hero.FaceTowards(target.Position, dt);
+            _finT -= dt;
+            if (_finT > 0f) return;
+            _finT = 0f;
+            _finCd = T.finisherCooldown;
+            int ch = _ctx != null ? _ctx.Chapter : 1;
+            float dmg = OutgoingDamage(T.Damage(ch)) * T.finisherMul;
+            Hero.Presenter?.PlayAction("attack3", 0.6f);
+            HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Sparks, target.Position + Vector3.up * 1.2f, 1.6f);
+            target.TakeDamage(DamageInfo.Make(Hero, target, dmg, DamageKind.Blade, "judgment", 1f));
+            FinisherLanded?.Invoke(target, dmg);
+        }
 
         public void TickFight(float dt)
         {
@@ -547,6 +610,13 @@ namespace HS.Hero.Callum
 
         public override void OnHurt(DamageInfo d, float applied)
         {
+            if (FinisherCharging && applied >= T.finisherBreakFraction * Hero.Health.Max)
+            {
+                _finT = 0f;
+                _finCd = T.finisherCooldown * 0.5f;
+                Bark(JudgmentBrokenLines, 2);
+                FinisherBroken?.Invoke();
+            }
             if (d.Tag == "cheap_shot" || d.Tag == "ambush") Bark(TreacheryLines, 2);
             else if (d.Source is EnemyAgent e && e.IsRanged && e.Elevated && !NoAidTerms) Bark(CowardLines);
         }
@@ -595,6 +665,8 @@ namespace HS.Hero.Callum
         static readonly string[] DuelBoltLines = { "Hold your aim. This duel is mine.", "Lower that crossbow. He's mine to fight." };
         static readonly string[] HitYieldedLines = { "He yielded! A yield is sacred!", "You struck a man on his knees?!" };
         static readonly string[] HitFleeingLines = { "In the back, as he ran?! Never the back!", "He was running! Let him run!" };
+        static readonly string[] JudgmentLines = { "Judgment.", "By the Code — judgment!", "Stand and be judged." };
+        static readonly string[] JudgmentBrokenLines = { "Gah— lost it.", "Coward! I had him!" };
         static readonly string[] HungryLines = { "My stomach's louder than the bandits.", "When did we last eat? Never mind. Onward." };
         static readonly string[] StarvingLines = { "I can't... feel my sword arm. Food. Is there any food?", "Fighting on an empty belly. Father would laugh." };
         public static readonly string[] FedLines = { "...Thank you. Where did you even find this?", "Bread. Good. Don't tell anyone I stopped." };

@@ -128,6 +128,7 @@ namespace HS.EditorTools
             foreach (var (list, wait, stage) in new[] { (def.s0, 3f, 0), (def.s1, 2f, 1), (def.s2, 2f, 2), (def.s3, 2f, 3) })
             {
                 list.Add(new RuleEntry("callum_recall", recall[stage]));
+                list.Add(new RuleEntry("callum_finisher"));             // Judgment (from chapter 3; idle before)
                 list.Add(new RuleEntry("callum_fallback", 3f));        // 4. fall back at 3+ engagers
                 list.Add(new RuleEntry("callum_wait_unready", wait));   // 3. wait on the Unready (S0 3 s, S1 2 s)
                 list.Add(new RuleEntry("callum_salute"));               // 2. the 1.2 s salute

@@ -444,6 +444,7 @@ namespace HS.UI
         {
             _sb.Clear();
             if (hero.Crippled) _sb.Append("C|");
+            if (hero.Module is CallumModule fm && fm.FinisherCharging) _sb.Append("J|");
             if (hero.Hunger.Starving) _sb.Append("S|");
             else if (hero.Hunger.Hungry) _sb.Append("H|");
             foreach (var w in hero.Wounds.All) _sb.Append((int)w).Append('|');
@@ -468,6 +469,7 @@ namespace HS.UI
                 x += rt.sizeDelta.x + 6f;
                 _woundChips.Add(rt.gameObject);
             }
+            if (hero.Module is CallumModule jm && jm.FinisherCharging) Add("judgment", "JUDGMENT");
             if (hero.Crippled) Add(null, "CRIPPLED");
             if (hero.Hunger.Starving) Add(null, "STARVING");
             else if (hero.Hunger.Hungry) Add(null, "HUNGRY");

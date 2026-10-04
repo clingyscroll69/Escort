@@ -275,5 +275,53 @@ namespace HS.Tests
             hero.TakeDamage(DamageInfo.Make(foe, hero, 10f, DamageKind.Melee, "melee"));
             Assert.AreEqual(10f * 8f * 0.6f, hp - hero.Health.Current, 0.01f, "Stance II: x0.6");
         }
+
+        [UnityTest]
+        public IEnumerator Chapter_3_Callum_Lands_Judgment_And_A_Big_Hit_Breaks_It()
+        {
+            var ctx = Ctx(3);
+            var assets = GameAssets.Load();
+            var ground = SidekickTests.Ground();
+            var hero = Object.Instantiate(assets.hero, new Vector3(0f, 0.05f, 0f), Quaternion.identity).GetComponent<HeroAgent>();
+            ctx.Hero = hero;
+            var foe = Object.Instantiate(assets.Enemy("brute"), new Vector3(0f, 0.05f, 2.4f), Quaternion.Euler(0f, 180f, 0f)).GetComponent<EnemyAgent>();
+            yield return null;
+            hero.Route.SetNodes(new System.Collections.Generic.List<RouteNode>());
+            var cm = (CallumModule)hero.Module;
+            cm.ApplyChapter(3, CampaignSchedule.For(3).Unlocks, 0.3f);
+            Assert.IsTrue(cm.HasFinisher);
+            foe.Activate();
+            foe.Health.SetCurrent(foe.Health.Max * 0.5f);
+            foe.Status.Apply(StatusType.Stunned, 0.1f); // a beat to start the duel
+            cm.StartChallenge(foe);
+            float landed = 0f;
+            cm.FinisherLanded += (t, dmg) => landed = dmg;
+            int ticks = 0;
+            while (!cm.FinisherCharging && ticks++ < 600) SimLoop.Instance.Step();
+            Assert.IsTrue(cm.FinisherCharging, "he reaches for Judgment");
+            Assert.AreEqual("callum_finisher", hero.ActiveRuleId);
+            float hpBefore = hero.Health.Current;
+            SimLoop.Instance.StepMany(Mathf.CeilToInt((cm.T.finisherCharge + 0.2f) / SimLoop.Dt));
+            Assert.AreEqual(26f * 6.25f * 6f, landed, 1f, "6x his chapter 3 blow");
+            // a second foe, a second charge, and a hard blow mid-charge
+            var foe2 = Object.Instantiate(assets.Enemy("brute"), new Vector3(0f, 0.05f, 2.4f), Quaternion.Euler(0f, 180f, 0f)).GetComponent<EnemyAgent>();
+            yield return null;
+            foe2.Activate();
+            foe2.Health.SetCurrent(foe2.Health.Max * 0.5f);
+            if (cm.Challenged != null) cm.EndDuel(DuelEndReason.Abandoned);
+            cm.StartChallenge(foe2);
+            ticks = 0;
+            SimLoop.Instance.StepMany(Mathf.CeilToInt((cm.T.finisherCooldown + 2f) / SimLoop.Dt));
+            while (!cm.FinisherCharging && foe2.IsAlive && ticks++ < 600) SimLoop.Instance.Step();
+            if (foe2.IsAlive && cm.FinisherCharging)
+            {
+                bool broken = false;
+                cm.FinisherBroken += () => broken = true;
+                hero.TakeDamage(DamageInfo.Make(foe2, hero, hero.Health.Max * 0.2f / ChapterTier.EnemyDamageToHero(3), DamageKind.Heavy, "heavy"));
+                Assert.IsTrue(broken, "a hard blow breaks the charge");
+                Assert.IsFalse(cm.FinisherCharging);
+            }
+            Object.Destroy(ground);
+        }
     }
 }

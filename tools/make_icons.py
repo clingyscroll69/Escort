@@ -399,6 +399,15 @@ def campaign_icons():
     thick(d, [(128, 112), (128, 40)], 14); d.rectangle([108, 22, 148, 44], fill=W)
     thick(d, [(40, 200), (40, 236)], 14); thick(d, [(216, 200), (216, 236)], 14)
     finish(im, 'snare')
+    # judgment: an upright sword with rays (Callum's Finisher)
+    im = canvas(); d = ImageDraw.Draw(im)
+    sword(d, 128, 150, math.radians(180), 170, 20)
+    for k in range(7):
+        a = math.radians(-90 + (k - 3) * 26)
+        x0, y0 = 128 + math.cos(a) * 92, 118 + math.sin(a) * 92
+        x1, y1 = 128 + math.cos(a) * 122, 118 + math.sin(a) * 122
+        thick(d, [(x0, y0), (x1, y1)], 12)
+    finish(im, 'judgment')
     print('campaign icons written to', OUT)
 
 

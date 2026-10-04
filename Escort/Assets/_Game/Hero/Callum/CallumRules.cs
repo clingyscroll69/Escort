@@ -10,6 +10,7 @@ namespace HS.Hero.Callum
         public static void Register()
         {
             HeroRuleFactory.Register("callum_recall", () => new RecallRule());
+            HeroRuleFactory.Register("callum_finisher", () => new FinisherRule());
             HeroRuleFactory.Register("callum_fallback", () => new FallbackRule());
             HeroRuleFactory.Register("callum_wait_unready", () => new WaitUnreadyRule());
             HeroRuleFactory.Register("callum_salute", () => new SaluteRule());
@@ -18,6 +19,27 @@ namespace HS.Hero.Callum
         }
 
         static CallumModule M(HeroContext c) => c.Hero.Module as CallumModule;
+
+        /// <summary>Finisher — Judgment (chapter 3 on): a 3 s charge (2 s from chapter 5), then one blow for 6×.</summary>
+        public sealed class FinisherRule : HeroRule
+        {
+            public override string Id => "callum_finisher";
+            public override string Icon => "judgment";
+            public override string Label => "Charging his Judgment";
+            public override bool CanRun(HeroContext c)
+            {
+                var m = M(c);
+                if (m == null) return false;
+                if (m.FinisherCharging) return m.Challenged != null && !m.Challenged.IsUnreadyFor(c.Hero);
+                return m.WantsFinisher;
+            }
+            public override void Enter(HeroContext c)
+            {
+                if (!M(c).FinisherCharging) M(c).BeginFinisher();
+            }
+            public override void Tick(HeroContext c, float dt) => M(c).TickFinisher(dt);
+            public override void Exit(HeroContext c) => M(c).CancelFinisher();
+        }
 
         /// <summary>Rule 4: fall back to a chokepoint if 3+ enemies engage him.</summary>
         public sealed class FallbackRule : HeroRule
