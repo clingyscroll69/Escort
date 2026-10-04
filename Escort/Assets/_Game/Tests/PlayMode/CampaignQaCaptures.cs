@@ -93,5 +93,43 @@ namespace HS.Tests
             yield return new WaitForSecondsRealtime(2.5f);
             QaCapture.Capture(Camera.main, "ch2_cast", 1600, 900);
         }
+
+        /// <summary>Every Whisperwood module, staged mid-room (sim paused): docs/qa/shots/ch2_&lt;module&gt;.png.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Whisperwood_Rooms()
+        {
+            var seen = new System.Collections.Generic.HashSet<string>();
+            foreach (int seed in new[] { 1, 2, 4 })
+            {
+#if UNITY_EDITOR
+                UnityEditor.SessionState.SetInt(GameFlow.PlayFromChapterKey, 2);
+                RunState.Runs = 1;
+                yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(MainScene, new LoadSceneParameters(LoadSceneMode.Single));
+#endif
+                yield return null;
+                var flow = Object.FindAnyObjectByType<GameFlow>();
+                if (flow.Seed != seed)
+                {
+                    flow.Chapter.TeardownChapter();
+                    flow.Chapter.Seed = seed;
+                    flow.Chapter.BuildChapter(2, seed);
+                }
+                SimLoop.Instance.Paused = true;
+                var hero = flow.Chapter.Hero;
+                var sk = flow.Chapter.Sidekick;
+                foreach (var room in flow.Chapter.Chapter.Rooms)
+                {
+                    if (!seen.Add(room.ModuleId)) continue;
+                    var z = room.transform.position.z;
+                    hero.Motor.Teleport(new Vector3(0f, 0.05f, z + room.Length * 0.42f));
+                    sk.Motor.Teleport(new Vector3(-1.8f, 0.05f, z + room.Length * 0.32f));
+                    SimLoop.Instance.StepMany(2); // the visuals interpolate between sim ticks: let them arrive
+                    yield return new WaitForSecondsRealtime(1.6f);
+                    QaCapture.Capture(Camera.main, "ch2_" + room.ModuleId, 1600, 900);
+                }
+            }
+            Assert.GreaterOrEqual(seen.Count, 5, "all five modules: " + string.Join(",", seen));
+        }
     }
 }

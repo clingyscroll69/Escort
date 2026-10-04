@@ -281,6 +281,7 @@ namespace HS.Enemies
         protected override void OnSimTick(float dt)
         {
             if (!IsAlive) return;
+            if (Stats == null) Configure(Archetype); // ticked before Start (spawned mid-frame): configure now
             TimeSinceSidekickHurtMe += dt;
             if (Asleep)
             {

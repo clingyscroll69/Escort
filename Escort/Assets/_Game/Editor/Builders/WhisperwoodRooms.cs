@@ -23,6 +23,22 @@ namespace HS.EditorTools
         static readonly string[] Trees = { "Pine_1", "Pine_2", "Pine_3", "Pine_4", "Pine_5", "TwistedTree_1", "TwistedTree_2", "TwistedTree_3", "TwistedTree_4", "CommonTree_3" };
         static readonly string[] Undergrowth = { "Fern_1", "Fern_1", "Plant_1", "Plant_7", "Mushroom_Common", "Mushroom_Laetiporus", "Clover_1", "Grass_Wispy_Tall", "Grass_Common_Tall" };
 
+        /// <summary>The nature kit's big-leaf plants are tree-sized at scale 1: knee-high on this camera is ~0.3–0.5.</summary>
+        static float BaseScale(string model) => model switch
+        {
+            "Fern_1" => 0.32f,
+            "Plant_1" => 0.4f,
+            "Plant_1_Big" => 0.3f,
+            "Plant_7" => 0.4f,
+            "Plant_7_Big" => 0.3f,
+            "Mushroom_Laetiporus" => 0.5f,
+            "Flower_4_Group" => 0.7f,
+            _ => 1f,
+        };
+
+        static GameObject Plant(Transform parent, string model, Vector3 pos, float rotY, float jitter = 1f) =>
+            Place(parent, model, pos, rotY, BaseScale(model) * jitter, Col.None, false);
+
         [MenuItem("Tools/HS/Build/Rooms · Whisperwood")]
         public static void BuildAll()
         {
@@ -60,7 +76,10 @@ namespace HS.EditorTools
                     Place(b, Trees[rng.Range(0, Trees.Length)], new Vector3(side * (innerX + 1.6f + (float)rng.NextDouble() * 1.4f), 0f, z), rng.Range(0, 360), 0.9f + (float)rng.NextDouble() * 0.35f, Col.Trunk);
                     Place(b, Trees[rng.Range(0, Trees.Length)], new Vector3(side * (innerX + 5f + (float)rng.NextDouble() * 2.5f), 0f, z + 1.5f), rng.Range(0, 360), 1f + (float)rng.NextDouble() * 0.4f, Col.None);
                     if (rng.Chance(0.6))
-                        Place(b, rng.Chance(0.5) ? "Fern_1" : "Bush_Common", new Vector3(side * (innerX - 0.3f + (float)rng.NextDouble() * 0.8f), 0f, z + 0.7f), rng.Range(0, 360), 1f + (float)rng.NextDouble() * 0.4f, Col.None, false);
+                    {
+                        if (rng.Chance(0.5)) Plant(b, "Fern_1", new Vector3(side * (innerX - 0.3f + (float)rng.NextDouble() * 0.8f), 0f, z + 0.7f), rng.Range(0, 360), 1f + (float)rng.NextDouble() * 0.4f);
+                        else Place(b, "Bush_Common", new Vector3(side * (innerX - 0.3f + (float)rng.NextDouble() * 0.8f), 0f, z + 0.7f), rng.Range(0, 360), 0.9f + (float)rng.NextDouble() * 0.3f, Col.None, false);
+                    }
                     if (rng.Chance(0.35))
                         Place(b, "Rock_Medium_" + (1 + rng.Range(0, 3)), new Vector3(side * (innerX + 0.4f), 0f, z + 1.9f), rng.Range(0, 360), 0.5f + (float)rng.NextDouble() * 0.4f, Col.Box);
                     z += 2.7f + (float)rng.NextDouble() * 1.1f;
@@ -73,8 +92,8 @@ namespace HS.EditorTools
             while (placed < undergrowth && guard++ < undergrowth * 10)
             {
                 var p = new Vector3(-innerX + 0.5f + (float)rng.NextDouble() * (innerX * 2f - 1f), 0f, 1f + (float)rng.NextDouble() * (length - 2f));
-                if (DistanceToPolyline(p, trail) < 2.4f) continue;
-                Place(u, Undergrowth[rng.Range(0, Undergrowth.Length)], p, rng.Range(0, 360), 0.7f + (float)rng.NextDouble() * 0.6f, Col.None, false);
+                if (DistanceToPolyline(p, trail) < 3.2f) continue;
+                Plant(u, Undergrowth[rng.Range(0, Undergrowth.Length)], p, rng.Range(0, 360), 0.8f + (float)rng.NextDouble() * 0.5f);
                 placed++;
             }
         }
@@ -87,7 +106,7 @@ namespace HS.EditorTools
             e.Note = note;
             e.Rations = rations;
             Place(e.transform, model, Vector3.zero, 0f, 1f, Col.None);
-            Place(e.transform, "Mushroom_Common", new Vector3(0.6f, 0f, 0.3f), 40f, 1.1f, Col.None);
+            Plant(e.transform, "Mushroom_Common", new Vector3(0.6f, 0f, 0.3f), 40f);
         }
 
         /// <summary>A poacher's snare on the trail: a rope loop pegged between two stakes.</summary>
@@ -141,7 +160,7 @@ namespace HS.EditorTools
             for (int i = 0; i < 6; i++)
             {
                 var p = new Vector3(((float)rng.NextDouble() - 0.5f) * size.x, 0f, ((float)rng.NextDouble() - 0.5f) * size.y);
-                Place(z.transform, rng.Chance(0.5) ? "Grass_Wispy_Tall" : "Plant_7", p, rng.Range(0, 360), 0.8f, Col.None, false);
+                Plant(z.transform, rng.Chance(0.5) ? "Grass_Wispy_Tall" : "Plant_7", p, rng.Range(0, 360), 0.8f);
             }
         }
 
@@ -192,9 +211,9 @@ namespace HS.EditorTools
             // Fern clumps: where the ambushers lie, and three more where nobody does.
             foreach (var p in new[] { new Vector3(-4.4f, 0, 24.4f), new Vector3(4.6f, 0, 27.2f), new Vector3(-4.8f, 0, 30.6f), new Vector3(4.2f, 0, 20.4f), new Vector3(-4.6f, 0, 17.6f), new Vector3(5.0f, 0, 33.6f) })
             {
-                Place(set, "Plant_7_Big", p, p.z * 31f, 1.3f, Col.None, false);
-                Place(set, "Fern_1", p + new Vector3(0.6f, 0f, 0.5f), p.z * 17f, 1.6f, Col.None, false);
-                Place(set, "Fern_1", p + new Vector3(-0.5f, 0f, -0.4f), p.z * 23f, 1.4f, Col.None, false);
+                Plant(set, "Plant_7_Big", p, p.z * 31f, 1.2f);
+                Plant(set, "Fern_1", p + new Vector3(0.6f, 0f, 0.5f), p.z * 17f, 1.3f);
+                Plant(set, "Fern_1", p + new Vector3(-0.5f, 0f, -0.4f), p.z * 23f, 1.1f);
             }
             Place(set, "DeadTree_3", new Vector3(-7.2f, 0f, 12.4f), 40f, 0.7f, Col.Trunk);
             Place(set, "TwistedTree_5", new Vector3(7.6f, 0f, 15.2f), 200f, 0.9f, Col.Trunk);
@@ -268,7 +287,7 @@ namespace HS.EditorTools
             Place(set, "Lantern_Wall", new Vector3(3.6f, 2.1f, 21.2f), 90f, 1f);
             Place(set, "Prop_Support", new Vector3(3.6f, 0f, 21.4f), 0f, 0.9f, Col.Round);
             foreach (var p in new[] { new Vector3(-4.6f, 0, 14.2f), new Vector3(-6.2f, 0, 18.8f), new Vector3(-3.8f, 0, 25.4f), new Vector3(2.6f, 0, 12.6f) })
-                Place(set, "Flower_4_Group", p, p.z * 29f, 1.2f, Col.None, false);
+                Plant(set, "Flower_4_Group", p, p.z * 29f);
             Stone(t, new Vector3(-7f, 0f, 24.2f), 100f, 16f);
             Spawn(set, "scout_quill", new Vector3(4.4f, 0f, 20.2f), -100f);
             Explore(t, new Vector3(-8.4f, 0f, 8.2f), 20f, "Scroll_2", "A price list", "Rope, rations, lamp oil — and 'information, by arrangement'. The prices for the last are blank.");
