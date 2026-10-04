@@ -23,6 +23,7 @@ namespace HS.Tests
             var h = _go.AddComponent<BalanceHarness>();
             h.AutoRun = false;
             h.MaxSimSeconds = maxSim;
+            h.StopAfterChapter = 1; // the Old Road and its campfire, as the slice measured
             return h;
         }
 
@@ -54,6 +55,7 @@ namespace HS.Tests
                 h.Rows.Add(row);
                 Debug.Log($"[harness] {bot}: {row.Outcome} reached {row.Reached} rooms {row.RoomsCleared} solo {row.SoloOk}/{row.Encounters} rate@camp {row.RateAtCamp:0.00} stage {row.StageAtCamp} duel {row.DuelResult} {row.DuelSeconds:0}s earned {row.Earned:0}/{row.Offered:0}");
                 Assert.AreNotEqual("timeout", row.Outcome, bot + " run finished");
+                Assert.AreEqual(1, row.Chapter, bot + " stayed on the Old Road");
             }
             var csv = BalanceHarness.Csv(h.Rows);
             Assert.AreEqual(4, csv.Trim().Split('\n').Length, "header + 3 rows");

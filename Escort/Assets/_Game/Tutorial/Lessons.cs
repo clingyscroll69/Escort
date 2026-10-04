@@ -127,7 +127,7 @@ namespace HS.Tutorial
             L("loadout", Inline, Camp, "fam_fixer", "Loadout",
                 "Loadout: {slots} slots for active tricks. Click one below to bench it or bring it back. Passives are always on."),
             L("restore", Inline, Camp, "check", "Restore Points",
-                "Restore Points: start again from the chapter start or from just before the duel. Your tricks come with you."),
+                "Restore Points: start again from any chapter start you have reached, or from just before the Gallery door. Your tricks come with you."),
         };
 
         static readonly Dictionary<string, Lesson> _byId = _all.ToDictionary(l => l.Id);

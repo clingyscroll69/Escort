@@ -25,6 +25,8 @@ namespace HS.QA
         {
             public int Seed;
             public string Bot;
+            /// <summary>The chapter the run ended in.</summary>
+            public int Chapter = 1;
             public string Outcome, Reached;
             public int RoomsCleared, Encounters, SoloOk, SeriousWounds, Xp;
             public string StageAtCamp = "-";
@@ -38,6 +40,10 @@ namespace HS.QA
         public List<string> Bots = new List<string> { "idle", "sloppy", "supportive" };
         public int TicksPerFrame = 40;
         public float MaxSimSeconds = 420f;
+        [Tooltip("The chapter each run starts at (later chapters start with a preset kit).")]
+        public int StartChapter = 1;
+        [Tooltip("Each run ends at this chapter's campfire (chapter_done); 0 plays through to the boss.")]
+        public int StopAfterChapter = 1;
         public string OutDir;
         public readonly List<Row> Rows = new List<Row>();
         public bool Done { get; private set; }
@@ -53,7 +59,7 @@ namespace HS.QA
             StartCoroutine(RunAll());
         }
 
-        /// <summary>Library/Agent/harness_args.json: {"seeds":"1-20","bots":"idle,sloppy,supportive","maxsim":"420"}</summary>
+        /// <summary>Library/Agent/harness_args.json: {"seeds":"1-20","bots":"idle,sloppy,supportive","maxsim":"420","chapters":"1"}</summary>
         void ReadArgs()
         {
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../Library/Agent/harness_args.json"));
@@ -79,6 +85,13 @@ namespace HS.QA
             }
             var bots = Get("bots");
             if (!string.IsNullOrEmpty(bots)) Bots = bots.Split(',').Select(b => b.Trim()).ToList();
+            var chapters = Get("chapters");
+            if (!string.IsNullOrEmpty(chapters))
+            {
+                var r = chapters.Split('-');
+                StartChapter = int.Parse(r[0]);
+                StopAfterChapter = r.Length > 1 ? int.Parse(r[1]) : StartChapter;
+            }
             var max = Get("maxsim");
             if (!string.IsNullOrEmpty(max)) MaxSimSeconds = float.Parse(max, CultureInfo.InvariantCulture);
         }
@@ -152,6 +165,8 @@ namespace HS.QA
             flow.AutoPlay = true;
             flow.Fast = true;
             flow.IsolateEncounters = row.Bot == "idle";
+            flow.StartChapter = StartChapter;
+            flow.StopAfterChapter = StopAfterChapter;
             var build = HS.Bots.BotFactory.Build(row.Bot);
             flow.OpeningPicks = build.opening;
             flow.CampPicks = build.camp;
@@ -180,6 +195,7 @@ namespace HS.QA
             }
             CloseRoom(hero != null && hero.IsAlive);
             row.Outcome = flow.Current == GameFlow.State.End ? flow.Outcome : "timeout";
+            row.Chapter = flow.CurrentChapter;
             if (row.Reached == null) row.Reached = "Chapter";
             if (flow.Duel != null)
             {
@@ -204,10 +220,10 @@ namespace HS.QA
 
         public static string Csv(IEnumerable<Row> rows)
         {
-            var sb = new StringBuilder("seed,bot,outcome,reached,rooms_cleared,encounters,solo_ok,serious_wounds,stage_at_camp,rate_at_camp,duel,duel_s,offered,earned,penalties,final_rate,xp,sim_s,hash,rooms\n");
+            var sb = new StringBuilder("seed,bot,outcome,reached,chapter,rooms_cleared,encounters,solo_ok,serious_wounds,stage_at_camp,rate_at_camp,duel,duel_s,offered,earned,penalties,final_rate,xp,sim_s,hash,rooms\n");
             var ci = CultureInfo.InvariantCulture;
             foreach (var r in rows)
-                sb.AppendLine(string.Join(",", r.Seed, r.Bot, r.Outcome, r.Reached, r.RoomsCleared, r.Encounters, r.SoloOk, r.SeriousWounds, r.StageAtCamp,
+                sb.AppendLine(string.Join(",", r.Seed, r.Bot, r.Outcome, r.Reached, r.Chapter, r.RoomsCleared, r.Encounters, r.SoloOk, r.SeriousWounds, r.StageAtCamp,
                     r.RateAtCamp.ToString("0.00", ci), r.DuelResult, r.DuelSeconds.ToString("0.0", ci), r.Offered.ToString("0", ci), r.Earned.ToString("0", ci),
                     r.Penalties.ToString("0.0", ci), r.FinalRate.ToString("0.00", ci), r.Xp, r.SimSeconds.ToString("0", ci), r.Hash.ToString("x16"), r.Rooms));
             return sb.ToString();
@@ -219,7 +235,7 @@ namespace HS.QA
             foreach (var g in rows.GroupBy(r => r.Bot))
             {
                 int n = g.Count();
-                int camp = g.Count(r => r.Reached == "Camp" || r.Reached == "Duel");
+                int camp = g.Count(r => r.Reached == "Camp" || r.Reached == "Duel" || r.Outcome == "chapter_done");
                 int duel = g.Count(r => r.Reached == "Duel");
                 int won = g.Count(r => r.Outcome == "won");
                 int enc = g.Sum(r => r.Encounters), ok = g.Sum(r => r.SoloOk);
