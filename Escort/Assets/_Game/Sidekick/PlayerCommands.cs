@@ -89,6 +89,7 @@ namespace HS.Sidekick
                 if (_in.Skills[i].WasPressedThisFrame()) _latched.Skill = i;
                 if (_in.Skills[i].IsPressed()) _skillHeld = true;
             }
+            if (_in.Capstone.WasPressedThisFrame()) _latched.Skill = HS.Skills.SkillSystem.CapstoneSlot;
         }
 
         /// <summary>The visible enemy standing well above the sidekick's ground whose body the pointer ray passes through.</summary>

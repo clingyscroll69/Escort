@@ -29,7 +29,7 @@ namespace HS.Tutorial
         ThreatIndicators _threats;
         HazardMarker[] _hazards = new HazardMarker[0];
         ExploreAnchor[] _caches = new ExploreAnchor[0];
-        RiggedDuelDirector _duel;
+        GalleryBoss _duel;
         float _chapterT, _scanT, _offscreenFor;
         int _scannedChapter = -1;
         bool _welcomed;
@@ -226,6 +226,38 @@ namespace HS.Tutorial
             ScanEnemies(hero);
             if (road && settled) ScanRoad(sk, hero);
             if (road && settled) ScanChapter2(sk, hero);
+            if (road && settled) ScanChapter4(sk, hero);
+        }
+
+        /// <summary>Water, the sluice, captives, a baiter, the capstone's key (chapter 4 on).</summary>
+        void ScanChapter4(SidekickAgent sk, HeroAgent hero)
+        {
+            if (BogZone.AnyContains(hero.Position, true) || BogZone.AnyContains(sk.Position, true)) _d.Offer("wading");
+            foreach (var w in SluiceWheel.All)
+                if (w != null && w.isActiveAndEnabled && !w.Done && w.Working > 0 && Geo.FlatDistance(w.transform.position, sk.Position) <= 20f)
+                {
+                    var wheel = w;
+                    _d.Offer("sluice", () => wheel == null || wheel.Done,
+                        () => wheel != null && !wheel.Done ? wheel.transform.position + Vector3.up * 2.6f : (Vector3?)null);
+                    break;
+                }
+            foreach (var h in Hostage.All)
+                if (h != null && h.Held && (Geo.FlatDistance(h.Position, sk.Position) <= 14f || Geo.FlatDistance(h.Position, hero.Position) <= 12f))
+                {
+                    var captive = h;
+                    _d.Offer("hostage", () => captive == null || !captive.Held,
+                        () => captive != null && captive.Held ? captive.Position + Vector3.up * 2f : (Vector3?)null);
+                    break;
+                }
+            var all = AgentRegistry.All;
+            for (int i = 0; i < all.Count; i++)
+                if (all[i] is EnemyAgent e && e.IsAlive && e.Baiting && e.DuelOpponent == hero)
+                {
+                    _d.Offer("baiter", spotlight: HeroSpot);
+                    break;
+                }
+            var skills = sk.GetComponent<SidekickSkills>();
+            if (skills != null && skills.System.Capstone != null) _d.Offer("capstone");
         }
 
         void LateBind(HeroAgent hero)
@@ -245,13 +277,21 @@ namespace HS.Tutorial
             if (_flow.Camp != null && (fade == null || !fade.Busy)) _d.Offer("camp");
         }
 
-        float _termsSince = -1f;
+        float _termsSince = -1f, _mirrorSince = -1f;
 
         void TickDuel(HeroAgent hero)
         {
             if (_flow.Duel != null && _duel != _flow.Duel) _duel = _flow.Duel;
             var fade = ScreenFade.Instance;
-            bool terms = _duel != null && _duel.Current == RiggedDuelDirector.Phase.Terms && (fade == null || !fade.Busy);
+            if (_duel != null && _duel.Current == GalleryBoss.Phase.Mirror && (fade == null || !fade.Busy))
+            {
+                if (_duel.Brain != null && _duel.Brain.Broken) _d.Offer("habit_break");
+                if (_duel.Duet != null && _duel.Duet.Open) _d.Offer("link_ring");
+                if (_mirrorSince < 0f) _mirrorSince = Time.unscaledTime;
+                if (Time.unscaledTime - _mirrorSince >= 1.2f) _d.Offer("mirror", spotlight: HeroSpot);
+            }
+            if (_cm != null && _cm.DuetWindow) _d.Offer("duet_window", spotlight: HeroSpot);
+            bool terms = _duel != null && _duel.Current == GalleryBoss.Phase.Terms && (fade == null || !fade.Busy);
             if (!terms)
             {
                 _termsSince = -1f;

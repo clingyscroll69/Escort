@@ -33,13 +33,21 @@ namespace HS.Rapport
             return lines;
         }
 
+        /// <summary>Who a Moment was about, from the enemy's object name (most specific first).</summary>
+        static readonly (string key, string who)[] Names =
+        {
+            ("bastion_archer", "a bastion archer"), ("alcove_archer", "an alcove archer"), ("gallery_archer", "a gallery archer"),
+            ("marksman", "a marksman"), ("poacher", "a poacher"), ("crossbowman", "a crossbowman"), ("baiter", "a challenge-baiter"),
+            ("drowned_ambusher", "a drowned ambusher"), ("fern_ambusher", "a fern ambusher"), ("steward", "a false steward"),
+            ("tomb_robber", "a tomb robber"), ("cultist", "a cultist"), ("turncoat", "a turncoat"), ("ambusher", "a hedge ambusher"),
+            ("archer", "a gallery archer"), ("Archer", "a gallery archer"),
+        };
+
         public static string Who(string note)
         {
             if (string.IsNullOrEmpty(note)) return "someone";
-            if (note.Contains("archer") || note.Contains("Archer")) return "a gallery archer";
-            if (note.Contains("crossbowman")) return "a crossbowman";
-            if (note.Contains("turncoat")) return "a turncoat";
-            if (note.Contains("ambusher")) return "a hedge ambusher";
+            foreach (var (key, who) in Names)
+                if (note.Contains(key)) return who;
             return "a cheat";
         }
 
@@ -56,7 +64,9 @@ namespace HS.Rapport
                     switch (e.Id)
                     {
                         case "unseen_assist": return $"While he duelled, you quietly dealt with {Who(note)} — and he never saw it.";
-                        case "averted_cheat": return note.Contains("ambush") || note.Contains("flushed") ? "You flushed out an ambush before it sprang." : "You saw through a false surrender before the knife came out.";
+                        case "averted_cheat":
+                            if (note.Contains("hostage")) return "You got a hostage out from in front of an archer's bow.";
+                            return note.Contains("ambush") || note.Contains("flushed") ? "You flushed out an ambush before it sprang." : "You saw through a false surrender before the knife came out.";
                         case "covered_lapse": return "Your cover story smoothed over a lapse.";
                         case "wound_treated": return "You bandaged him after a duel.";
                     }
@@ -66,7 +76,9 @@ namespace HS.Rapport
                     switch (e.Id)
                     {
                         case "unseen_assist": return $"{Cap(Who(note))} fought dirty during his duel; nobody stopped them.";
-                        case "averted_cheat": return note.Contains("ambush") ? "An ambush caught him by surprise." : "A false surrender went unchallenged.";
+                        case "averted_cheat":
+                            if (note.Contains("hostage")) return "An archer kept his hostage, and his aim.";
+                            return note.Contains("ambush") ? "An ambush caught him by surprise." : "A false surrender went unchallenged.";
                         case "covered_lapse": return "He caught you cheating, and you let it stand.";
                         case "wound_treated": return "He fought on with wounds you could have dressed.";
                     }

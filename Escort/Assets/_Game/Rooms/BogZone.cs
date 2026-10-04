@@ -7,13 +7,16 @@ namespace HS.Rooms
 {
     /// <summary>
     /// Bog (Whisperwood's Mire Crossing): sucking mud over the path. Everyone in it wades — the armoured hero worst
-    /// (×0.6), everyone else ×0.8. A box in local XZ (Size). All zones are applied together once per tick, so overlapping
+    /// (×0.6), everyone else ×0.8. In <see cref="Water"/> mode it is the Sunken Bastion's flooded floor (knee-deep: him
+    /// ×0.75, others ×0.85). A box in local XZ (Size). All zones are applied together once per tick, so overlapping
     /// patches never fight over an agent.
     /// </summary>
     public sealed class BogZone : MonoBehaviour, ISimTickable
     {
         public Vector2 Size = new Vector2(6f, 5f);
         public float HeroMul = 0.6f, OtherMul = 0.8f;
+        [Tooltip("Knee-deep water rather than mud (only the words change).")]
+        public bool Water;
         public int TickOrder => TickOrders.Director - 10;
 
         static readonly List<BogZone> Zones = new List<BogZone>();
@@ -65,13 +68,22 @@ namespace HS.Rooms
                     if (z.Contains(a.Position))
                     {
                         mul = Mathf.Min(mul, a is HeroAgent ? z.HeroMul : z.OtherMul);
-                        if (a is HeroAgent h && z._barked.Add(a) && h.Module is HS.Hero.Callum.CallumModule cm) cm.Bark(MudLines, 1);
+                        if (a is HeroAgent h && z._barked.Add(a) && h.Module is HS.Hero.Callum.CallumModule cm) cm.Bark(z.Water ? WaterLines : MudLines, 1);
                     }
                 a.Motor.TerrainMul = mul;
             }
         }
 
         static readonly string[] MudLines = { "Mud. Of course there's mud.", "This armour was not made for wading." };
+        static readonly string[] WaterLines = { "Water in the boots. Splendid.", "A knight should not have to swim to a fight." };
+
+        /// <summary>Is this point in any active zone (wading)? For lessons and bots.</summary>
+        public static bool AnyContains(Vector3 p, bool waterOnly = false)
+        {
+            foreach (var z in Zones)
+                if (z != null && (!waterOnly || z.Water) && z.Contains(p)) return true;
+            return false;
+        }
 
         void OnDrawGizmos()
         {

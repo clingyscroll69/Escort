@@ -128,7 +128,8 @@ namespace HS.EditorTools
                 new[] { 3f, -1f, 0f, 0.3f, 1f, 0f }, // S2: breaks off combat; no wound
                 new[] { 1.5f, -1f, 0f, 0.5f, 1f, 1f }, // S3: sprints mid-fight; she rises at 50%
             };
-            // S2 adds Look Away (and waits only 1 s on a flagged cheater: CallumModule.WaitCap); S3's own rules come in plan 5.
+            // S2 adds Look Away (and waits only 1 s on a flagged cheater: CallumModule.WaitCap); S3 keeps the S2 list, and its
+            // Duet window (an open Judgment she can join) runs inside callum_finisher.
             foreach (var (list, wait, stage) in new[] { (def.s0, 3f, 0), (def.s1, 2f, 1), (def.s2, 2f, 2), (def.s3, 2f, 3) })
             {
                 list.Add(new RuleEntry("callum_recall", recall[stage]));

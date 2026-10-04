@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Hold Please
   family: 5
   type: 0
-  uses: Freeze the room for 4 s, except you.
+  uses: 'Everyone within 40 m but you is held still for 4 s, the hero too. Cooldown 60 s.'
   icon: hold_please
-  implemented: 0
+  implemented: 1
   capstone: 1
   cooldown:
-  - 0
-  - 0
+  - 60
+  - 60
   valueA:
-  - 0
-  - 0
+  - 4
+  - 4
   valueB:
-  - 0
-  - 0
+  - 40
+  - 40
   dishonor: 0

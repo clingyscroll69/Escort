@@ -147,6 +147,7 @@ namespace HS.Presentation
                 case "combat": _anim.SetBool(CombatId, on); break;
                 case "salute": _saluteTarget = on ? 1f : 0f; break;
                 case "surrender": _surrenderTarget = on ? 1f : 0f; break;
+                case "frozen": _anim.speed = on ? 0f : 1f; break; // Hold Please: the room stops mid-motion
             }
         }
 

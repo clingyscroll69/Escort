@@ -59,6 +59,64 @@ namespace HS.Boss
             return l;
         }
 
+        // ------------------------------------------------------------------ the Gallery (chapter 5)
+
+        /// <summary>Phase 0 (GDD §4.5): the figure with the dull pendant names the flaw, then the line that has no page for you.</summary>
+        public static List<string> Opening(Stage stage) => new List<string>
+        {
+            "Sir Callum. I have read every page of you.",
+            "A man who will not cheat can always be cheated. A man who keeps his word can be held to it.",
+            stage >= Stage.S1
+                ? "So I have written terms, and you will keep them. ...Though lately someone has been writing in your margins."
+                : "So I have written terms, and you will keep them. You always do.",
+            "And you. There is no page for you. No matter: scenery needs no page.",
+        };
+
+        /// <summary>Phase 3's unmasking: the persona falls away and the Curator speaks as himself.</summary>
+        public static readonly string[] Unmasking =
+        {
+            "You are not the first I have read. You are the first I could not finish.",
+            "So. Here is everything you were. Let us see which of you I keep.",
+        };
+
+        /// <summary>A loss in the Gallery, by phase and cause (GDD §11.3: attributable).</summary>
+        public static List<string> ForGallery(Stage stage, GalleryBoss.Phase phase, string cause, bool sidekickDied)
+        {
+            if (phase != GalleryBoss.Phase.Mirror && phase != GalleryBoss.Phase.Unmasking) return For(stage, cause, sidekickDied);
+            var l = new List<string> { "SUBJECT: CALLUM, called 'the Honorable'." };
+            if (sidekickDied) l.Add("The help fell first. He never saw it: he was busy fighting himself.");
+            else switch (cause)
+            {
+                case "terms":
+                    l.Add("He fought himself to a standstill, and would not take the hand that could end it.");
+                    l.Add("\"No aid.\" He said it to the last. I had only to wait.");
+                    break;
+                case "feint":
+                    l.Add("I staggered, and he waited. He always waits. I wrote that on the first page.");
+                    break;
+                case "duet_missed":
+                    l.Add("He looked to the scenery for help. The scenery was late.");
+                    break;
+                default:
+                    l.Add("Equal arms, equal habits. A man cannot outfight himself; he can only outgrow himself.");
+                    break;
+            }
+            l.Add("And you... still no page. I begin to think that is the point.");
+            return l;
+        }
+
+        /// <summary>His "we" line (GDD §8 ending): S0 still credits fortune; by S3 the stones will write two names.</summary>
+        public static string WeLine(Stage stage)
+        {
+            switch (stage)
+            {
+                case Stage.S3: return "Write two names, stones. We did this.";
+                case Stage.S2: return "We. I'll say it plainly, and to anyone: we.";
+                case Stage.S1: return "We— we did that. Didn't we. ...We.";
+                default: return "Fortune... no. That was not fortune, was it.";
+            }
+        }
+
         /// <summary>Callum's line after a win: S0 credits luck, S1 begins to notice (GDD tone: early luck → later "we").</summary>
         public static string VictoryLine(Stage stage, int archersSilenced) =>
             stage >= Stage.S1

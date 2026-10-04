@@ -235,6 +235,15 @@ namespace HS.Core
         public float heavyEvery;          // every N-th attack is heavy (0 = never)
         [Tooltip("Metres a heavy blow shoves its victim (the bone bridge's shield-bearers). 0 = none.")]
         public float shove;
+        [Tooltip("Challenge-baiter (the Bastion's causeway): accepts his challenge, then backs away for a while instead of fighting.")]
+        public bool baiter;
+        [Tooltip("Works a machine (the Bastion's sluice wheel) instead of fighting, until someone stops him.")]
+        public bool crew;
+        [Header("Cast by alias")]
+        [Tooltip("Archetype whose prefab this one wears when it has none of its own (CastFactory). Empty: none.")]
+        public string body;
+        [Tooltip("Multiplies the body's colours (Toon _BaseColor). Alpha 0: no tint.")]
+        public Color tint;
 
         // Ch1 tuning target (GDD §3: the hero solos ~70% of encounters): honest bandits are a nuisance to a knight; the
         // danger is the cheating — cheap shots, ambushes, shooters he won't chase, the brute's heavy — which is the
@@ -259,6 +268,23 @@ namespace HS.Core
             new EnemyStats { id = "alcove_archer", displayName = "Alcove Archer", maxHp = 45, speed = 3.8f, damage = 18, kind = DamageKind.Ranged, windup = 0f, recovery = 0.5f, range = 22f, ranged = true, projectileSpeed = 30f, aimTime = 1.0f, reload = 4.4f, cheater = true },
             // The rigged duel must outlast the volley signal (T+25 s) by several volleys: a durable, measured duellist.
             new EnemyStats { id = "ashgrave", displayName = "Lord Ashgrave", maxHp = 1250, speed = 4.6f, damage = 9, kind = DamageKind.Blade, windup = 0.7f, recovery = 1.0f, range = 2.2f, heavyDamage = 26, heavyWindup = 1.1f, heavyEvery = 4 },
+            // The Sunken Bastion (chapter 4): soldiers in the water, the Rigged Gauntlet (baiters, hostage archers, drowned
+            // ambushers), the sluice crew. New faces wear existing bodies, tinted, until their own prefabs are built.
+            new EnemyStats { id = "bastion_soldier", displayName = "Bastion Soldier", maxHp = 110, speed = 3.9f, damage = 13, kind = DamageKind.Melee, windup = 0.6f, recovery = 1.0f, range = 2.0f, heavyDamage = 40, heavyWindup = 1.0f, heavyEvery = 4, body = "shield_bearer", tint = new Color(0.72f, 0.82f, 0.98f, 1f) },
+            new EnemyStats { id = "baiter", displayName = "Challenge-Baiter", maxHp = 85, speed = 4.6f, damage = 11, kind = DamageKind.Melee, windup = 0.5f, recovery = 0.95f, range = 1.8f, cheater = true, baiter = true, body = "turncoat", tint = new Color(0.7f, 0.9f, 0.95f, 1f) },
+            new EnemyStats { id = "drowned_ambusher", displayName = "Drowned Ambusher", maxHp = 65, speed = 4.4f, damage = 11, kind = DamageKind.Melee, windup = 0.45f, recovery = 0.95f, range = 1.8f, startsHidden = true, ambushDamage = 46, cheater = true, body = "ambusher", tint = new Color(0.62f, 0.82f, 0.86f, 1f) },
+            new EnemyStats { id = "bastion_archer", displayName = "Bastion Archer", maxHp = 45, speed = 3.8f, damage = 17, kind = DamageKind.Ranged, windup = 0f, recovery = 0.5f, range = 22f, ranged = true, projectileSpeed = 30f, aimTime = 1.0f, reload = 4.6f, cheater = true, body = "archer", tint = new Color(0.75f, 0.85f, 1f, 1f) },
+            new EnemyStats { id = "sluice_crew", displayName = "Sluice Crew", maxHp = 70, speed = 4.0f, damage = 10, kind = DamageKind.Melee, windup = 0.55f, recovery = 1.0f, range = 1.8f, crew = true, body = "thug", tint = new Color(0.7f, 0.78f, 0.9f, 1f) },
+            // The Gallery (chapter 5): the Curator's wardens, marksmen and stewards; Ashgrave without the pretence; the Mirror.
+            new EnemyStats { id = "gallery_warden", displayName = "Gallery Warden", maxHp = 160, speed = 3.6f, damage = 15, kind = DamageKind.Melee, windup = 0.7f, recovery = 1.0f, range = 2.2f, heavyDamage = 54, heavyWindup = 1.15f, heavyEvery = 4, body = "ward_guardian", tint = new Color(1f, 0.94f, 0.78f, 1f) },
+            new EnemyStats { id = "gallery_marksman", displayName = "Gallery Marksman", maxHp = 50, speed = 4.0f, damage = 17, kind = DamageKind.Ranged, windup = 0f, recovery = 0.4f, range = 22f, ranged = true, projectileSpeed = 34f, aimTime = 0.95f, reload = 4.0f, cheater = true, body = "crossbowman", tint = new Color(1f, 0.88f, 0.6f, 1f) },
+            new EnemyStats { id = "gallery_steward", displayName = "Gallery Steward", maxHp = 85, speed = 4.3f, damage = 11, kind = DamageKind.Melee, windup = 0.5f, recovery = 0.95f, range = 1.8f, surrenderAtHp = 0.36f, cheapShotDamage = 64, cheater = true, body = "turncoat", tint = new Color(0.55f, 0.5f, 0.45f, 1f) },
+            new EnemyStats { id = "gallery_archer", displayName = "Gallery Archer", maxHp = 45, speed = 3.8f, damage = 16, kind = DamageKind.Ranged, windup = 0f, recovery = 0.5f, range = 30f, ranged = true, projectileSpeed = 30f, aimTime = 1.0f, reload = 6.0f, cheater = true, body = "archer" },
+            new EnemyStats { id = "ashgrave_unmasked", displayName = "Lord Ashgrave", maxHp = 1250, speed = 5.2f, damage = 12, kind = DamageKind.Blade, windup = 0.5f, recovery = 0.8f, range = 2.2f, heavyDamage = 30, heavyWindup = 0.9f, heavyEvery = 3, cheater = true, body = "ashgrave" },
+            // The Mirror: Callum's chapter 5 numbers seen from the other side. It has his Stance II (his blows on it ×0.6), so
+            // 300 HP holds ≈ 20 s of his sustained chapter 5 damage (26 per 1.05 s at the tier); and each of its blows takes
+            // the same share of his HP (through his own Stance II) as each of his takes of its: equal power.
+            new EnemyStats { id = "mirror", displayName = "The Mirror", maxHp = 300, speed = 5.0f, damage = 22, kind = DamageKind.Blade, windup = 0.45f, recovery = 0.6f, range = 2.1f, heavyDamage = 44, heavyWindup = 0.9f, cheater = true, body = "ashgrave" },
         };
     }
 }

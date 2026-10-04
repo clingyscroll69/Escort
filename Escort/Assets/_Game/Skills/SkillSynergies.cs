@@ -53,6 +53,18 @@ namespace HS.Skills
             new Pair("buckler", "bandage", "Shield up, then dress him while the man who swung at you reels."),
             new Pair("buckler", "crossbow", "Parry, and the reeling man is an easy shot. If he's helpless in Callum's sight, it's a disgrace."),
             new Pair("buckler", "pull_back", "Haul him clear, then stand between him and the shooters."),
+            new Pair("bait_and_switch", "loosen_bolt", "Stand the decoy under a rigged prop: they crowd round it, and it all comes down."),
+            new Pair("bait_and_switch", "pocket_sand", "They bunch up on the decoy. One handful of sand finds them all."),
+            new Pair("bait_and_switch", "bandage", "While they argue with a stuffed cloak, there's time to dress him."),
+            new Pair("smoke_bomb", "crossbow", "From inside the smoke, nobody sees where the bolt came from. The stones see nothing at all."),
+            new Pair("smoke_bomb", "pocket_sand", "Grit for one man's eyes, smoke for everyone's. One of them is a dirty trick if he sees it."),
+            new Pair("smoke_bomb", "quiet_feet", "Two ways not to be seen: crouch at the edge of his cone, or stand where nobody's cone reaches."),
+            new Pair("smoke_bomb", "bandage", "Shooters can't aim through smoke: a cloud over him buys a dressing."),
+            new Pair("pep_talk", "cover_story", "Words, both of them. One lifts his sword arm; the other his conscience."),
+            new Pair("pep_talk", "bandage", "Patch him up, then talk him up."),
+            new Pair("shoulder_check", "loosen_bolt", "A shove can put a man right under a rigged prop."),
+            new Pair("shoulder_check", "buckler", "Block the swing, then barge the man who made it."),
+            new Pair("shoulder_check", "sling", "A reeling man is an easy mark. If he's helpless in Callum's sight, it's a disgrace."),
         };
 
         public static IReadOnlyList<Pair> All => _all;

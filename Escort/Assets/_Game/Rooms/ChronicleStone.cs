@@ -119,9 +119,23 @@ namespace HS.Rooms
             StateChanged?.Invoke(this, s);
         }
 
+        float _baseYaw = float.NaN, _sweepT;
+
         protected override void OnSimTick(float dt)
         {
             Motor.Move(Vector3.zero, 100f, dt);
+            if (_anchor != null && State != StoneState.Broken)
+            {
+                if (_anchor.AlwaysActive) Wake(1f);
+                if (_anchor.Sweep > 0f)
+                {
+                    // A slow, regular sweep: patience finds the gap.
+                    if (float.IsNaN(_baseYaw)) _baseYaw = transform.eulerAngles.y;
+                    _sweepT += dt;
+                    float yaw = _baseYaw + _anchor.Sweep * Mathf.Sin(_sweepT * Mathf.PI * 2f / Mathf.Max(1f, _anchor.SweepPeriod));
+                    transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+                }
+            }
             if (State != StoneState.Active) return;
             _linger -= dt;
             if (_linger <= 0f) SetState(StoneState.Dormant);

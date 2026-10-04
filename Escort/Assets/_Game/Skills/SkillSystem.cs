@@ -40,6 +40,8 @@ namespace HS.Skills
     public sealed class SkillSystem
     {
         public const int MaxRank = 2;
+        /// <summary>The command slot index of the capstone's own key (never a loadout slot).</summary>
+        public const int CapstoneSlot = 6;
         public readonly Dictionary<string, SkillState> Known = new Dictionary<string, SkillState>();
         readonly List<string> _loadout = new List<string>();
         readonly Dictionary<string, ISkillBehaviour> _behaviours;
@@ -98,12 +100,15 @@ namespace HS.Skills
             return true;
         }
 
-        public IEnumerable<SkillState> Reserve => Known.Values.Where(k => k.Def.UsesSlot && !_loadout.Contains(k.Id));
+        /// <summary>The run's capstone, once chosen.</summary>
+        public SkillState Capstone => Known.Values.FirstOrDefault(k => k.Def.capstone);
+
+        public IEnumerable<SkillState> Reserve => Known.Values.Where(k => k.Def.UsesSlot && !k.Def.capstone && !_loadout.Contains(k.Id));
 
         /// <summary>Put a known active into a slot. Swapping out an equipped skill requires a camp.</summary>
         public bool Equip(string id, int slot)
         {
-            if (!Known.ContainsKey(id) || !Known[id].Def.UsesSlot || slot < 0 || slot >= SlotCount) return false;
+            if (!Known.ContainsKey(id) || !Known[id].Def.UsesSlot || Known[id].Def.capstone || slot < 0 || slot >= SlotCount) return false;
             bool freeSlot = slot >= _loadout.Count;
             if (!freeSlot && !AtCamp) return false;
             int existing = _loadout.IndexOf(id);
@@ -135,7 +140,7 @@ namespace HS.Skills
         public bool TryActivate(int slot, in SkillUseContext ctx)
         {
             LastFailReason = null;
-            var s = InSlot(slot);
+            var s = slot == CapstoneSlot ? Capstone : InSlot(slot);
             if (s == null)
             {
                 LastFailReason = "empty slot";

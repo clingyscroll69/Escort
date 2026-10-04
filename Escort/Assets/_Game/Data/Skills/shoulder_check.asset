@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Shoulder Check
   family: 4
   type: 0
-  uses: Knockback and stagger.
+  uses: 'Charge into the nearest foe in front of you: a light blow, 3 m of knockback (rank 2: 4 m) and 1.2 s of stagger (rank 2: 1.6 s). Cooldown 7 s (rank 2: 6 s).'
   icon: shoulder_check
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 7
+  - 6
   valueA:
-  - 0
-  - 0
+  - 3
+  - 4
   valueB:
-  - 0
-  - 0
-  dishonor: 0
+  - 1.2
+  - 1.6
+  dishonor: 1

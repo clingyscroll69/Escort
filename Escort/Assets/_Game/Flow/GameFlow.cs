@@ -37,6 +37,8 @@ namespace HS.Flow
         public int StopAfterChapter;
         public string[] OpeningPicks = { "pocket_sand", "crossbow" };
         public string[] CampPicks = { "quiet_feet", "bandage", "cover_story", "loosen_bolt" };
+        /// <summary>AutoPlay's capstone at the chapter 4 campfire (and the preset kit's from chapter 5).</summary>
+        public string CapstonePick = "hold_please";
         /// <summary>AutoPlay bot by name (idle, sloppy, supportive, follow) — serialized, so QA scenes keep it.</summary>
         public string BotName = "follow";
         /// <summary>Optional factory override (code-only).</summary>
@@ -46,7 +48,8 @@ namespace HS.Flow
         public event Action<State> StateChanged;
         public ChapterBootstrap Chapter { get; private set; }
         public CampfireDirector Camp { get; private set; }
-        public RiggedDuelDirector Duel { get; private set; }
+        /// <summary>The Gallery's boss (chapter 5): Ashgrave, then the Mirror.</summary>
+        public GalleryBoss Duel { get; private set; }
         public XpTracker Xp { get; private set; }
         /// <summary>Recall (learned at the chapter 2 campfire): Downed instead of dead, two Recalls a chapter.</summary>
         public RecallState Recall { get; private set; }
@@ -86,6 +89,7 @@ namespace HS.Flow
                         BotName = build.bot;
                         OpeningPicks = build.opening;
                         CampPicks = build.camp;
+                        CapstonePick = HS.Bots.BotFactory.Capstone(next ?? "supportive");
                         break;
                     case "-hs-seed": int.TryParse(next, out Seed); break;
                     case "-hs-perf": gameObject.AddComponent<HS.QA.PerfProbe>().OutPath = next; break;
@@ -210,6 +214,8 @@ namespace HS.Flow
             skills.System.AtCamp = true;
             foreach (var id in ids) skills.Learn(id);
             skills.System.AtCamp = false;
+            // Past chapter 4's campfire: the capstone came with it.
+            if (CurrentChapter > 4) skills.System.LearnCapstone(SkillCatalog.Load()?.Get(CapstonePick));
             int level = CampaignSchedule.LevelTarget(CurrentChapter - 1);
             Sk.SetLevel(level, true);
             Xp.Restore(XpTracker.Thresholds[Mathf.Clamp(level - 2, 0, XpTracker.Thresholds.Length - 1)]);
@@ -338,6 +344,7 @@ namespace HS.Flow
                     Chapter = ch, Check = CampaignSchedule.For(ch).CampCheck, Picks = picks, AutoPicks = AutoPlay, AutoPickIds = CampPicks,
                     LearnsRecall = CampaignSchedule.For(ch).LearnsRecall,
                     ReadsDossier = CampaignSchedule.For(ch).DossierScrap,
+                    CapstoneReveal = CampaignSchedule.For(ch).CapstoneReveal, AutoCapstone = CapstonePick,
                     ContinueLabel = $"CONTINUE  »  {next.Name.ToUpperInvariant()}",
                 });
                 SimLoop.Instance.Paused = false;
@@ -396,25 +403,32 @@ namespace HS.Flow
             if (Camp != null) Destroy(Camp.gameObject);
             SetState(State.Duel);
             SimLoop.Instance.Paused = false;
-            Duel = new GameObject("RiggedDuel").AddComponent<RiggedDuelDirector>();
-            var assets = GameAssets.Load();
-            Duel.Begin(Chapter.Chapter.Boss, Hero, Sk, assets.Enemy);
+            Duel = new GameObject("GalleryBoss").AddComponent<GalleryBoss>();
+            Duel.Begin(Chapter.Chapter.Boss, Hero, Sk);
             Chapter.Camera.AddFocus(Duel.Ashgrave.transform, 0.6f, 1.6f);
             Chapter.Camera.TravelDirection = () => Vector3.forward;
             _ctx.Get<OpportunityDirector>()?.Judge?.NewFight();
             Duel.PhaseChanged += p =>
             {
-                if (p == RiggedDuelDirector.Phase.Duel) Chapter.Hud.ShowBoss(Duel.Ashgrave, "LORD ASHGRAVE");
-                if (p == RiggedDuelDirector.Phase.Won)
+                switch (p)
                 {
-                    int silenced = 0;
-                    foreach (var a in Duel.Archers) if (a != null && !a.IsAlive) silenced++;
-                    var quote = CuratorDiagnosis.VictoryLine(Hero.Stage, silenced);
-                    _ctx.Events.RaiseBark("callum", quote, 4f, 3);
-                    EndRun(true, new List<string> { "CHAPTER 5: THE GALLERY — CLEARED." }, false, quote);
+                    case GalleryBoss.Phase.Duel: Chapter.Hud.ShowBoss(Duel.Ashgrave, "LORD ASHGRAVE"); break;
+                    case GalleryBoss.Phase.Unmasking: Chapter.Hud.ShowBoss(null, ""); break;
+                    case GalleryBoss.Phase.Mirror:
+                        Chapter.Hud.ShowBoss(Duel.Mirror, "THE MIRROR");
+                        Chapter.Camera.RemoveFocus(Duel.Ashgrave.transform);
+                        Chapter.Camera.AddFocus(Duel.Mirror.transform, 0.6f, 1.6f);
+                        _ctx.Get<OpportunityDirector>()?.Judge?.NewFight();
+                        break;
+                    case GalleryBoss.Phase.Aftermath: Chapter.Hud.ShowBoss(null, ""); break;
+                    case GalleryBoss.Phase.Won:
+                        EndRun(true, new List<string> { "CHAPTER 5: THE GALLERY — CLEARED.", "CLASS: CALLUM's SIDEKICK. STATUS: LISTED." }, false,
+                            CuratorDiagnosis.WeLine(Hero.Stage));
+                        break;
+                    case GalleryBoss.Phase.Lost:
+                        EndRun(false, CuratorDiagnosis.ForGallery(Hero.Stage, Duel.LossPhase, Duel.LossCause, Duel.SidekickDied), Duel.SidekickDied);
+                        break;
                 }
-                else if (p == RiggedDuelDirector.Phase.Lost)
-                    EndRun(false, CuratorDiagnosis.For(Hero.Stage, Duel.LossCause, Duel.SidekickDied), Duel.SidekickDied);
             };
         }
 
@@ -442,7 +456,13 @@ namespace HS.Flow
                 m.Hint = HS.Tutorial.Lessons.Get("restore")?.Body;
                 HS.Tutorial.TutorialProgress.MarkSeen("restore");
             }
-            if (won) m.Buttons.Add(("PLAY AGAIN · NEW ROAD", PlayAgain));
+            if (won && outcome == null)
+            {
+                // GDD §8 ending: the System offers a class re-roll, and she may decline it.
+                m.Buttons.Add(("RE-ROLL CLASS", () => ShowClassRoll(true)));
+                m.Buttons.Add(("DECLINE", () => ShowClassRoll(false)));
+            }
+            else if (won) m.Buttons.Add(("PLAY AGAIN · NEW ROAD", PlayAgain));
             else
             {
                 if (RunState.Door != null) m.Buttons.Add(("RESTORE · BEFORE THE DOOR", () => Restore("door")));
@@ -466,6 +486,23 @@ namespace HS.Flow
 
         EndScreen.Model _pendingEnd;
         void ShowEnd() => EndScreen.Show(UIRoot.Ensure(), _pendingEnd);
+
+        /// <summary>The re-roll, answered: the System tries, and the class it lands on is the one she already has.</summary>
+        void ShowClassRoll(bool reroll)
+        {
+            var m = new EndScreen.Model
+            {
+                Title = reroll ? "» SYSTEM: RE-ROLLING CLASS" : "» SYSTEM: RE-ROLL DECLINED",
+                Diagnosis = reroll
+                    ? new List<string> { "ROLLING...", "CLASS: HERO.", "ERROR: CLASS 'HERO' IS TAKEN (CALLUM). REVERTING.", "CLASS: CALLUM's SIDEKICK. STATUS: LISTED." }
+                    : new List<string> { "CLASS: CALLUM's SIDEKICK. STATUS: LISTED.", "ENTRY CREATED. FIRST OF ITS KIND." },
+                Quote = reroll ? "Taken? Good. I'd have hated to break in a new hero." : CuratorDiagnosis.WeLine(Hero.Stage),
+                Lines = _pendingEnd != null ? _pendingEnd.Lines : new List<PostMortem.Line>(),
+            };
+            m.Buttons.Add(("PLAY AGAIN · NEW ROAD", PlayAgain));
+            m.Buttons.Add(("QUIT", Quit));
+            EndScreen.Show(UIRoot.Ensure(), m);
+        }
 
         public void Restore(string point)
         {

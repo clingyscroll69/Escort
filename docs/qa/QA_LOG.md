@@ -697,3 +697,40 @@ GDD's ~30% for chapter 3, to be tuned in plan 6 once the bots use the chapter's 
 
 **Tests:** EditMode 107/107; PlayMode all green except the camera framing test (its fix is uncommitted on `main`).
 
+## Chapters 4–5: the Sunken Bastion and the Gallery (2026-10-04, plans 4 and 5 of 6)
+Plans: `docs/superpowers/plans/2026-10-04-chapter-4-sunken-bastion.md`, `docs/superpowers/plans/2026-10-04-chapter-5-gallery.md`.
+
+**What's in**
+- *Chapter 4 rooms* (`Editor/Builders/BastionRooms.cs`): the Flooded Gate, the Sluice Works (always third), the Hostage
+  Court and the Baiters' Causeway (nemesis markers by `MinIntel`), Wren's Rampart (always second); bastion caps; wet stone,
+  rampart and water textures.
+- *Chapter 4 mechanics:* water (`BogZone` water mode: slows, no wound), `SluiceWheel` (crew recruited by `crew` stats;
+  40 s of work floods the lower floor: 3% of his HP every 3 s while he stands in it; jam it with Interact, 3 s),
+  `Hostage` (binds to the nearest shooter within 2.6 m; shields him from the challenge; untie 1.2 s; a bolt through her is
+  a Major), challenge-baiters (accept, then give ground for 6 s), `NemesisSquad` (one cheat and ×0.85 reloads per Intel
+  level), Darian Wren (a scout in a gilded hero's harness).
+- *Skills:* Bait & Switch (`Decoy`), Smoke Bomb (`SmokeCloud`: blocks his, a stone's and a shooter's sight; wipes aggro),
+  Pep Talk, Shoulder Check; capstones (`Capstones.cs`) on their own key (X / R3) with `CapstonePicker` at the chapter 4
+  campfire.
+- *Chapter 5 rooms* (`Editor/Builders/GalleryRooms.cs`): the Hall of Exhibits (plinth stones that wake for his duels), the
+  Long Gallery (`StoneAnchor.AlwaysActive` + `Sweep`), the arena (`gallery_arena`: R 14 m octagon, six perches, two
+  niches under loose masonry, the Oath circle); marble textures.
+- *The boss* (`Boss/GalleryBoss.cs`): phase 0 (12 s, the grey figure; nothing lands on him), phase 1 (terms by Stage; the
+  signal at T+25 s or at 60%), phase 2 (`ashgrave_unmasked`; S1+ treat the terms as broken), the unmasking (10 s), the
+  Mirror (`MirrorBrain`: his S0 rules on an enemy body wearing his visual; never targets her; its HP stops at 25% for all
+  but the Duet; Etiquette Reset, the chokepoint trap, witnessed dishonour; `MirrorCounters`), the Duet Finisher
+  (`DuetFinisher`: the Link ring, each capstone's Duet form; a miss is 12% of his HP and a wound, the ring returns in 10 s;
+  S0 refuses), the aftermath and the ending with the class re-roll.
+- *Lessons:* wading, the sluice, a captive, a baiter, the capstone's key; the Mirror (a freeze-frame), a broken habit, the
+  Link ring, a Duet Window. No hidden-stat words (the copy scan covers them).
+- *Bots:* the supportive bot fires the capstone in the ring (or pings), drops an armed prop on a niched Mirror, pings for
+  Etiquette Resets, unties captives, jams the sluice, and forgets each chapter's traps and caches when the road changes.
+
+**Not yet run (no Unity editor in this session):** the four assemblies (runtime, editor, EditMode, PlayMode tests) were
+compile-checked against Unity's reference assemblies, but no test, scene or capture was run. Until the owner runs
+`Tools/HS/Build/Chapters 4–5 (everything)`, chapters 4 and 5 borrow the Old Road's modules (`ChapterDef.Borrowed`), the new
+cast wears existing bodies (`CastFactory` aliases, tints), and the boss runs in the slice's arena with three archers and
+niches and props placed at runtime. Owner checklist: run the build menu; run EditMode and PlayMode tests (new:
+`MirrorCountersTests`, `NemesisSquadTests`, `GalleryBossTests`, `BastionTests`, `BastionSkillTests`, `CapstoneTests`,
+the chapter 4–5 build tests, the S3 Callum tests, the Wren scout test); the balance batch for chapters 4–5 (spec §5 targets:
+Phase 3 wins S3 ≈ 75%, S2 ≈ 60%, S1 ≈ 35%); visual QA of the new rooms and each boss phase.

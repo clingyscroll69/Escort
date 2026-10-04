@@ -28,7 +28,12 @@ namespace HS.Tutorial.Demo
 
         /// <summary>Implemented skills whose live demo comes with the campaign's polish pass (plan 6); until then the
         /// picker goes straight to their end card (numbers and how Callum reads them).</summary>
-        public static readonly HashSet<string> Pending = new HashSet<string> { "splint_and_stitch", "pull_back", "sling", "read_the_room", "read_runes", "lockpick", "map_sketch", "buckler" };
+        public static readonly HashSet<string> Pending = new HashSet<string>
+        {
+            "splint_and_stitch", "pull_back", "sling", "read_the_room", "read_runes", "lockpick", "map_sketch", "buckler",
+            "bait_and_switch", "smoke_bomb", "pep_talk", "shoulder_check",
+            "domino_effect", "crossfire", "hold_please", "silent_partner",
+        };
 
         public static DemoScript Build(string skillId, DemoContext c) => Has(skillId) ? Builders[skillId](c) : null;
 

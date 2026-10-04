@@ -43,21 +43,32 @@ namespace HS.Hero.Callum
         public sealed class FinisherRule : HeroRule
         {
             public override string Id => "callum_finisher";
-            public override string Icon => "judgment";
-            public override string Label => "Charging his Judgment";
+            public override string Icon => _duet ? "duet" : "judgment";
+            public override string Label => _duet ? "Charging his Judgment — and asking for a hand" : "Charging his Judgment";
+            bool _duet;
             public override bool CanRun(HeroContext c)
             {
                 var m = M(c);
                 if (m == null) return false;
-                if (m.FinisherCharging) return m.Challenged != null && !m.Challenged.IsUnreadyFor(c.Hero);
+                // A Duet Window (S3) asked for her blows: a man reeling from them is no reason to stop.
+                if (m.FinisherCharging) return m.Challenged != null && (m.DuetWindow || !m.Challenged.IsUnreadyFor(c.Hero));
                 return m.WantsFinisher;
             }
             public override void Enter(HeroContext c)
             {
                 if (!M(c).FinisherCharging) M(c).BeginFinisher();
             }
-            public override void Tick(HeroContext c, float dt) => M(c).TickFinisher(dt);
-            public override void Exit(HeroContext c) => M(c).CancelFinisher();
+            public override void Tick(HeroContext c, float dt)
+            {
+                _duet = M(c).DuetWindow;
+                M(c).TickFinisher(dt);
+            }
+
+            public override void Exit(HeroContext c)
+            {
+                _duet = false;
+                M(c).CancelFinisher();
+            }
         }
 
         /// <summary>Rule 4: fall back to a chokepoint if 3+ enemies engage him.</summary>

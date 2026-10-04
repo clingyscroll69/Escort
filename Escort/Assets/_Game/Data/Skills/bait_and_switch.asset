@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Bait & Switch
   family: 0
   type: 0
-  uses: 'Drop a decoy; enemies within 8 m retarget it for 4 s (rank 2: 6 s).'
+  uses: 'Plant a decoy in your shape up to 8 m away. Enemies within 8 m of it go for it for 4 s (rank 2: 6 s), all but a man in the hero''s duel. Cooldown 16 s (rank 2: 13 s).'
   icon: bait_and_switch
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 16
+  - 13
   valueA:
-  - 0
-  - 0
+  - 4
+  - 6
   valueB:
-  - 0
-  - 0
+  - 8
+  - 8
   dishonor: 0

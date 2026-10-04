@@ -120,7 +120,7 @@ namespace HS.Tests
             yield return new WaitForSecondsRealtime(0.6f);
             Shot("ui_focus_duel");
             dir.ContinueFocus();
-            yield return TestUi.WaitUntil(() => flow.Duel != null && flow.Duel.Current == HS.Boss.RiggedDuelDirector.Phase.Duel, 20f, "the duel proper");
+            yield return TestUi.WaitUntil(() => flow.Duel != null && flow.Duel.Current == HS.Boss.GalleryBoss.Phase.Duel, 20f, "the duel proper");
             yield return new WaitForSecondsRealtime(4f);
             Shot("ui_boss_duel");
         }

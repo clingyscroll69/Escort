@@ -186,6 +186,11 @@ namespace HS.UI
             _skillsRt.anchoredPosition = new Vector2(0f, 20f);
             _slots = new Slot[MaxSlots];
             for (int i = 0; i < MaxSlots; i++) _slots[i] = BuildSlot(_skillsRt, i);
+            // The capstone (chapter 4 on): its own slot and key, just right of the bar, gold-framed.
+            _cap = BuildSlot(_skillsRt, MaxSlots);
+            UIKit.SetKey(_cap.Key, KeyGlyphs.Label("capstone", KeyGlyphs.Current) ?? "X");
+            _cap.Root.gameObject.SetActive(false);
+            _cap.Name.gameObject.SetActive(false);
             // Verbs (left of the bar): the knife, the roll, the ping, the crouch.
             var verbs = new[] { ("verb_knife", "attack", "Knife"), ("verb_dodge", "dodge", "Dodge"), ("verb_ping", "ping", "Ping"), ("verb_crouch", "crouch", "Crouch") };
             float verbsW = verbs.Length * VerbSize + (verbs.Length - 1) * VerbGap;
@@ -219,6 +224,25 @@ namespace HS.UI
         // Chapter 1 has 4 slots, chapter 2 five, chapter 3 on six (GDD §4.1). The bar widens; verbs and passives move out.
         const int MaxSlots = 6;
         int _shownSlots = -1;
+        Slot _cap;
+        bool _capShown;
+        const float CapGap = 18f;
+        /// <summary>The capstone's slot is on screen (chapter 4's campfire on, an active capstone).</summary>
+        public bool CapstoneShown => _capShown;
+
+        /// <summary>Place the capstone slot after the last visible slot; the passives move out past it.</summary>
+        void LayoutCapstone(bool show)
+        {
+            if (_cap == null || _shownSlots < 0) return;
+            _capShown = show;
+            _cap.Root.gameObject.SetActive(show);
+            _cap.Name.gameObject.SetActive(show);
+            float x = _shownSlots * (SlotSize + SlotGap) + CapGap;
+            _cap.Root.anchoredPosition = new Vector2(x, 22f);
+            _cap.Name.rectTransform.anchoredPosition = new Vector2(x - 6f, 0f);
+            float barW = _shownSlots * SlotSize + (_shownSlots - 1) * SlotGap;
+            if (_passivesRt != null) _passivesRt.anchoredPosition = new Vector2(barW * 0.5f + BarGap + (show ? SlotSize + CapGap : 0f), 20f);
+        }
         RectTransform _verbsRt;
         public int VisibleSlots => _shownSlots;
 
@@ -232,6 +256,7 @@ namespace HS.UI
             for (int i = 0; i < _slots.Length; i++) _slots[i].Root.gameObject.SetActive(i < n);
             if (_verbsRt != null) _verbsRt.anchoredPosition = new Vector2(-barW * 0.5f - BarGap, 20f);
             if (_passivesRt != null) _passivesRt.anchoredPosition = new Vector2(barW * 0.5f + BarGap, 20f);
+            LayoutCapstone(_capShown);
         }
 
         Slot BuildSlot(RectTransform bar, int i)
@@ -407,6 +432,7 @@ namespace HS.UI
             if (d == _device) return;
             _device = d;
             for (int i = 0; i < _slots.Length; i++) UIKit.SetKey(_slots[i].Key, KeyGlyphs.Label(KeyGlyphs.SlotToken(i), d));
+            if (_cap != null) UIKit.SetKey(_cap.Key, KeyGlyphs.Label("capstone", d) ?? "X");
             foreach (var v in _verbs) UIKit.SetKey(v.Key, KeyGlyphs.Label(v.Token, d));
             UIKit.SetKey(_promptKey, KeyGlyphs.Label("interact", d));
             LayoutPrompt();
@@ -444,7 +470,8 @@ namespace HS.UI
         {
             _sb.Clear();
             if (hero.Crippled) _sb.Append("C|");
-            if (hero.Module is CallumModule fm && fm.FinisherCharging) _sb.Append("J|");
+            if (hero.Module is CallumModule fm && fm.FinisherCharging) _sb.Append(fm.DuetWindow ? "D|" : "J|");
+            if (hero.Inspired) _sb.Append("P|");
             if (hero.Hunger.Starving) _sb.Append("S|");
             else if (hero.Hunger.Hungry) _sb.Append("H|");
             foreach (var w in hero.Wounds.All) _sb.Append((int)w).Append('|');
@@ -454,13 +481,13 @@ namespace HS.UI
             foreach (var c in _woundChips) Destroy(c);
             _woundChips.Clear();
             float x = 0f;
-            void Add(string icon, string text)
+            void Add(string icon, string text, Color? color = null)
             {
-                var chip = UIKit.Chip(_woundRow, "Wound", text, UIKit.Danger, 24f);
+                var chip = UIKit.Chip(_woundRow, "Wound", text, color ?? UIKit.Danger, 24f);
                 var rt = (RectTransform)chip.transform.parent;
                 if (icon != null)
                 {
-                    var img = UIKit.SpriteImage(rt, "Icon", UIKit.Icon(icon), UIKit.Danger, new Vector2(0f, 0.5f), new Vector2(6f, 0f), new Vector2(18f, 18f));
+                    var img = UIKit.SpriteImage(rt, "Icon", UIKit.Icon(icon), color ?? UIKit.Danger, new Vector2(0f, 0.5f), new Vector2(6f, 0f), new Vector2(18f, 18f));
                     img.rectTransform.pivot = new Vector2(0f, 0.5f);
                     chip.rectTransform.offsetMin = new Vector2(20f, 0f);
                     rt.sizeDelta += new Vector2(20f, 0f);
@@ -469,7 +496,8 @@ namespace HS.UI
                 x += rt.sizeDelta.x + 6f;
                 _woundChips.Add(rt.gameObject);
             }
-            if (hero.Module is CallumModule jm && jm.FinisherCharging) Add("judgment", "JUDGMENT");
+            if (hero.Module is CallumModule jm && jm.FinisherCharging) Add(jm.DuetWindow ? "duet" : "judgment", jm.DuetWindow ? "JUDGMENT · WITH YOU" : "JUDGMENT");
+            if (hero.Inspired) Add("skill_pep_talk", "PEP TALK", UIKit.Gold);
             if (hero.Crippled) Add(null, "CRIPPLED");
             if (hero.Hunger.Starving) Add(null, "STARVING");
             else if (hero.Hunger.Hungry) Add(null, "HUNGRY");
@@ -502,6 +530,16 @@ namespace HS.UI
             var skills = sk.GetComponent<SidekickSkills>();
             ShowSlots(skills != null ? skills.System.SlotCount : 4);
             for (int i = 0; i < _slots.Length; i++) UpdateSlot(_slots[i], skills != null ? skills.System.InSlot(i) : null, dt);
+            var cap = skills != null ? skills.System.Capstone : null;
+            bool showCap = cap != null && cap.Def.UsesSlot;
+            if (showCap != _capShown) LayoutCapstone(showCap);
+            if (showCap)
+            {
+                UpdateSlot(_cap, cap, dt);
+                _cap.Frame.color = new Color(UIKit.Gold.r, UIKit.Gold.g, UIKit.Gold.b, 0.95f);
+                _cap.Ranks[0].color = Color.clear;
+                _cap.Ranks[1].color = Color.clear;
+            }
             UpdatePassives(skills, sk);
             if (sk.IsChanneling)
             {

@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Domino Effect
   family: 5
   type: 0
-  uses: Chain-trigger every armed prop in the room.
+  uses: 'Arm up to two idle props within 12 m of you, then bring down every armed prop within 40 m. Cooldown 45 s.'
   icon: domino_effect
-  implemented: 0
+  implemented: 1
   capstone: 1
   cooldown:
-  - 0
-  - 0
+  - 45
+  - 45
   valueA:
-  - 0
-  - 0
+  - 2
+  - 2
   valueB:
-  - 0
-  - 0
-  dishonor: 0
+  - 40
+  - 40
+  dishonor: 2

@@ -447,6 +447,99 @@ def campaign_icons():
     print('campaign icons written to', OUT)
 
 
+def finale_icons():
+    """Chapter 4–5: the Bastion's tricks, the capstones, the Gallery's marks."""
+    os.makedirs(OUT, exist_ok=True)
+    # bait & switch: a cloak on a stick (a scarecrow in her shape)
+    im = canvas(); d = ImageDraw.Draw(im)
+    thick(d, [(128, 30), (128, 236)], 14); thick(d, [(50, 82), (206, 82)], 14)
+    d.ellipse([104, 20, 152, 68], fill=W)
+    d.polygon([(70, 88), (186, 88), (206, 196), (50, 196)], fill=W)
+    d.polygon([(118, 110), (138, 110), (146, 176), (110, 176)], fill=CLEAR)
+    finish(im, 'skill_bait_and_switch')
+    # smoke bomb: a round bomb under a billow of three puffs
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([70, 132, 186, 236], fill=W); d.rectangle([116, 116, 140, 140], fill=W)
+    for (x, y, r) in [(80, 76, 40), (130, 52, 46), (182, 80, 38)]:
+        d.ellipse([x - r, y - r, x + r, y + r], fill=W)
+    d.ellipse([96, 160, 132, 196], fill=CLEAR)
+    finish(im, 'skill_smoke_bomb')
+    # pep talk: a speech bubble with an exclamation
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([28, 34, 228, 172], 40, fill=W); d.polygon([(70, 160), (120, 160), (56, 228)], fill=W)
+    d.rounded_rectangle([116, 56, 140, 122], 10, fill=CLEAR); d.ellipse([114, 130, 142, 158], fill=CLEAR)
+    finish(im, 'skill_pep_talk')
+    # shoulder check: a shoulder ploughing into a wall of motion lines
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.pieslice([40, 60, 200, 220], 180, 360, fill=W); d.rectangle([40, 138, 200, 230], fill=W)
+    for k, y in enumerate((70, 120, 170)):
+        thick(d, [(206, y), (240, y + 6 * (k - 1))], 12)
+    d.ellipse([90, 150, 130, 190], fill=CLEAR)
+    finish(im, 'skill_shoulder_check')
+    # domino effect: three tiles toppling in a row
+    im = canvas(); d = ImageDraw.Draw(im)
+    for k in range(3):
+        im2 = rotated(lambda dd: dd.rounded_rectangle([108, 50, 148, 206], 10, fill=W), -18 * k)
+        im.alpha_composite(im2, (int(-60 + k * 60), int(k * 10)))
+    d = ImageDraw.Draw(im); d.rectangle([20, 222, 236, 236], fill=W)
+    finish(im, 'skill_domino_effect')
+    # crossfire: three bolts fanning in on one target
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([168, 98, 236, 166], outline=W, width=12); d.ellipse([192, 122, 212, 142], fill=W)
+    for y0 in (40, 132, 224):
+        tip = (170, 132 + (y0 - 132) * 0.18)
+        thick(d, [(24, y0), tip], 12)
+        dx, dy = tip[0] - 24, tip[1] - y0
+        n = math.hypot(dx, dy)
+        arrowhead(d, (tip[0] + dx / n * 16, tip[1] + dy / n * 16), (dx / n, dy / n), 34, 22)
+    finish(im, 'skill_crossfire')
+    # hold please: a raised open hand
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([64, 112, 192, 232], 36, fill=W)
+    for k, (x, top) in enumerate([(78, 54), (108, 30), (138, 34), (168, 58)]):
+        d.rounded_rectangle([x - 2, top, x + 22, 150], 12, fill=W)
+    thick(d, [(70, 168), (30, 118)], 26)
+    finish(im, 'skill_hold_please')
+    # silent partner: two figures, one half-hidden behind the other
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([136, 34, 196, 94], fill=W); d.rounded_rectangle([120, 100, 212, 236], 40, fill=W)
+    d.ellipse([54, 50, 120, 116], fill=W); d.rounded_rectangle([36, 124, 138, 240], 44, fill=W)
+    d.ellipse([60, 56, 114, 110], fill=CLEAR)
+    finish(im, 'skill_silent_partner')
+    # duet: two swords crossed over a ring (he asks for a hand)
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([30, 30, 226, 226], outline=W, width=16)
+    sword(d, 128, 128, math.radians(-35), 160, 16); sword(d, 128, 128, math.radians(35), 160, 16)
+    finish(im, 'duet')
+    # hostage: a figure with bound wrists behind a bow
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([96, 24, 160, 88], fill=W); d.rounded_rectangle([80, 94, 176, 236], 36, fill=W)
+    d.rectangle([84, 150, 172, 168], fill=CLEAR); d.rectangle([84, 176, 172, 186], fill=CLEAR)
+    d.arc([150, 40, 250, 220], 110, 250, fill=W, width=12)
+    finish(im, 'hostage')
+    # sluice: a spoked wheel over waves
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([56, 20, 200, 164], outline=W, width=18); d.ellipse([112, 76, 144, 108], fill=W)
+    for a in range(0, 360, 60):
+        r = math.radians(a)
+        thick(d, [(128, 92), (128 + math.cos(r) * 66, 92 + math.sin(r) * 66)], 10)
+    for y in (196, 228):
+        d.arc([20, y - 24, 84, y + 8], 200, 340, fill=W, width=12); d.arc([84, y - 24, 148, y + 8], 200, 340, fill=W, width=12)
+        d.arc([148, y - 24, 212, y + 8], 200, 340, fill=W, width=12)
+    finish(im, 'sluice')
+    # mirror: a hand mirror, a crack across it
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([56, 20, 200, 180], fill=W); d.ellipse([74, 38, 182, 162], fill=CLEAR)
+    thick(d, [(110, 50), (134, 96), (118, 120), (150, 152)], 8)
+    d.rounded_rectangle([114, 176, 142, 240], 12, fill=W)
+    finish(im, 'mirror')
+    # link: two interlocked rings
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([20, 64, 148, 192], outline=W, width=22); d.ellipse([108, 64, 236, 192], outline=W, width=22)
+    finish(im, 'link')
+    print('finale icons written to', OUT)
+
+
 if __name__ == '__main__':
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else 'all'
@@ -456,3 +549,5 @@ if __name__ == '__main__':
         campaign_icons()
     if which in ('all', 'tutorial'):
         tutorial_icons()
+    if which in ('all', 'finale'):
+        finale_icons()

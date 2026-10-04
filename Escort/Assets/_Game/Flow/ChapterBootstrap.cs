@@ -62,7 +62,7 @@ namespace HS.Flow
             Chapter.StartCapPrefab = assets.startCap;
             Chapter.EndCapPrefab = assets.endCap;
             Chapter.CampfirePrefab = assets.campfire;
-            Chapter.BossPrefab = assets.boss;
+            Chapter.BossPrefab = assets.gallery != null ? assets.gallery : assets.boss;
 
             Hero = Instantiate(assets.hero, new Vector3(0f, 0.05f, -1.5f), Quaternion.identity).GetComponent<HeroAgent>();
             Sidekick = Instantiate(assets.sidekick, new Vector3(-1.6f, 0.05f, -1.9f), Quaternion.identity).GetComponent<SidekickAgent>();

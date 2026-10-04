@@ -33,6 +33,8 @@ namespace HS.Rapport
         RapportLedger _l;
         readonly Dictionary<EnemyAgent, MomentOffer> _unseen = new Dictionary<EnemyAgent, MomentOffer>();
         readonly Dictionary<EnemyAgent, MomentOffer> _averted = new Dictionary<EnemyAgent, MomentOffer>();
+        /// <summary>A held hostage is a cheat in progress: freeing her is an Averted cheat (chapter 4).</summary>
+        readonly Dictionary<Hostage, MomentOffer> _hostages = new Dictionary<Hostage, MomentOffer>();
         readonly List<(PenaltyEntry penalty, MomentOffer lapse, float at)> _lapses = new List<(PenaltyEntry, MomentOffer, float)>();
         readonly List<EnemyAgent> _scratch = new List<EnemyAgent>();
         MomentOffer _wound;
@@ -60,6 +62,7 @@ namespace HS.Rapport
             _cm.DuelFinished += OnDuelFinished;
             _cm.LookedAway += OnLookedAway;
             _cm.UnseenDeed += OnUnseenDeed;
+            Hostage.Released += OnHostageReleased;
         }
 
         public void Unbind()
@@ -78,6 +81,7 @@ namespace HS.Rapport
                 _cm.LookedAway -= OnLookedAway;
                 _cm.UnseenDeed -= OnUnseenDeed;
             }
+            Hostage.Released -= OnHostageReleased;
             _ctx = null;
         }
 
@@ -85,6 +89,7 @@ namespace HS.Rapport
         {
             foreach (var m in _unseen.Values) _l.Close(m, reason);
             foreach (var m in _averted.Values) _l.Close(m, reason);
+            foreach (var m in _hostages.Values) _l.Close(m, reason);
             foreach (var (p, lapse, at) in _lapses) _l.Close(lapse, reason);
             _lapses.Clear();
             _l.Close(_wound, reason);
@@ -124,6 +129,10 @@ namespace HS.Rapport
                         _averted[e] = _l.Offer("averted_cheat", WAvertedCheat, e, note: Name(e) + " ambush");
                 }
             }
+            // A hostage held within sight of his road: someone has to get her out from in front of that bow.
+            foreach (var h in Hostage.All)
+                if (h != null && h.Held && !_hostages.ContainsKey(h) && Geo.FlatDistance(h.Position, _hero.Position) <= 20f)
+                    _hostages[h] = _l.Offer("averted_cheat", WAvertedCheat, h, note: "hostage");
             // His own duel opponent can't be "assisted unseen" — that's interfering in his duel, in front of him.
             if (_cm.Challenged != null && _unseen.TryGetValue(_cm.Challenged, out var mine) && mine != null && mine.Open)
                 _l.Withdraw(mine, "became his duel");
@@ -228,6 +237,14 @@ namespace HS.Rapport
             if (!_l.Capture(m, note)) return;
             if (_unseen.TryGetValue(e, out var u) && u != m) _l.Close(u, "already credited");
             if (_averted.TryGetValue(e, out var a) && a != m) _l.Close(a, "already credited");
+        }
+
+        /// <summary>Untied, or her captor dropped or reeling: either way it was the sidekick (he won't touch the man).</summary>
+        void OnHostageReleased(Hostage h, Agent by, string how)
+        {
+            if (!_hostages.TryGetValue(h, out var m) || m == null || !m.Open) return;
+            if (how == "harmed") _l.Close(m, "she was hurt");
+            else _l.Capture(m, how);
         }
 
         void OnCoverStory(float restore, float window)

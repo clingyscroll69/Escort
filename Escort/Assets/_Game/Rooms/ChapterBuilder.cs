@@ -34,8 +34,16 @@ namespace HS.Rooms
         {
             Clear();
             chapter ??= ChapterDef.OldRoad();
+            var library = Library(chapter.ModuleChapter);
+            if (!RoomAssembler.CanFill(chapter, library))
+            {
+                // This chapter's own rooms aren't built yet: walk the Old Road's under its light (never a missing road).
+                Debug.LogWarning($"[Chapter] no modules for chapter {chapter.Chapter} ({chapter.Name}) — borrowing the Old Road's. Build them: Tools/HS/Build/Chapters 4–5 (everything).");
+                chapter = chapter.Borrowed();
+                library = Library(1);
+            }
             Def = chapter;
-            Plan = RoomAssembler.Plan(seed, chapter, Library(chapter.ModuleChapter));
+            Plan = RoomAssembler.Plan(seed, chapter, library);
             float z = 0f;
             for (int i = 0; i < Plan.Rooms.Count; i++)
             {

@@ -32,6 +32,7 @@ namespace HS.Hero
             var dir = target - eye;
             float dist = dir.magnitude;
             if (dist < 0.05f) return true;
+            if (HS.Skills.Impl.SmokeCloud.Blocks(eye, target)) return false; // nobody sees through smoke
             var hits = Physics.RaycastAll(eye, dir / dist, dist, Mask, QueryTriggerInteraction.Ignore);
             foreach (var h in hits)
             {

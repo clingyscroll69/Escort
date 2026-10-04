@@ -207,7 +207,8 @@ namespace HS.QA
             if (row.Reached == null) row.Reached = "Chapter";
             if (flow.Duel != null)
             {
-                row.DuelResult = flow.Duel.Current.ToString();
+                // Which phase ended it: the Mirror is where Stage tells (spec §5's win chances are per phase 3).
+                row.DuelResult = flow.Duel.Current == HS.Boss.GalleryBoss.Phase.Lost ? "Lost@" + flow.Duel.LossPhase : flow.Duel.Current.ToString();
                 row.DuelSeconds = flow.Duel.DuelTime;
             }
             var led = ctx.Get<HS.Rapport.RapportLedger>();
