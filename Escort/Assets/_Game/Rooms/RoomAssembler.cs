@@ -25,6 +25,8 @@ namespace HS.Rooms
         public string Name;
         public List<ChapterSlot> Slots = new List<ChapterSlot>();
 
+        public static ChapterDef For(int chapter) => OldRoad();
+
         /// <summary>Chapter 1 "The Old Road" slice: 3 rooms (GDD §11.2) — combat, traps, ambushes.</summary>
         public static ChapterDef OldRoad() => new ChapterDef
         {

@@ -124,14 +124,16 @@ namespace HS.Core
         [Header("Strike I: Riposte (parry counter 2x)")]
         public float riposteCooldown = 5f;
         public float riposteMultiplier = 2f;
+        [Tooltip("Strike II (chapter 4): the counter lands for 3x.")]
+        public float riposteMultiplierII = 3f;
 
         [Header("Route")]
         public float thresholdPause = 1.5f;
         public float thresholdMaxWait = 6f;
         public float thresholdSidekickNear = 9f;
 
-        public float Damage(int chapter) => damage * Mathf.Pow(2.5f, chapter - 1);
-        public float MaxHp(int chapter) => maxHp * Mathf.Pow(2f, chapter - 1);
+        public float Damage(int chapter) => damage * ChapterTier.HeroDamage(chapter);
+        public float MaxHp(int chapter) => maxHp * ChapterTier.HeroHp(chapter);
     }
 
     [Serializable]
