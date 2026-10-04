@@ -734,3 +734,15 @@ niches and props placed at runtime. Owner checklist: run the build menu; run Edi
 `MirrorCountersTests`, `NemesisSquadTests`, `GalleryBossTests`, `BastionTests`, `BastionSkillTests`, `CapstoneTests`,
 the chapter 4–5 build tests, the S3 Callum tests, the Wren scout test); the balance batch for chapters 4–5 (spec §5 targets:
 Phase 3 wins S3 ≈ 75%, S2 ≈ 60%, S1 ≈ 35%); visual QA of the new rooms and each boss phase.
+
+## Follow-up: reach, and Pull Back on a false surrender (owner feedback, 2026-10-04)
+- *Reach:* the knife, Shoulder Check, bumping into a hidden enemy, a shooter backing off from her, enemy melee and every
+  interaction (`Interactables.Nearest`, so the HUD prompt too) now need bodies that can touch (`Melee.CanTouch` /
+  `Melee.CanReach`: head to feet plus 0.3 m). Standing under a 2.2 m perch no longer knifes or uncovers its archer; its
+  stairs do. A chronicle stone on a 1 m plinth stays within reach. Bolts, sling stones and sand still reach up. The
+  supportive bot shoots the sluice crew from the floor instead of trying to jam a wheel on the walk above.
+- *Pull Back on a false surrender:* yanking Callum from inside the stab's reach (2.6 m) to outside it while the man still
+  yields captures the averted-cheat Moment ("You pulled him clear of a false surrender before the knife came out."). No
+  sabotage, no Honor cost.
+- *Not yet run:* compile-checked only. New tests: `SidekickTests.Contact_Needs_The_Same_Level_As_A_Man_On_A_Perch`,
+  `RapportTests.Pulling_Him_Clear_Of_A_False_Surrender_Averts_The_Cheat`.

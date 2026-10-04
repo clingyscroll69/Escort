@@ -96,6 +96,7 @@ a Cheater, and Duet Windows; the ending (his "we" line, `STATUS: LISTED`, a clas
 - **Loadout.** Active skills need slots: 4 at start, 5 from chapter 2, 6 from chapter 3. Passives don't use slots. Loadouts can be swapped only at camps.
 - **Support range.** About 25m around the hero. Beyond it you earn no presence credit.
 - **Ping.** A free baseline verb that marks a target or place. Heroes react per their own rules, and Stage changes how much they listen.
+- **Reach.** Anything done by hand (the knife, a shove, untying, jamming, bumping into a hidden foe) needs the same level: a shooter on a perch is reached by its stairs, not from beneath it. Shots and throws reach up.
 
 ### 4.2 Hero
 

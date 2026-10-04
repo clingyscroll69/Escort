@@ -260,8 +260,14 @@ namespace HS.Bots
             foreach (var w in SluiceWheel.All)
             {
                 if (w == null || !w.isActiveAndEnabled || w.Done || w.Working == 0 || Geo.FlatDistance(w.transform.position, _hero.Position) > 30f) continue;
-                if (Geo.FlatDistance(self.Position, w.InteractPosition) <= 1.9f) return new SidekickCommand { Interact = true, Skill = -1, AimPoint = w.InteractPosition, HasAim = true };
-                return Go(self, w.InteractPosition, "to the sluice", stop: 1.5f);
+                if (Melee.CanReach(self, w.InteractPosition))
+                {
+                    if (Geo.FlatDistance(self.Position, w.InteractPosition) <= 1.9f) return new SidekickCommand { Interact = true, Skill = -1, AimPoint = w.InteractPosition, HasAim = true };
+                    return Go(self, w.InteractPosition, "to the sluice", stop: 1.5f);
+                }
+                // The wheel is up on the walk, out of her hands from here: a bolt for whoever is turning it.
+                var crewman = FindEnemy(e => e.Brain != null && e.Stats != null && e.Stats.crew && w.AtWheel(e), w.transform.position, 6f);
+                if (crewman != null && BotUtil.Ready(self, "crossbow")) return Use(self, "crossbow", crewman.Position, "a bolt for the sluice crew");
             }
             return null;
         }

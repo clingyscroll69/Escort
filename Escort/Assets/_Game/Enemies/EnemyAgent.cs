@@ -82,6 +82,8 @@ namespace HS.Enemies
         Vector3 _aimDir;
         float _joinT;
         const float SurrenderStab = 2.4f;
+        /// <summary>How close the hero must stand for a false surrender's stab to reach him.</summary>
+        public const float CheapShotReach = 2.6f;
         bool _surrenderUsed;
         readonly List<Agent> _scratch = new List<Agent>();
 
@@ -450,15 +452,18 @@ namespace HS.Enemies
         void CheckBumped()
         {
             var sk = Ctx != null ? Ctx.Sidekick : null;
-            if (sk != null && sk.IsAlive && Geo.FlatDistance(Position, sk.Position) < 1.1f) Reveal(false);
+            if (sk != null && sk.IsAlive && Bumps(sk)) Reveal(false);
         }
+
+        /// <summary>She walked into him: close, and on his level (standing under a perch bumps into nobody).</summary>
+        bool Bumps(Agent sk) => Geo.FlatDistance(Position, sk.Position) < 1.1f && Melee.CanTouch(this, sk);
 
         void CheckAmbushTrigger()
         {
             var hero = Ctx != null ? Ctx.Hero : null;
             if (hero != null && hero.IsAlive && Geo.FlatDistance(Position, hero.Position) < AmbushTriggerRadius) Reveal(true);
             var sk = Ctx != null ? Ctx.Sidekick : null;
-            if (sk != null && sk.IsAlive && Geo.FlatDistance(Position, sk.Position) < 1.1f) Reveal(false); // bumped into
+            if (sk != null && sk.IsAlive && Bumps(sk)) Reveal(false); // bumped into
         }
 
         void ChooseTarget()
@@ -541,6 +546,7 @@ namespace HS.Enemies
             }
             Motor.Move(sep * 1.2f, 30f, dt);
             Motor.FaceDirection(toT, 400f, dt);
+            if (!Melee.CanTouch(this, Target)) return; // above or below him: nothing to swing at
             bool heavy = NextIsHeavy;
             _phase = Phase.Windup;
             _phaseT = heavy ? Stats.heavyWindup : Stats.windup;
@@ -605,7 +611,8 @@ namespace HS.Enemies
             _phaseT = Stats.recovery;
             if (Target == null || !Target.IsAlive) return;
             float reach = Stats.range + Target.Radius + 0.3f;
-            bool inReach = Geo.FlatDistance(Position, Target.Position) <= reach && Geo.AngleTo(Position, Forward, Target.Position) <= 70f;
+            bool inReach = Geo.FlatDistance(Position, Target.Position) <= reach && Geo.AngleTo(Position, Forward, Target.Position) <= 70f
+                           && Melee.CanTouch(this, Target);
             if (!inReach) return;
             float dmg = heavy ? Stats.heavyDamage : Stats.damage;
             var d = DamageInfo.Make(this, Target, dmg, heavy ? DamageKind.Heavy : Stats.kind, heavy ? "heavy" : "melee", heavy ? 0.6f : 0f);
@@ -670,7 +677,7 @@ namespace HS.Enemies
             }
             // Too close to the sidekick: back away (shooters hate knives).
             var sk = Ctx != null ? Ctx.Sidekick : null;
-            if (sk != null && sk.IsAlive && AwareOfSidekick && Geo.FlatDistance(Position, sk.Position) < 2.5f)
+            if (sk != null && sk.IsAlive && AwareOfSidekick && Geo.FlatDistance(Position, sk.Position) < 2.5f && Melee.CanTouch(this, sk))
             {
                 Motor.Move(Geo.DirTo(sk.Position, Position) * Stats.speed * 0.8f, 30f, dt);
                 Motor.FaceDirection(Geo.DirTo(Position, sk.Position), 400f, dt);
@@ -737,7 +744,7 @@ namespace HS.Enemies
             var hero = Ctx != null ? Ctx.Hero : null;
             if (hero == null || !hero.IsAlive) return;
             // The cheap shot: once the hero lowers his guard nearby (waiting on an Unready enemy), stab him.
-            if (SurrenderElapsed >= SurrenderStab && Geo.FlatDistance(Position, hero.Position) <= 2.6f && !Status.Incapacitated && !Status.Has(StatusType.Blinded))
+            if (SurrenderElapsed >= SurrenderStab && Geo.FlatDistance(Position, hero.Position) <= CheapShotReach && !Status.Incapacitated && !Status.Has(StatusType.Blinded))
             {
                 Motor.FaceInstant(Geo.DirTo(Position, hero.Position));
                 Presenter?.PlayAction("attack", 0.3f);

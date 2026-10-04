@@ -40,6 +40,7 @@ namespace HS.Rapport
         MomentOffer _wound;
         int _caughtThisFight;
         float _ffThisFight, _abandonT;
+        Vector3 _heroLast;
         bool _ffDone, _abandonDone;
 
         SidekickAgent Sidekick => _ctx != null ? _ctx.Sidekick as SidekickAgent : null;
@@ -57,6 +58,8 @@ namespace HS.Rapport
             ev.Sabotage += OnSabotage;
             ev.CoverStory += OnCoverStory;
             ev.WoundTreated += OnWoundTreated;
+            ev.SkillUsed += OnSkillUsed;
+            _heroLast = hero.Position;
             _cm.Caught += OnCaught;
             _cm.SpoiledDuel += OnSpoiled;
             _cm.DuelFinished += OnDuelFinished;
@@ -73,6 +76,7 @@ namespace HS.Rapport
             ev.Sabotage -= OnSabotage;
             ev.CoverStory -= OnCoverStory;
             ev.WoundTreated -= OnWoundTreated;
+            ev.SkillUsed -= OnSkillUsed;
             if (_cm != null)
             {
                 _cm.Caught -= OnCaught;
@@ -163,6 +167,7 @@ namespace HS.Rapport
             if (_wound != null && _wound.Open && Now > _wound.ClosesAt) _l.Close(_wound, "wound left untreated");
             if (_blind != null && _blind.Open && Now > _blind.ClosesAt) _l.Close(_blind, "nothing happened behind his back");
             TickAbandon(dt);
+            _heroLast = _hero.Position;
         }
 
         void CloseResolved(Dictionary<EnemyAgent, MomentOffer> offers, System.Func<EnemyAgent, bool> resolved)
@@ -209,6 +214,25 @@ namespace HS.Rapport
                 Capture(e, av, d.Tag + " on the false surrender");
             bool disabled = !e.IsAlive || d.Stagger >= 0.3f || e.Status.Has(StatusType.Blinded);
             if (disabled) TryUnseenAssist(e, d.Point, sk.Position, d.Tag);
+        }
+
+        /// <summary>
+        /// Pull Back out of a false surrender's reach: he was standing where the stab would land, now he isn't, and nobody
+        /// touched the yielded man. The cleanest way to avert that cheat.
+        /// </summary>
+        void OnSkillUsed(string id, Agent user)
+        {
+            if (id != "pull_back" || !(user is SidekickAgent)) return;
+            _scratch.Clear();
+            foreach (var kv in _averted)
+                if (kv.Value != null && kv.Value.Open && kv.Value.Note.EndsWith("fake surrender")) _scratch.Add(kv.Key);
+            foreach (var e in _scratch)
+            {
+                if (e == null || !e.IsAlive || e.State != EnemyState.Surrendered) continue;
+                bool wasInReach = Geo.FlatDistance(_heroLast, e.Position) <= EnemyAgent.CheapShotReach;
+                bool nowClear = Geo.FlatDistance(_hero.Position, e.Position) > EnemyAgent.CheapShotReach;
+                if (wasInReach && nowClear) Capture(e, _averted[e], "pulled him out of reach");
+            }
         }
 
         void OnSabotage(SabotageEvent s)

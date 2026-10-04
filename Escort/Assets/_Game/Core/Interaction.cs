@@ -45,6 +45,7 @@ namespace HS.Core
                 var i = _all[k];
                 if (i is Object uo && uo == null) continue;
                 if (!i.CanInteract(who)) continue;
+                if (!Melee.CanReach(who, i.InteractPosition)) continue; // a wheel on the walk above is jammed from up there
                 float d = Geo.FlatSqrDistance(who.Position, i.InteractPosition);
                 if (d <= bestD)
                 {
@@ -99,6 +100,38 @@ namespace HS.Core
     /// <summary>Deterministic melee arc test against the agent registry (no physics, no rolls).</summary>
     public static class Melee
     {
+        /// <summary>How far a hand reaches above the head (or a blade below the feet).</summary>
+        public const float ArmReach = 0.3f;
+
+        /// <summary>
+        /// Can these two touch? One's reach (head to feet, plus an arm's length either way) must overlap the other's body.
+        /// Blows, shoves, bumping into someone and anything done by hand (<see cref="CanReach"/>) need it; shots and throws
+        /// don't. A man on a 2.2 m perch is out of reach from the floor; a stone on a 1 m plinth is not.
+        /// </summary>
+        public static bool CanTouch(Agent a, Agent b)
+        {
+            Span(a, out float a0, out float a1);
+            Span(b, out float b0, out float b1);
+            return a0 - ArmReach <= b1 && b0 <= a1 + ArmReach;
+        }
+
+        /// <summary>Can this body put a hand on that point (its height within head to feet, plus an arm's length)?</summary>
+        public static bool CanReach(Agent who, Vector3 point)
+        {
+            Span(who, out float bottom, out float top);
+            return point.y >= bottom - ArmReach && point.y <= top + ArmReach;
+        }
+
+        /// <summary>Bottom and top of a body in world height (its CharacterController; 1.8 m from the feet without one).</summary>
+        static void Span(Agent x, out float bottom, out float top)
+        {
+            var cc = x.Controller;
+            float s = x.transform.lossyScale.y;
+            float h = cc != null ? cc.height * s : 1.8f;
+            bottom = cc != null ? x.Position.y + cc.center.y * s - h * 0.5f : x.Position.y;
+            top = bottom + h;
+        }
+
         public static void Sweep(Agent attacker, float range, float arcDeg, List<Agent> results, System.Func<Agent, bool> filter)
         {
             results.Clear();
@@ -110,6 +143,7 @@ namespace HS.Core
                 if (filter != null && !filter(a)) continue;
                 float reach = range + a.Radius;
                 if (Geo.FlatDistance(attacker.Position, a.Position) > reach) continue;
+                if (!CanTouch(attacker, a)) continue; // nobody on a perch is knifed from below
                 if (Geo.AngleTo(attacker.Position, attacker.Forward, a.Position) > arcDeg * 0.5f) continue;
                 results.Add(a);
             }

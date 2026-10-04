@@ -161,6 +161,29 @@ namespace HS.Tests
         }
 
         [UnityTest]
+        public IEnumerator Pulling_Him_Clear_Of_A_False_Surrender_Averts_The_Cheat()
+        {
+            yield return Setup(new Vector3(0f, 0f, -5f), "pull_back");
+            var tc = Enemy(new Vector3(0f, 0f, 2.2f), "turncoat");
+            tc.Status.Apply(StatusType.Stunned, 1.5f);
+            StepUntilDuel();
+            while (_cm.Saluting) Loop.Step();
+            tc.TakeDamage(DamageInfo.Make(_hero, tc, 60f, DamageKind.Blade, "sword"));
+            Assert.AreEqual(EnemyState.Surrendered, tc.State);
+            Loop.Step();
+            Assert.LessOrEqual(Geo.FlatDistance(_hero.Position, tc.Position), EnemyAgent.CheapShotReach, "he waits within the stab's reach");
+            float hp = _hero.Health.Current, honor = _cm.Honor;
+            Use(0, _hero.Position);
+            Loop.StepMany(Mathf.CeilToInt(3.5f / SimLoop.Dt));
+            Assert.AreEqual(hp, _hero.Health.Current, 0.01f, "no cheap shot landed");
+            Assert.AreEqual(EnemyState.Spared, tc.State, "out of reach, he waited out his 3 s and spared the man");
+            Assert.AreEqual(CallumDance.WAvertedCheat, L.Earned, 1e-3f, "averted cheat captured");
+            Assert.AreEqual(0f, L.RawPenaltiesIn(1), 1e-3f, "nobody touched the yielded man");
+            Assert.AreEqual(honor, _cm.Honor, 1e-3f);
+            CollectionAssert.Contains(PostMortem.From(L).ConvertAll(l => l.Text), "You pulled him clear of a false surrender before the knife came out.");
+        }
+
+        [UnityTest]
         public IEnumerator Flushing_Out_A_Hedge_Ambusher_Averts_The_Ambush()
         {
             yield return Setup(new Vector3(3f, 0f, 5f), "pocket_sand");

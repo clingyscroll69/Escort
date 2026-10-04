@@ -66,6 +66,7 @@ namespace HS.Rapport
                         case "unseen_assist": return $"While he duelled, you quietly dealt with {Who(note)} — and he never saw it.";
                         case "averted_cheat":
                             if (note.Contains("hostage")) return "You got a hostage out from in front of an archer's bow.";
+                            if (note.Contains("pulled")) return "You pulled him clear of a false surrender before the knife came out.";
                             return note.Contains("ambush") || note.Contains("flushed") ? "You flushed out an ambush before it sprang." : "You saw through a false surrender before the knife came out.";
                         case "covered_lapse": return "Your cover story smoothed over a lapse.";
                         case "wound_treated": return "You bandaged him after a duel.";
