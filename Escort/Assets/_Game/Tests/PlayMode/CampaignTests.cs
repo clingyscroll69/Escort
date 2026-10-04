@@ -162,8 +162,14 @@ namespace HS.Tests
             yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.Duel, 20f, "the door, then the boss");
             Assert.IsNotNull(RunState.Door, "a Restore Point before the door");
             CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, seen);
+            SimLoop.Instance.FastTicksPerFrame = 6; // the scripted phases run on the sim clock
+            yield return TestUi.WaitUntil(() => flow.Duel.Current == HS.Boss.GalleryBoss.Phase.Duel, 30f, "the diagnosis and the terms");
             flow.Duel.Ashgrave.TakeDamage(DamageInfo.Make(flow.Chapter.Hero, flow.Duel.Ashgrave, 1e9f, DamageKind.Blade, "sword"));
-            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.End, 10f, "the end");
+            yield return TestUi.WaitUntil(() => flow.Duel.Current == HS.Boss.GalleryBoss.Phase.Mirror, 30f, "the unmasking, then the Mirror");
+            Assert.IsNotNull(flow.Duel.Mirror, "the Mirror formed");
+            flow.Duel.Mirror.TakeDamage(DamageInfo.Make(flow.Chapter.Hero, flow.Duel.Mirror, 1e9f, DamageKind.Blade, "duet"));
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.End, 20f, "the aftermath, then the end");
+            SimLoop.Instance.FastTicksPerFrame = 0;
             Assert.AreEqual("won", flow.Outcome);
             HS.Presentation.ChapterTheme.ForgetSceneDefaults();
         }

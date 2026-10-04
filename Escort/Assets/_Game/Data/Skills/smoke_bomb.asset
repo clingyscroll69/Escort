@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Smoke Bomb
   family: 2
   type: 0
-  uses: Break aggro and block a stone's view.
+  uses: 'Throw smoke up to 8 m away: a cloud 3 m across (rank 2: 3.6 m) for 6 s (rank 2: 8 s). Nobody sees through it, not the hero, not a chronicle stone, not a shooter, and anyone inside loses track of you. Cooldown 20 s (rank 2: 16 s).'
   icon: smoke_bomb
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 20
+  - 16
   valueA:
-  - 0
-  - 0
+  - 6
+  - 8
   valueB:
-  - 0
-  - 0
+  - 3
+  - 3.6
   dishonor: 0

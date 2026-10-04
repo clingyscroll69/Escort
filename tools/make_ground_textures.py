@@ -144,6 +144,36 @@ def crypt():
     col = np.where(specks, np.array([0.18, 0.16, 0.14]), col)
     save(col, 'T_Ground_Pit')
 
+def bastion():
+    """The Sunken Bastion: wet grey-blue stone, knee-deep water, the rampart's dressed blocks."""
+    slabs('T_Ground_WetStone', [0.33, 0.37, 0.41], 0.22, [0.1, 0.12, 0.14], 41, 64)
+    slabs('T_Ground_Rampart', [0.47, 0.48, 0.5], 0.16, [0.2, 0.2, 0.22], 42, 128, False)
+    global rng
+    rng = np.random.default_rng(43)
+    n = tile_noise(5)
+    fine = tile_noise(36, 2)
+    deep = np.array([0.1, 0.2, 0.27])
+    shallow = np.array([0.2, 0.33, 0.38])
+    t = n[..., None]
+    col = (deep * (1 - t) + shallow * t) * (0.9 + 0.2 * fine[..., None])
+    ripples = (np.abs(np.sin(tile_noise(12, 2) * 40.0)) > 0.97)[..., None]
+    col = np.where(ripples, col + 0.16, col)
+    save(col, 'T_Ground_Water')
+
+def gallery():
+    """The Gallery: pale marble with gold-veined grout, a crimson runner."""
+    slabs('T_Ground_Marble', [0.86, 0.83, 0.77], 0.1, [0.62, 0.5, 0.28], 51, 128)
+    global rng
+    rng = np.random.default_rng(52)
+    n = tile_noise(9)
+    fine = tile_noise(60, 2)
+    col = np.array([0.5, 0.1, 0.12]) * (0.85 + 0.25 * n[..., None]) * (0.92 + 0.16 * fine[..., None])
+    border = np.zeros((N, N, 1))
+    border[:, :18] = 1
+    border[:, -18:] = 1
+    col = np.where(border > 0, np.array([0.7, 0.55, 0.25]), col)
+    save(col, 'T_Ground_GalleryRunner')
+
 which = sys.argv[1] if len(sys.argv) > 1 else 'road'
 if which in ('all', 'road'):
     grass(); dirt(); flagstone()
@@ -151,4 +181,8 @@ if which in ('all', 'forest'):
     forest(); forest_path(); bog()
 if which in ('all', 'crypt'):
     crypt()
+if which in ('all', 'bastion'):
+    bastion()
+if which in ('all', 'gallery'):
+    gallery()
 print('ground textures written:', which)

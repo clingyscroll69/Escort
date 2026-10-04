@@ -15,8 +15,23 @@ namespace HS.Tests
             new ModuleInfo { Id = "wagon_camp", Kind = RoomKind.Combat, Variants = 2 },
         };
 
-        /// <summary>The libraries by chapter (chapters 3–5 still borrow the Old Road's modules).</summary>
-        static List<ModuleInfo> LibraryFor(int moduleChapter) => moduleChapter == 2
+        static List<ModuleInfo> Bastion() => new List<ModuleInfo>
+        {
+            new ModuleInfo { Id = "flooded_gate", Kind = RoomKind.Combat, Variants = 2, Chapter = 4 },
+            new ModuleInfo { Id = "sluice_works", Kind = RoomKind.SetPiece, Variants = 2, Chapter = 4 },
+            new ModuleInfo { Id = "hostage_court", Kind = RoomKind.Ambush, Variants = 2, Chapter = 4 },
+            new ModuleInfo { Id = "baiters_causeway", Kind = RoomKind.Ambush, Variants = 2, Chapter = 4 },
+            new ModuleInfo { Id = "wrens_rampart", Kind = RoomKind.Social, Variants = 2, Chapter = 4 },
+        };
+
+        static List<ModuleInfo> Gallery() => new List<ModuleInfo>
+        {
+            new ModuleInfo { Id = "hall_of_exhibits", Kind = RoomKind.Combat, Variants = 2, Chapter = 5 },
+            new ModuleInfo { Id = "long_gallery", Kind = RoomKind.TrapCorridor, Variants = 2, Chapter = 5 },
+        };
+
+        /// <summary>The libraries by chapter.</summary>
+        static List<ModuleInfo> LibraryFor(int moduleChapter) => moduleChapter == 4 ? Bastion() : moduleChapter == 5 ? Gallery() : moduleChapter == 2
             ? new List<ModuleInfo>
             {
                 new ModuleInfo { Id = "snare_line", Kind = RoomKind.TrapCorridor, Variants = 2, Chapter = 2 },
@@ -115,9 +130,45 @@ namespace HS.Tests
         public void Chapters_With_The_Same_Seed_Differ()
         {
             int differ = 0;
+            var borrowed = ChapterDef.For(4).Borrowed();
             for (int s = 0; s < 10; s++)
-                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(4), Library()).Signature) differ++;
+                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, borrowed, Library()).Signature) differ++;
             Assert.GreaterOrEqual(differ, 8, "the chapter number is mixed into the seed");
+        }
+
+        [Test]
+        public void The_Bastion_Always_Has_Wren_Then_The_Sluice()
+        {
+            for (int seed = 0; seed < 30; seed++)
+            {
+                var plan = RoomAssembler.Plan(seed, ChapterDef.For(4), Bastion());
+                Assert.AreEqual(4, plan.Rooms.Count);
+                Assert.AreEqual("wrens_rampart", plan.Rooms[1].ModuleId, "the rival hero's rampart: " + plan.Signature);
+                Assert.AreEqual("sluice_works", plan.Rooms[2].ModuleId, "the split threat: " + plan.Signature);
+                Assert.AreEqual(4, plan.Rooms.Select(r => r.ModuleId).Distinct().Count(), plan.Signature);
+            }
+        }
+
+        [Test]
+        public void The_Gallery_Walks_The_Hall_Then_The_Long_Gallery()
+        {
+            var plan = RoomAssembler.Plan(7, ChapterDef.For(5), Gallery());
+            CollectionAssert.AreEqual(new[] { "hall_of_exhibits", "long_gallery" }, plan.Rooms.Select(r => r.ModuleId).ToArray());
+        }
+
+        [Test]
+        public void A_Chapter_Without_Its_Rooms_Borrows_The_Old_Road()
+        {
+            var def = ChapterDef.For(4);
+            Assert.IsFalse(RoomAssembler.CanFill(def, Library()), "the Old Road has no social room or set piece");
+            Assert.IsTrue(RoomAssembler.CanFill(def, Bastion()));
+            var borrowed = def.Borrowed();
+            Assert.AreEqual(1, borrowed.ModuleChapter);
+            Assert.AreEqual(def.Slots.Count, borrowed.Slots.Count);
+            Assert.AreEqual(def.Theme, borrowed.Theme, "under its own light");
+            Assert.IsTrue(RoomAssembler.CanFill(borrowed, Library()));
+            Assert.IsTrue(ChapterDef.For(5).Borrowed().Final, "the Gallery still ends at the door");
+            Assert.AreEqual(4, RoomAssembler.Plan(3, borrowed, Library()).Rooms.Count);
         }
     }
 }

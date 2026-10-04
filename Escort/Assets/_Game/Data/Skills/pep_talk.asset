@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Pep Talk
   family: 1
   type: 0
-  uses: +15% hero damage and speed for 8 s. Cooldown 25 s.
+  uses: 'Within earshot (14 m), the hero hits 15% harder and moves 15% faster for 8 s (rank 2: 20% for 10 s). Cooldown 25 s (rank 2: 20 s).'
   icon: pep_talk
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 25
+  - 20
   valueA:
-  - 0
-  - 0
+  - 0.15
+  - 0.2
   valueB:
-  - 0
-  - 0
+  - 8
+  - 10
   dishonor: 0

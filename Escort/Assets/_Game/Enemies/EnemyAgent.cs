@@ -8,6 +8,22 @@ namespace HS.Enemies
     public enum EnemyState { Dormant, Hidden, Engaged, Surrendered, Fleeing, Spared, Dead }
 
     /// <summary>
+    /// Takes over an enemy's tick (the sluice crew at their wheel, the Mirror running Callum's S0 rules). Return true when it
+    /// handled the tick; false hands the tick to the default AI for this frame.
+    /// </summary>
+    public interface IEnemyController
+    {
+        bool Tick(EnemyAgent self, float dt);
+    }
+
+    /// <summary>A controller that also judges the blows it takes (the Mirror: his Stance, Habit Breaks, its HP floor).</summary>
+    public interface IEnemyDamageFilter
+    {
+        /// <summary>The amount after the usual adjustments; returns what actually lands.</summary>
+        float Incoming(EnemyAgent self, DamageInfo d, float amount);
+    }
+
+    /// <summary>
     /// Data-driven, deterministic enemy (GDD §2: fixed damage, deterministic AI). Archetype numbers come from
     /// Tuning.enemies. Heroes are loud (always noticed once an encounter starts); the sidekick is unlisted and easy to
     /// overlook (GDD §4.3) — detected only close up, in view, or after hurting the enemy.
@@ -26,6 +42,17 @@ namespace HS.Enemies
         public bool StartsAsleep;
         /// <summary>Set-piece actor (the rigged duel): only a director wakes it — no sidekick spotting, no ambush springing.</summary>
         public bool Scripted;
+        /// <summary>Out of his reach by design (the sluice crew on the gallery above): he never challenges him, and he never
+        /// holds the room gate.</summary>
+        [NonSerialized] public bool Unchallengeable;
+        /// <summary>Holds his ground instead of closing to range (an archer behind a hostage).</summary>
+        [NonSerialized] public bool HoldsPosition;
+        /// <summary>Reload time multiplier (the nemesis squad's archers reload faster as Curator Intel rises).</summary>
+        [NonSerialized] public float ReloadMul = 1f;
+        /// <summary>Flagged a cheater by circumstance, whatever his archetype says (Ashgrave once the gallery shoots).</summary>
+        [NonSerialized] public bool FlaggedCheater;
+        /// <summary>Optional brain that replaces the default AI (see <see cref="IEnemyController"/>).</summary>
+        [NonSerialized] public IEnemyController Brain;
 
         public EnemyStats Stats { get; private set; }
         public EnemyState State { get; private set; } = EnemyState.Dormant;
@@ -33,7 +60,7 @@ namespace HS.Enemies
         public bool AwareOfSidekick { get; private set; }
         /// <summary>Set by the hero when he challenges this enemy (formal duel).</summary>
         public Agent DuelOpponent;
-        public bool IsCheater => Stats != null && Stats.cheater;
+        public bool IsCheater => FlaggedCheater || (Stats != null && Stats.cheater);
         public bool IsRanged => Stats != null && Stats.ranged;
         public bool IsAttackWindup => _phase == Phase.Windup;
         public bool IsAiming => _phase == Phase.Aim;
@@ -66,9 +93,10 @@ namespace HS.Enemies
 
         void Start()
         {
-            Configure(Archetype);
+            if (Stats == null || Stats.id != Archetype) Configure(Archetype);
             if (StartsHidden) SetState(EnemyState.Hidden);
             if (StartsAsleep) FallAsleep();
+            if (Stats.tint.a > 0f) HS.Rooms.CastFactory.Tint(gameObject, Stats.tint);
         }
 
         public void Configure(string archetype)
@@ -79,6 +107,19 @@ namespace HS.Enemies
             float hp = Stats.maxHp * ChapterTier.EnemyHp(Ctx != null ? Ctx.Chapter : 1);
             Health = new Health(hp);
             if (Stats.startsHidden) StartsHidden = true;
+        }
+
+        /// <summary>Become another archetype mid-fight (Ashgrave drops the pretence), keeping the share of HP he has left.</summary>
+        public void SwapStats(string archetype)
+        {
+            float fraction = Health != null ? Health.Fraction : 1f;
+            var t = Ctx != null ? Ctx.Tuning : Tuning.LoadDefault();
+            Archetype = archetype;
+            Stats = t.Enemy(archetype);
+            Health.SetBaseMax(Stats.maxHp * ChapterTier.EnemyHp(Ctx != null ? Ctx.Chapter : 1), false);
+            Health.SetCurrent(Health.Max * fraction);
+            _phase = Phase.None;
+            _phaseT = 0f;
         }
 
         void SetState(EnemyState s)
@@ -204,6 +245,14 @@ namespace HS.Enemies
             if (hero != null && hero.IsAlive && Geo.FlatDistance(Position, hero.Position) <= WakeRadius) Wake("footsteps");
         }
 
+        /// <summary>Smoke (Smoke Bomb): he loses her — whatever grudge he held, he no longer knows where she is.</summary>
+        public void LoseSidekick()
+        {
+            AwareOfSidekick = false;
+            TimeSinceSidekickHurtMe = 999f;
+            if (Ctx != null && Target == Ctx.Sidekick) Target = null;
+        }
+
         public bool IsHidden => State == EnemyState.Hidden;
         public bool IsActive => State == EnemyState.Engaged;
 
@@ -258,7 +307,8 @@ namespace HS.Enemies
                 AwareOfSidekick = true;
             }
             if (State == EnemyState.Dormant) Activate();
-            return d.FromSidekick ? d.Amount * ChapterTier.SidekickDamage(Ctx != null ? Ctx.Chapter : 1) : d.Amount;
+            float amount = d.FromSidekick ? d.Amount * ChapterTier.SidekickDamage(Ctx != null ? Ctx.Chapter : 1) : d.Amount;
+            return Brain is IEnemyDamageFilter f ? f.Incoming(this, d, amount) : amount;
         }
 
         protected override void OnHurt(DamageInfo d, float applied)
@@ -301,6 +351,7 @@ namespace HS.Enemies
             if (!IsAlive) return;
             if (Stats == null) Configure(Archetype); // ticked before Start (spawned mid-frame): configure now
             TimeSinceSidekickHurtMe += dt;
+            if (Brain != null && Brain.Tick(this, dt)) return;
             if (Asleep)
             {
                 TickAsleep();
@@ -379,6 +430,7 @@ namespace HS.Enemies
         {
             var t = (Ctx != null ? Ctx.Tuning : Tuning.LoadDefault()).sidekick;
             float d = Geo.FlatDistance(Position, sk.Position);
+            if (HS.Skills.Impl.SmokeCloud.Blocks(Position, sk.Position)) return d <= 1.2f; // in the smoke: only by touch
             if (sk.IsSneaking) return d <= sk.QuietFeetRadius;
             if (d <= t.detectRadius) return true;
             return !Status.Has(StatusType.Blinded) && Geo.InCone(Position, Forward, sk.Position, t.detectConeAngle, t.detectConeRange);
@@ -421,14 +473,35 @@ namespace HS.Enemies
             }
             // Duel etiquette is the hero's, not the bandits': a duelled enemy keeps fighting the hero.
             if (DuelOpponent != null && DuelOpponent.IsAlive && TimeSinceSidekickHurtMe > 1.5f) pick = DuelOpponent;
+            // A decoy (Bait & Switch) draws anyone near it — except the man squared up with him.
+            else if (DuelOpponent == null)
+            {
+                var decoy = HS.Skills.Impl.Decoy.LureFor(this);
+                if (decoy != null) pick = decoy;
+            }
             Target = pick;
         }
+
+        public const float BaitTime = 6f;
+        float _baitT;
+        /// <summary>A challenge-baiter still stalling: he took the challenge and gives ground instead of a fight.</summary>
+        public bool Baiting => Stats != null && Stats.baiter && DuelOpponent != null && _baitT < BaitTime;
 
         void TickMelee(float dt)
         {
             var toT = Geo.Flat(Target.Position - Position);
             float dist = toT.magnitude;
             float reach = Stats.range + Target.Radius * 0.5f;
+            if (Baiting && Target == DuelOpponent && _phase != Phase.Windup)
+            {
+                // He accepted. Now he backs away, inviting the knight down the causeway (and past whatever waits in the water).
+                _baitT += dt;
+                _phase = Phase.None;
+                var away = dist > 1e-3f ? -toT / dist : -Forward;
+                Motor.Move(dist < 5.5f ? away * Stats.speed * 0.75f : Vector3.zero, 30f, dt);
+                Motor.FaceDirection(toT, 400f, dt);
+                return;
+            }
             switch (_phase)
             {
                 case Phase.Windup:
@@ -560,6 +633,14 @@ namespace HS.Enemies
 
         bool _parried;
 
+        /// <summary>Was the swing just resolved parried (Riposte)? Clears it. For controllers that resolve their own blows.</summary>
+        public bool ConsumeParry()
+        {
+            bool p = _parried;
+            _parried = false;
+            return p;
+        }
+
         /// <summary>Riposte hook: the defender negates this swing (called from Attacked handlers).</summary>
         public void Parry(float staggerSeconds, Agent by = null)
         {
@@ -595,7 +676,7 @@ namespace HS.Enemies
                 Motor.FaceDirection(Geo.DirTo(Position, sk.Position), 400f, dt);
                 return;
             }
-            if (dist > Stats.range && !Elevated)
+            if (dist > Stats.range && !Elevated && !HoldsPosition)
             {
                 Motor.Move(toT.normalized * Stats.speed, 30f, dt);
                 Motor.FaceDirection(toT, 400f, dt);
@@ -603,6 +684,8 @@ namespace HS.Enemies
             }
             Motor.Move(Vector3.zero, 30f, dt);
             if (dist > Stats.range + 4f) return; // elevated shooters hold their perch
+            // Smoke between him and his mark: nothing to aim at.
+            if (HS.Skills.Impl.SmokeCloud.Blocks(Position + Vector3.up * 1.4f, Target.Position + Vector3.up * 1.1f)) return;
             _phase = Phase.Aim;
             _phaseT = Stats.aimTime;
             _aimDir = toT.normalized;
@@ -612,7 +695,7 @@ namespace HS.Enemies
         void Fire()
         {
             _phase = Phase.Reload;
-            _phaseT = Stats.reload;
+            _phaseT = Stats.reload * ReloadMul;
             _attackCount++;
             Presenter?.PlayAction("shoot", 0.4f);
             var origin = Position + Vector3.up * (Elevated ? 1.4f : 1.3f) + _aimDir * 0.5f;

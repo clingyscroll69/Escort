@@ -165,8 +165,8 @@ namespace HS.Tests
                     Assert.IsFalse(Regex.IsMatch(s, @"\{[a-z0-9]+\}"), $"{l.Id}: unresolved token in '{s}'");
                 }
             }
-            CollectionAssert.AreEquivalent(new[] { "hero_rules", "cone", "duel" }, Lessons.All.Where(l => l.Kind == LessonKind.Focus).Select(l => l.Id),
-                "three freeze-frame lessons");
+            CollectionAssert.AreEquivalent(new[] { "hero_rules", "cone", "duel", "mirror" }, Lessons.All.Where(l => l.Kind == LessonKind.Focus).Select(l => l.Id),
+                "four freeze-frame lessons");
             Assert.IsNull(Lessons.Get("nope"));
             Assert.AreEqual("cone", Lessons.Get("cone").Id);
         }

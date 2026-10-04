@@ -318,6 +318,8 @@ namespace HS.Audio
                 case "Chapter": SetBeds("syn_forest_loop", null); break;
                 case "Camp": SetBeds("syn_fire_loop", "syn_camp_pad"); Play("j_camp", null, 0.7f, 1f, 0f); break;
                 case "Duel": SetBeds("syn_forest_loop", "syn_duel_pad"); Play("j_duel", null, 0.8f, 1f, 0f); break;
+                // The Gallery's last phase: the room falls away; only the duel pad and a cold sting are left.
+                case "Mirror": SetBeds(null, "syn_duel_pad"); Play("j_loss", null, 0.55f, 1f, 0f); Play("syn_whoosh", null, 0.8f, 0f, 0f); break;
                 case "End": SetBeds(won ? "syn_fire_loop" : null, null); Play(won ? "j_win" : "j_loss", null, 0.9f, 1f, 0f); break;
             }
         }

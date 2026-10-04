@@ -18,6 +18,18 @@ namespace HS.Bots
             }
         }
 
+        /// <summary>The capstone each build takes at the chapter 4 campfire (every one can land the Duet).</summary>
+        public static string Capstone(string build)
+        {
+            switch (build)
+            {
+                case "fixer": return "domino_effect";
+                case "handler": return "silent_partner";
+                case "shadow": return "crossfire";
+                default: return "hold_please";
+            }
+        }
+
         public static ISidekickCommands Make(string name, SidekickAgent sk)
         {
             switch (name)

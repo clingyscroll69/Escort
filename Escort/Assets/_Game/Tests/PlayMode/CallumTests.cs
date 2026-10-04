@@ -391,5 +391,61 @@ namespace HS.Tests
             while (_hero.ActiveRuleId == "callum_wait_unready" && waited < 1000) { Loop.Step(); waited++; }
             Assert.That(waited * SimLoop.Dt, Is.InRange(0.9f, 1.1f), "a cheater gets 1 s");
         }
+
+        // ------------------------------------------------------------------ S3 (campaign plan 5)
+
+        [UnityTest]
+        public IEnumerator S3_Fair_To_Cheat_A_Cheater_And_S2_Is_Not()
+        {
+            foreach (var (stage, free) in new[] { (Stage.S3, true), (Stage.S2, false) })
+            {
+                yield return MakeCallum(Vector3.zero, stage);
+                var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(1.5f, 0f, 2f), 0.32f);
+                sk.Commands = new ScriptedCommands();
+                Ctx.Sidekick = sk;
+                var cheat = Enemy(new Vector3(0f, 0f, 4f), "cultist");
+                int caught = 0;
+                _cm.Caught += (e, byStone) => caught++;
+                float honor = _cm.Honor;
+                cheat.Status.Apply(StatusType.Blinded, 3f);
+                Ctx.Events.RaiseSabotage(new SabotageEvent { Tag = "pocket_sand", Severity = SabotageSeverity.Major, Position = cheat.Position, ActorPosition = sk.Position, Victim = cheat, Time = Ctx.SimTime });
+                Assert.AreEqual(free ? honor : honor - _cm.T.honorLossMajor, _cm.Honor, 0.01f, stage.ToString());
+                Assert.AreEqual(free ? 0 : 1, caught, stage + ": never Caught at S3");
+                foreach (var a in Object.FindObjectsByType<Agent>(FindObjectsSortMode.None)) Object.DestroyImmediate(a.gameObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator S3_Judgment_On_A_Cheater_Asks_For_A_Hand_And_Her_Blows_Count()
+        {
+            yield return MakeCallum(Vector3.zero, Stage.S3);
+            Ctx.Chapter = 5;
+            var rules = HS.Flow.CampaignSchedule.For(5);
+            _cm.ApplyChapter(5, rules.Unlocks, rules.Recovery);
+            _hero.Route.SetNodes(new List<RouteNode>());
+            var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(1.5f, 0f, 1f), 0.32f);
+            sk.Commands = new ScriptedCommands();
+            Ctx.Sidekick = sk;
+            var cheat = Enemy(new Vector3(0f, 0f, 2.4f), "cultist");
+            cheat.Health.Invulnerable = true;
+            int asked = 0, struck = 0;
+            _cm.DuetAsked += e => asked++;
+            _cm.DuetStruck += e => struck++;
+            Loop.StepMany(2);
+            while (_cm.Saluting) Loop.Step();
+            cheat.Health.SetCurrent(cheat.Health.Max * 0.5f);
+            int guard = 0;
+            while (!_cm.FinisherCharging && guard++ < 600) Loop.Step();
+            Assert.IsTrue(_cm.DuetWindow, "against a cheat he asks for a hand");
+            Assert.AreEqual(1, asked);
+            Loop.Step();
+            Assert.AreEqual("duet", _hero.ActiveIcon, "the Duet icon over his head");
+            float honor = _cm.Honor;
+            cheat.Health.Invulnerable = false;
+            for (int i = 0; i < 6; i++) cheat.TakeDamage(DamageInfo.Make(sk, cheat, 1f, DamageKind.Knife, "knife"));
+            Assert.AreEqual(6, struck);
+            Assert.AreEqual(2f, _cm.DuetMultiplier, 1e-4f, "+25% a blow, to +100%");
+            Assert.AreEqual(honor, _cm.Honor, 0.01f, "he asked for it");
+        }
     }
 }

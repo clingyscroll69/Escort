@@ -8,7 +8,7 @@ namespace HS.Core
     /// Code-defined Input System actions (keyboard+mouse and gamepad for every verb, GDD §2).
     /// Keyboard: WASD move, mouse aim, LMB knife, Space dodge, Q/MMB ping, E interact, C/Ctrl crouch, Shift walk,
     /// 1-6 skills, Esc pause, Tab hero insight. Gamepad: LS move, RS aim, X knife, B dodge, Y ping, A interact,
-    /// L3 crouch, RT/RB/LT/LB and D-pad left/right skills 1-6, Start pause, Select insight.
+    /// L3 crouch, RT/RB/LT/LB and D-pad left/right skills 1-6, Start pause, Select insight. The capstone: X / R3.
     /// </summary>
     public sealed class GameInput : IDisposable
     {
@@ -16,6 +16,8 @@ namespace HS.Core
         public readonly InputActionMap UI = new InputActionMap("UI");
 
         public readonly InputAction Move, AimPointer, AimStick, Attack, Dodge, Ping, Interact, Crouch, Walk, Pause, Insight;
+        /// <summary>The capstone (revealed at the chapter 4 campfire) has a key of its own: never one of the 4–6 slots.</summary>
+        public readonly InputAction Capstone;
         public readonly InputAction[] Skills = new InputAction[6];
         public readonly InputAction Navigate, Confirm, Cancel, Any;
         /// <summary>Skill demos (picker, Field Guide): skip to the end card / play again.</summary>
@@ -71,6 +73,8 @@ namespace HS.Core
                 Skills[i].AddBinding(pads[i]);
             }
             Skills[0].AddBinding("<Mouse>/rightButton");
+            Capstone = Gameplay.AddAction("Capstone", InputActionType.Button, "<Keyboard>/x");
+            Capstone.AddBinding("<Gamepad>/rightStickPress");
 
             Navigate = UI.AddAction("Navigate", InputActionType.Value, expectedControlLayout: "Vector2");
             Navigate.AddCompositeBinding("2DVector").With("Up", "<Keyboard>/w").With("Down", "<Keyboard>/s")

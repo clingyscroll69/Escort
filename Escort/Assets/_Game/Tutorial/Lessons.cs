@@ -149,6 +149,32 @@ namespace HS.Tutorial
             L("pit", Tip, Road, "alert", "The drop",
                 "Whoever goes over the edge falls hard and climbs back slowly. Someone teetering can still be hauled clear.", priority: 40, duration: 9f),
 
+            // ---- the Sunken Bastion (chapter 4 on)
+            L("wading", Tip, Road, "wound_ankle", "Deep water",
+                "Deep water slows everyone, and a man in plate slowest of all. A smaller target than him, you can wade where he can't.",
+                priority: 20, duration: 8f),
+            L("sluice", Tip, Road, "sluice", "The sluice",
+                "Men at that wheel are flooding the floor below, and they are out of his reach up there. Stop them, or jam the wheel ({interact}).",
+                priority: 50, duration: 11f),
+            L("hostage", Tip, Road, "hostage", "A captive",
+                "He will not strike through an innocent, and the man behind her knows it. Cut her ropes ({interact}) and he's fair game again.",
+                priority: 55, duration: 11f),
+            L("baiter", Tip, Hero, "challenge", "Backing away",
+                "He took the challenge, then gave ground. Whatever he's leading Callum towards, Callum will follow.", priority: 45, duration: 9f),
+            L("capstone", Tip, Controls, "link", "Your last trick",
+                "Your last trick has a key of its own ({capstone}). It never takes a slot, and a long rest comes after it.", priority: 35, duration: 10f),
+
+            // ---- the Gallery (chapter 5)
+            L("mirror", Focus, Hero, "mirror", "The Mirror",
+                "It is Callum as he was: every old habit, the same strength. It has no entry for you and never once looks your way.\n\n" +
+                "Whatever he has outgrown, it still does. That's where it breaks.", priority: 100),
+            L("habit_break", Tip, Hero, "mirror", "An old habit",
+                "It reeled, and it takes double while it does. Its habits are the openings: courtesy, the narrows, the Code.", priority: 70, duration: 9f),
+            L("link_ring", Tip, Hero, "link", "He's looking at you",
+                "Fire your last trick ({capstone}) before the ring closes. With nothing on that key, ping it.", priority: 110, duration: 4f, expiry: 2f),
+            L("duet_window", Tip, Hero, "duet", "A hand",
+                "He asked for a hand on this one. Every blow you land on his opponent while he gathers himself goes into his.", priority: 70, duration: 8f),
+
             L("xp", Tip, Road, "check", "XP",
                 "Every room pays the same XP: for the clear, for helping, for exploring. Levels arrive at the camp.", CoachTarget.XpBar, 15, 8f, 10f),
 

@@ -223,6 +223,11 @@ namespace HS.Hero.Callum
             if (!Challenged.IsAlive) EndDuel(DuelEndReason.TargetDied);
             else if (!Challenged.gameObject.activeInHierarchy || Challenged.State == EnemyState.Fleeing) EndDuel(DuelEndReason.TargetFled);
             else if (Challenged.State == EnemyState.Spared) EndDuel(DuelEndReason.Abandoned);
+            else if (Hostage.Shields(Challenged))
+            {
+                Bark(HostageLines, 1);
+                EndDuel(DuelEndReason.Abandoned);
+            }
         }
 
         public const float ChallengeWakeRadius = 8f;
@@ -299,12 +304,35 @@ namespace HS.Hero.Callum
         /// <summary>Reset the Unready wait when the target is ready again (e.g. blindness wore off).</summary>
         public void ResetWait() => WaitT = 0f;
 
+        // ------------------------------------------------------------------ S3: Fair to Cheat a Cheater (GDD §6.1)
+        public const float DuetHitBonus = 0.25f, DuetMaxBonus = 1f;
+        /// <summary>A Duet Window is open: he asked for a hand on this Judgment (S3, against a cheater).</summary>
+        public bool DuetWindow => FinisherCharging && _duetAsked;
+        public int DuetHits { get; private set; }
+        /// <summary>Judgment's multiplier from her hits during a Duet Window (+25% each, to +100%).</summary>
+        public float DuetMultiplier => 1f + Mathf.Min(DuetMaxBonus, DuetHits * DuetHitBonus);
+        public event Action<EnemyAgent> DuetAsked;
+        public event Action<EnemyAgent> DuetStruck;
+        bool _duetAsked;
+        /// <summary>The Mirror's Duet Finisher: he looked to her for it, so nothing she does for it is held against her.</summary>
+        public bool DuetSanctioned;
+
         // ------------------------------------------------------------------ Finisher: Judgment (GDD §6.1)
         float _finT, _finCd;
         EnemyAgent _finTarget;
         public bool HasFinisher => (Unlocks & (Signature.FinisherI | Signature.FinisherII)) != 0;
         public float FinisherChargeTime => (Unlocks & Signature.FinisherII) != 0 ? T.finisherChargeII : T.finisherCharge;
         public bool FinisherCharging => _finT > 0f;
+        /// <summary>The man Judgment is aimed at while it charges.</summary>
+        public EnemyAgent FinisherTarget => FinisherCharging ? _finTarget : null;
+        /// <summary>Added to the blow when it lands (Crossfire's volley; her hits in a Duet Window).</summary>
+        public float FinisherBonus { get; private set; }
+
+        /// <summary>A volley timed to his blow (Crossfire): it lands with Judgment.</summary>
+        public void JoinFinisher(float bonusDamage)
+        {
+            if (FinisherCharging) FinisherBonus += Mathf.Max(0f, bonusDamage);
+        }
         public float FinisherProgress => FinisherCharging ? 1f - _finT / FinisherChargeTime : 0f;
         public float FinisherCooldown => _finCd;
 
@@ -320,10 +348,15 @@ namespace HS.Hero.Callum
             _finTarget = Challenged;
             _finT = FinisherChargeTime;
             _atk = Atk.None;
+            FinisherBonus = 0f;
+            DuetHits = 0;
+            // S3: against a cheat, he asks for a hand — her blows during the charge are welcome, and they count.
+            _duetAsked = Stage >= Stage.S3 && _finTarget.IsCheater;
             Hero.Presenter?.PlayAction("guard", FinisherChargeTime);
             HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Glint, Hero.Position + Vector3.up * 1.6f, 1.2f);
-            Bark(JudgmentLines, 1);
+            Bark(_duetAsked ? DuetLines : JudgmentLines, _duetAsked ? 2 : 1);
             FinisherBegan?.Invoke(_finTarget);
+            if (_duetAsked) DuetAsked?.Invoke(_finTarget);
         }
 
         /// <summary>Called by the rule when he leaves it mid-charge (his target became Unready, a fall-back...).</summary>
@@ -331,6 +364,9 @@ namespace HS.Hero.Callum
         {
             if (!FinisherCharging) return;
             _finT = 0f;
+            FinisherBonus = 0f;
+            _duetAsked = false;
+            DuetHits = 0;
             _finCd = Mathf.Max(_finCd, 3f);
             Hero.Presenter?.PlayAction("none");
         }
@@ -350,7 +386,10 @@ namespace HS.Hero.Callum
             _finT = 0f;
             _finCd = T.finisherCooldown;
             int ch = _ctx != null ? _ctx.Chapter : 1;
-            float dmg = OutgoingDamage(T.Damage(ch)) * T.finisherMul;
+            float dmg = OutgoingDamage(T.Damage(ch)) * T.finisherMul * DuetMultiplier + FinisherBonus;
+            FinisherBonus = 0f;
+            _duetAsked = false;
+            DuetHits = 0;
             Hero.Presenter?.PlayAction("attack3", 0.6f);
             HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Sparks, target.Position + Vector3.up * 1.2f, 1.6f);
             target.TakeDamage(DamageInfo.Make(Hero, target, dmg, DamageKind.Blade, "judgment", 1f));
@@ -479,6 +518,12 @@ namespace HS.Hero.Callum
             {
                 if (!(all[i] is EnemyAgent e) || !e.IsAlive || !e.IsActive) continue;
                 if (e.Elevated && e.IsRanged) continue; // shooters on a perch won't come down to be challenged
+                if (e.Unchallengeable) continue;        // out of his reach (the sluice crew above)
+                if (Hostage.Shields(e))                 // a knight does not strike through a hostage
+                {
+                    Bark(HostageLines, 1);
+                    continue;
+                }
                 float d = Geo.FlatSqrDistance(e.Position, Hero.Position);
                 // deterministic tie-break by id
                 if (d < bestD - 1e-4f || (Mathf.Abs(d - bestD) <= 1e-4f && best != null && string.CompareOrdinal(e.AgentId, best.AgentId) < 0))
@@ -540,12 +585,20 @@ namespace HS.Hero.Callum
         {
             if (!(d.Source is SidekickAgent) || d.Target == null || d.Target == Hero) return;
             if (d.Tag == "loosen_bolt" || d.Tag == "pocket_sand") return; // reported via Sabotage
+            if (DuetSanctioned || d.Tag == "duet") return;                 // he asked for this
             var target = d.Target as EnemyAgent;
             if (target == null) return;
             if (target == Challenged && Saluting)
             {
                 SpoiledDuel?.Invoke(target);
                 Bark(SpoiledLines, 1);
+                return;
+            }
+            if (DuetWindow && target == _finTarget)
+            {
+                // He asked for this one. Every blow of hers lands with his.
+                DuetHits++;
+                DuetStruck?.Invoke(target);
                 return;
             }
             var sev = SabotageSeverity.None;
@@ -562,6 +615,19 @@ namespace HS.Hero.Callum
 
         void Witnessed(SabotageEvent e, bool byStone)
         {
+            if (DuetSanctioned) return;
+            // S3, Fair to Cheat a Cheater: a dirty trick on a man who fights dirty is no stain on anyone's honour.
+            if (Stage >= Stage.S3 && e.Victim is EnemyAgent cheat && cheat.IsCheater)
+            {
+                Bark(CheatACheaterLines, 0);
+                return;
+            }
+            // S2 under sworn terms: he doesn't bar you, and he won't acknowledge help — he simply doesn't see it.
+            if (NoAidTerms && Stage == Stage.S2)
+            {
+                Bark(UnseenHelpLines, 1);
+                return;
+            }
             float loss = e.Severity == SabotageSeverity.Major ? T.honorLossMajor : T.honorLossMinor;
             if (e.Severity == SabotageSeverity.Minor && Stage >= Stage.S1) loss *= 0.5f; // S1: minor assists halved
             bool wasLow = HonorLow;
@@ -644,6 +710,9 @@ namespace HS.Hero.Callum
             if (FinisherCharging && applied >= T.finisherBreakFraction * Hero.Health.Max)
             {
                 _finT = 0f;
+                _duetAsked = false;
+                DuetHits = 0;
+                FinisherBonus = 0f;
                 _finCd = T.finisherCooldown * 0.5f;
                 Bark(JudgmentBrokenLines, 2);
                 FinisherBroken?.Invoke();
@@ -723,5 +792,9 @@ namespace HS.Hero.Callum
         static readonly string[] CrippledLines = { "I can still walk. Mostly.", "Do not carry me. I forbid it." };
         static readonly string[] CowardLines = { "Come down and face me, coward!", "Arrows from a rooftop. How brave.", "Hide up there, then. I have a road to walk." };
         static readonly string[] TreacheryLines = { "Treachery!", "A knife in the back — of course.", "Cheat!" };
+        static readonly string[] DuetLines = { "A hand, friend?", "Now — with me!", "Together, then. Judgment!" };
+        static readonly string[] CheatACheaterLines = { "Fair's fair. He started it.", "Good. He fights dirty; so may we.", "Cheat a cheater. I'll allow it." };
+        static readonly string[] UnseenHelpLines = { "I saw nothing. I see nothing.", "Whatever that was, it wasn't aid. I'm sure of it." };
+        static readonly string[] HostageLines = { "Hiding behind her? Coward!", "I will not strike through an innocent.", "Let her go and face me!" };
     }
 }

@@ -126,6 +126,62 @@ namespace HS.Skills
                 CallumView = "Defending yourself is your business. Defending him, he'll pretend not to notice.",
                 Stats = new[] { Stat("Raised for", (d, r) => N(d.A(r)) + " s"), Stat("Covers him within", (d, r) => r >= 2 ? N(d.B(r)) + " m" : "-"), Cooldown },
             },
+            ["bait_and_switch"] = new SkillGuide
+            {
+                Id = "bait_and_switch", Tagline = "A cloak, a stick, and a very convincing slouch.",
+                HowTo = "Aim with {aim} and press its key. A decoy in your shape stands there for a while, and the bandits near it go for it instead of anyone real.",
+                CallumView = "No dishonour in a scarecrow. It never draws the man he's duelling; that one has eyes only for him.",
+                Stats = new[] { Stat("Lasts", (d, r) => N(d.A(r)) + " s"), Stat("Draws from", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["smoke_bomb"] = new SkillGuide
+            {
+                Id = "smoke_bomb", Tagline = "Now you see it. Now nobody does.",
+                HowTo = "Aim with {aim} and press its key. Nothing sees through the cloud: not him, not a glowing stone, not a man with a bow. Anyone inside it loses track of you.",
+                CallumView = "Smoke is weather. He has never once been offended by weather.",
+                Stats = new[] { Stat("Lasts", (d, r) => N(d.A(r)) + " s"), Stat("Across", (d, r) => N(d.B(r) * 2f) + " m"), Cooldown },
+            },
+            ["pep_talk"] = new SkillGuide
+            {
+                Id = "pep_talk", Tagline = "\"You're doing wonderfully, sir.\"",
+                HowTo = "Press its key within earshot (14 m). For a few seconds he hits harder and moves faster.",
+                CallumView = "He pretends he didn't need it. He fights better anyway.",
+                Stats = new[] { Stat("Damage and speed", (d, r) => "+" + N(d.A(r) * 100f) + "%"), Stat("Lasts", (d, r) => N(d.B(r)) + " s"), Cooldown },
+            },
+            ["shoulder_check"] = new SkillGuide
+            {
+                Id = "shoulder_check", Tagline = "Lead with the shoulder. Apologise later.",
+                HowTo = "Aim at a foe close in front with {aim} and press its key. You barge into him: he's knocked back and reels.",
+                CallumView = "Shoving his own opponent is a slight. Anyone else, and it's a fair scuffle of your own.",
+                Stats = new[] { Stat("Knockback", (d, r) => N(d.A(r)) + " m"), Stat("Reels for", (d, r) => N(d.B(r)) + " s"), Cooldown },
+            },
+            ["domino_effect"] = new SkillGuide
+            {
+                Id = "domino_effect", Tagline = "One loose bolt is an accident. All of them is a plan.",
+                HowTo = "Press {capstone}. The props nearest you are rigged on the spot, then everything rigged in the room comes down at once.",
+                CallumView = "A collapse he sees is a dirty trick, however many there are.",
+                Stats = new[] { Stat("Rigs on the spot", (d, r) => N(d.A(r))), Stat("Reach", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["crossfire"] = new SkillGuide
+            {
+                Id = "crossfire", Tagline = "Three bolts and perfect timing.",
+                HowTo = "Press {capstone} to loose three bolts at the aim point. While he gathers his Judgment, the volley goes into his target and lands with his blow.",
+                CallumView = "Timed to his own strike, it's hard to tell whose blow it was. He doesn't ask.",
+                Stats = new[] { Stat("Per bolt", (d, r) => N(d.A(r)) + " + " + N(d.B(r)) + " per fighting rank"), Cooldown },
+            },
+            ["hold_please"] = new SkillGuide
+            {
+                Id = "hold_please", Tagline = "\"Just a second, everyone.\"",
+                HowTo = "Press {capstone}. Everyone around you, him included, is held still for a few seconds. You are not.",
+                CallumView = "Held men can't fight back. Striking one where he can see it is striking the helpless.",
+                Stats = new[] { Stat("Holds for", (d, r) => N(d.A(r)) + " s"), Stat("Reach", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["silent_partner"] = new SkillGuide
+            {
+                Id = "silent_partner", Tagline = "Always there. Never mentioned.",
+                HowTo = "Passive. Stay near him: he recovers steadily, and now and then a minor wound of his is quietly seen to.",
+                CallumView = "He feels better near you and has never once wondered why.",
+                Stats = new[] { Stat("Within", (d, r) => N(d.B(r)) + " m"), Stat("Recovers", (d, r) => N(d.A(r) * 100f) + "% a second") },
+            },
         };
 
         public static SkillGuide Get(string id) => id != null && Guides.TryGetValue(id, out var g) ? g : null;

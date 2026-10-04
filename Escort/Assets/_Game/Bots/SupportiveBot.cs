@@ -23,7 +23,7 @@ namespace HS.Bots
         HeroAgent _hero;
         CallumModule _cm;
         float _now, _caughtAt = -99f, _lastHp;
-        int _caughtThisRoom;
+        int _caughtThisRoom, _chapter = -1;
         readonly List<HazardMarker> _hazards = new List<HazardMarker>();
         readonly List<ExploreAnchor> _caches = new List<ExploreAnchor>();
         static readonly Vector3[] Ring = BuildRing();
@@ -77,6 +77,13 @@ namespace HS.Bots
         {
             if (!Bind() || !_hero.IsAlive) return SidekickCommand.None;
             _now = _ctx.SimTime;
+            if (_ctx.Chapter != _chapter)
+            {
+                // Each chapter is a new road: the last one's traps and caches are gone.
+                _chapter = _ctx.Chapter;
+                _hazards.Clear();
+                _caches.Clear();
+            }
             if (self.IsChanneling)
             {
                 Intent = "channel";
@@ -119,6 +126,12 @@ namespace HS.Bots
                             && AgentRegistry.Nearest(_hero.Position, 22f, a => a is EnemyAgent e && e.IsActive && e.IsRanged) == null;
             if (_hero.Health.Fraction < 0.55f && heroSafe && BotUtil.Ready(self, "bandage"))
                 return Geo.FlatDistance(self.Position, _hero.Position) <= 2.0f ? Use(self, "bandage", _hero.Position, "bandage") : Go(self, _hero.Position, "to bandage", stop: 1.6f);
+            // 4b) The Gallery's last phase: the Duet ring first, then the Mirror's old habits.
+            var mirrorCmd = MirrorPlay(self);
+            if (mirrorCmd.HasValue) return mirrorCmd.Value;
+            // 4c) The Bastion: a captive close by, or a sluice being worked — cut her loose, jam the wheel.
+            var bastionCmd = BastionPlay(self);
+            if (bastionCmd.HasValue) return bastionCmd.Value;
             // 5) Duel set piece: break the watching stone, then shoot the gallery unseen.
             if (_cm != null && _cm.NoAidTerms)
             {
@@ -196,6 +209,61 @@ namespace HS.Bots
             // default: behind his back, out of his cone.
             var follow = Go(self, BotUtil.BehindHim(_hero, 6.5f, 2.5f), "follow", careful: true, stop: 1.2f);
             return Sneak(self, follow, inFight);
+        }
+
+        SidekickCommand Ping(Vector3 at, string why)
+        {
+            Intent = why;
+            return new SidekickCommand { Ping = true, AimPoint = at, HasAim = true, Skill = -1 };
+        }
+
+        /// <summary>
+        /// The Mirror: inside the Link ring, the capstone (or, with none, a ping on it); a collapse when it holds a niche
+        /// under an armed prop; otherwise an Etiquette Reset whenever its cooldown allows (he answers it from the second
+        /// stage of trust on; the copy never looks her way).
+        /// </summary>
+        SidekickCommand? MirrorPlay(SidekickAgent self)
+        {
+            var mirror = FindEnemy(e => e.Brain is HS.Boss.MirrorBrain, _hero.Position, 60f);
+            if (mirror == null) return null;
+            var brain = (HS.Boss.MirrorBrain)mirror.Brain;
+            var link = _ctx.Get<HS.Skills.Impl.ILinkWindow>();
+            var skills = self.GetComponent<HS.Skills.SidekickSkills>();
+            var cap = skills != null ? skills.System.Capstone : null;
+            if (link != null && link.Open)
+            {
+                if (cap != null && cap.Ready)
+                {
+                    Intent = "the Duet";
+                    return new SidekickCommand { Skill = HS.Skills.SkillSystem.CapstoneSlot, AimPoint = mirror.Position, HasAim = true };
+                }
+                return Ping(mirror.Position, "the Duet (ping)");
+            }
+            if (brain.InNiche)
+                foreach (var p in HS.Skills.ArmableProp.Instances)
+                    if (p != null && p.State == HS.Skills.ArmableProp.PropState.Armed && Geo.FlatDistance(p.ImpactPoint, mirror.Position) <= p.Anchor.ImpactRadius)
+                        return Ping(p.ImpactPoint, "drop it on the Mirror");
+            if (brain.Current == HS.Boss.MirrorBrain.Mode.Fight && brain.EtiquetteCooldown <= 0f && HS.Boss.MirrorCounters.EtiquetteHeard(_hero.Stage)
+                && Geo.FlatDistance(self.Position, mirror.Position) <= 20f)
+                return Ping(mirror.Position, "etiquette reset");
+            return null;
+        }
+
+        SidekickCommand? BastionPlay(SidekickAgent self)
+        {
+            foreach (var h in HS.Enemies.Hostage.All)
+            {
+                if (h == null || !h.Held || Geo.FlatDistance(h.Position, _hero.Position) > 16f) continue;
+                if (Geo.FlatDistance(self.Position, h.Position) <= 1.6f) return new SidekickCommand { Interact = true, Skill = -1, AimPoint = h.Position, HasAim = true };
+                return Go(self, h.Position, "to the captive", stop: 1.2f);
+            }
+            foreach (var w in SluiceWheel.All)
+            {
+                if (w == null || !w.isActiveAndEnabled || w.Done || w.Working == 0 || Geo.FlatDistance(w.transform.position, _hero.Position) > 30f) continue;
+                if (Geo.FlatDistance(self.Position, w.InteractPosition) <= 1.9f) return new SidekickCommand { Interact = true, Skill = -1, AimPoint = w.InteractPosition, HasAim = true };
+                return Go(self, w.InteractPosition, "to the sluice", stop: 1.5f);
+            }
+            return null;
         }
 
         /// <summary>With Quiet Feet, a fight is spent crouched (his cone narrows, bandits overlook you).</summary>

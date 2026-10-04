@@ -17,7 +17,10 @@ namespace HS.Rooms
     {
         public int TickOrder => TickOrders.Director;
         public ChapterBuilder Chapter;
+        /// <summary>Optional override (tests); by default the cast comes from <see cref="CastFactory"/>.</summary>
         public Func<string, GameObject> EnemyPrefab;
+        /// <summary>Curator Intel when this chapter was built: the nemesis squad's size (chapter 4).</summary>
+        public int IntelLevel { get; private set; }
 
         public sealed class Encounter
         {
@@ -48,6 +51,8 @@ namespace HS.Rooms
             Encounters.Clear();
             _cleared.Clear();
             _entered.Clear();
+            var stones = RunContext.Current != null ? RunContext.Current.Get<StoneSystem>() : null;
+            IntelLevel = stones != null ? stones.IntelLevel : 0;
             foreach (var room in Chapter.Rooms) SpawnRoom(room);
             if (Chapter.Boss != null) { /* boss encounter is run by the rigged-duel director */ }
         }
@@ -55,38 +60,45 @@ namespace HS.Rooms
         /// <summary>Curator scouts placed in this chapter's rooms (not part of any encounter).</summary>
         public readonly List<HS.Curator.Scout> Scouts = new List<HS.Curator.Scout>();
 
+        /// <summary>Hostages held in this chapter's rooms (chapter 4).</summary>
+        public readonly List<Hostage> Hostages = new List<Hostage>();
+
+        /// <summary>Anyone a marker names: the test override first, else the cast (own prefab, or a body to wear).</summary>
+        GameObject Make(string archetype, Vector3 pos, Quaternion rot)
+        {
+            var prefab = EnemyPrefab?.Invoke(archetype);
+            if (prefab != null) return Instantiate(prefab, pos, rot, transform);
+            return CastFactory.Spawn(archetype, pos, rot, transform);
+        }
+
+        static bool Bystander(SpawnMarker m) => m.Archetype.StartsWith("scout_") || m.Archetype == "hostage";
+
         public void SpawnRoom(RoomModule room)
         {
             foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
             {
-                if (!m.Archetype.StartsWith("scout_")) continue;
-                var prefab = EnemyPrefab?.Invoke(m.Archetype);
-                if (prefab == null)
-                {
-                    Debug.LogWarning("[Encounter] no prefab for " + m.Archetype);
-                    continue;
-                }
-                var go = Instantiate(prefab, m.transform.position + Vector3.up * 0.05f, m.transform.rotation, transform);
+                if (!Bystander(m) || !NemesisSquad.Spawns(m.MinIntel, IntelLevel)) continue;
+                var go = Make(m.Archetype, m.transform.position + Vector3.up * 0.05f, m.transform.rotation);
+                if (go == null) continue;
                 go.name = $"{room.name}_{m.Archetype}";
                 var sc = go.GetComponent<HS.Curator.Scout>();
                 if (sc != null) Scouts.Add(sc);
+                var h = go.GetComponent<Hostage>();
+                if (h != null) Hostages.Add(h);
             }
             foreach (var zone in room.GetComponentsInChildren<EncounterZone>(false))
             {
                 var enc = new Encounter { Room = room, Zone = zone };
                 foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
                 {
-                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_") || m.GetComponentInParent<SealDoor>() != null
+                    if (m.Group != zone.Group || Bystander(m) || m.GetComponentInParent<SealDoor>() != null
                         || (m.transform.parent != null && m.transform.parent.name == "SealGuardians")) continue;
-                    var prefab = EnemyPrefab?.Invoke(m.Archetype);
-                    if (prefab == null)
-                    {
-                        Debug.LogWarning("[Encounter] no prefab for " + m.Archetype);
-                        continue;
-                    }
-                    var go = Instantiate(prefab, m.transform.position + Vector3.up * 0.05f, m.transform.rotation, transform);
+                    if (!NemesisSquad.Spawns(m.MinIntel, IntelLevel)) continue; // the Curator didn't send this one
+                    var go = Make(m.Archetype, m.transform.position + Vector3.up * 0.05f, m.transform.rotation);
+                    if (go == null) continue;
                     go.name = $"{room.name}_{m.Archetype}_{enc.Enemies.Count}";
                     var e = go.GetComponent<EnemyAgent>();
+                    if (e == null) continue;
                     e.AgentId = go.name;
                     e.Archetype = m.Archetype;
                     e.Group = room.RoomIndex * 10 + zone.Group;
@@ -94,6 +106,8 @@ namespace HS.Rooms
                     e.StartsAsleep = m.Sleeping;
                     e.Elevated = m.Elevated;
                     e.JoinDelay = m.Delay;
+                    // The nemesis squad's shooters reload faster the more the Curator has seen.
+                    if (room.Chapter == NemesisSquad.Chapter) e.ReloadMul = NemesisSquad.ReloadMul(IntelLevel);
                     enc.Enemies.Add(e);
                 }
                 Encounters.Add(enc);
@@ -107,9 +121,8 @@ namespace HS.Rooms
             var enc = new Encounter { Room = room, Zone = null, Started = true, StartedAt = RunContext.Current != null ? RunContext.Current.SimTime : 0f };
             foreach (var m in markers)
             {
-                var prefab = EnemyPrefab?.Invoke(m.Archetype);
-                if (prefab == null) continue;
-                var go = Instantiate(prefab, m.transform.position + Vector3.up * 0.05f, m.transform.rotation, transform);
+                var go = Make(m.Archetype, m.transform.position + Vector3.up * 0.05f, m.transform.rotation);
+                if (go == null) continue;
                 go.name = $"{(room != null ? room.name : "room")}_{m.Archetype}_late{enc.Enemies.Count}";
                 var e = go.GetComponent<EnemyAgent>();
                 e.AgentId = go.name;
@@ -187,7 +200,7 @@ namespace HS.Rooms
             {
                 if (enc.Resolved || enc.Room.RoomIndex != roomIndex) continue;
                 foreach (var e in enc.Enemies)
-                    if (!Resolved(e) && !(e.Elevated && e.IsRanged)) return true;
+                    if (!Resolved(e) && !(e.Elevated && e.IsRanged) && !e.Unchallengeable && !Hostage.Shields(e)) return true;
             }
             return false;
         }

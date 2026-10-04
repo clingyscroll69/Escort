@@ -12,6 +12,8 @@ namespace HS.Rooms
         public bool Sleeping;               // Unready from the start
         [Tooltip("Seconds after the encounter starts before this one joins (reinforcements).")]
         public float Delay;
+        [Tooltip("Nemesis squad (chapter 4): appears only when Curator Intel is at least this (0–3).")]
+        public int MinIntel;
 
         void OnDrawGizmos()
         {

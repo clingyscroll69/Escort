@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Silent Partner
   family: 5
   type: 1
-  uses: Passive regeneration and wound-healing for the hero.
+  uses: 'Within 12 m of you the hero recovers 0.6% of his health every second, and every 45 s one minor wound of his is tended.'
   icon: silent_partner
-  implemented: 0
+  implemented: 1
   capstone: 1
   cooldown:
   - 0
   - 0
   valueA:
-  - 0
-  - 0
+  - 0.006
+  - 0.006
   valueB:
-  - 0
-  - 0
+  - 12
+  - 12
   dishonor: 0

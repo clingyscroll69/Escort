@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Crossfire
   family: 5
   type: 0
-  uses: Your volley joins the hero's Finisher, scaling with your attack stats.
+  uses: 'Your volley: three bolts at the aim point, each 20 damage plus 10 for every rank of your fighting tricks (the knife counts one). While the hero gathers his Judgment, the volley lands with his blow instead. Cooldown 30 s.'
   icon: crossfire
-  implemented: 0
+  implemented: 1
   capstone: 1
   cooldown:
-  - 0
-  - 0
+  - 30
+  - 30
   valueA:
-  - 0
-  - 0
+  - 20
+  - 20
   valueB:
-  - 0
-  - 0
-  dishonor: 0
+  - 10
+  - 10
+  dishonor: 1

@@ -28,6 +28,10 @@ namespace HS.Hero
         /// <summary>Held still while the sidekick dresses a wound (Bandage channel).</summary>
         public bool TreatmentHold;
         public float DamageMultiplier = 1f;
+        /// <summary>Pep Talk (Handler): +damage and +speed for a few seconds.</summary>
+        public float PepRemaining { get; private set; }
+        public float PepBonus { get; private set; }
+        public bool Inspired => PepRemaining > 0f;
         public float MinThresholdPause = 1.5f, MaxThresholdWait = 6f, SidekickNearRange = 9f;
 
         public event Action<Stage> StageApplied;
@@ -105,9 +109,27 @@ namespace HS.Hero
             StageApplied?.Invoke(s);
         }
 
+        /// <summary>Pep Talk: +<paramref name="bonus"/> damage and speed for <paramref name="seconds"/> (the longer, larger one wins).</summary>
+        public void Inspire(float bonus, float seconds)
+        {
+            PepBonus = Mathf.Max(Inspired ? PepBonus : 0f, bonus);
+            PepRemaining = Mathf.Max(PepRemaining, seconds);
+            DamageMultiplier = 1f + PepBonus;
+        }
+
         protected override void OnSimTick(float dt)
         {
             if (!IsAlive) return;
+            if (PepRemaining > 0f)
+            {
+                PepRemaining -= dt;
+                if (PepRemaining <= 0f)
+                {
+                    PepRemaining = 0f;
+                    PepBonus = 0f;
+                    DamageMultiplier = 1f;
+                }
+            }
             TickFever(dt);
             Hunger.Tick(dt);
             _movedThisTick = false;
@@ -141,7 +163,7 @@ namespace HS.Hero
         public void Move(Vector3 planarVelocity, float dt)
         {
             _movedThisTick = true;
-            Motor.SpeedMultiplier = SpeedMultiplier;
+            Motor.SpeedMultiplier = SpeedMultiplier * (1f + PepBonus);
             Motor.Move(planarVelocity, 30f, dt);
             if (planarVelocity.sqrMagnitude > 0.01f) Motor.FaceDirection(planarVelocity, TurnSpeed, dt);
         }
@@ -183,8 +205,9 @@ namespace HS.Hero
             base.OnHurt(d, applied);
             // A hit of 25%+ of his max HP wounds him; spike traps always do (GDD §4.2 "hazards can too"). A tripwire is a
             // stumble and an alarm, not a wound — one trap corridor must not cripple him on its own.
-            bool hazard = (d.Kind == DamageKind.Trap || d.Kind == DamageKind.Environment) && d.Tag != "tripwire";
-            if (d.Kind != DamageKind.Fever && (hazard || applied >= WoundT.woundThresholdFraction * Health.Max - 1e-3f))
+            // The flooded floor (the Bastion's sluice) wears him down without a wound per splash.
+            bool hazard = (d.Kind == DamageKind.Trap || d.Kind == DamageKind.Environment) && d.Tag != "tripwire" && d.Tag != "flood";
+            if (d.Kind != DamageKind.Fever && d.Tag != "flood" && (hazard || applied >= WoundT.woundThresholdFraction * Health.Max - 1e-3f))
                 Wounds.Add(WoundSet.TypeFor(d.Kind));
             Module?.OnHurt(d, applied);
         }

@@ -57,7 +57,6 @@ namespace HS.Rooms
             },
         };
 
-        // Chapters 4–5: their rooms come with Plans 4–5. Until then they borrow the Old Road's modules under their own light.
         /// <summary>Chapter 2 "Whisperwood": attrition and ambushes — four of five forest modules, Quill's glade always.</summary>
         public static ChapterDef Whisperwood() => new ChapterDef
         {
@@ -84,17 +83,39 @@ namespace HS.Rooms
             },
         };
 
+        /// <summary>
+        /// Chapter 4 "The Sunken Bastion": adaptation, split threats, environment — Wren's rampart 2nd, the sluice works 3rd,
+        /// two of the flooded gate and the nemesis squad's two traps (hostage court, baiters' causeway) around them.
+        /// </summary>
         public static ChapterDef SunkenBastion() => new ChapterDef
         {
-            Chapter = 4, Name = "The Sunken Bastion", Theme = "sunken_bastion", ModuleChapter = 1,
-            Slots = { new ChapterSlot(RoomKind.Combat, RoomKind.Ambush), Any(), Any(), Any() },
+            Chapter = 4, Name = "The Sunken Bastion", Theme = "sunken_bastion", ModuleChapter = 4, CapStart = "bastion_start", CapEnd = "bastion_end",
+            Slots =
+            {
+                new ChapterSlot(RoomKind.Combat, RoomKind.Ambush),
+                new ChapterSlot(RoomKind.Social),
+                new ChapterSlot(RoomKind.SetPiece),
+                new ChapterSlot(RoomKind.Ambush, RoomKind.Combat),
+            },
         };
 
+        /// <summary>Chapter 5 "The Gallery": the approach — the Hall of Exhibits, then the Long Gallery — then the door.</summary>
         public static ChapterDef Gallery() => new ChapterDef
         {
-            Chapter = 5, Name = "The Gallery", Theme = "gallery", ModuleChapter = 1, Final = true,
-            Slots = { Any(), Any() },
+            Chapter = 5, Name = "The Gallery", Theme = "gallery", ModuleChapter = 5, Final = true, CapStart = "gallery_start", CapEnd = "gallery_end",
+            Slots = { new ChapterSlot(RoomKind.Combat), new ChapterSlot(RoomKind.TrapCorridor) },
         };
+
+        /// <summary>
+        /// This chapter on the Old Road's modules (its own not built yet: Tools/HS/Build): the same number of rooms, its own
+        /// light, caps if they exist, the same ending (campfire or the Gallery's door).
+        /// </summary>
+        public ChapterDef Borrowed()
+        {
+            var d = new ChapterDef { Chapter = Chapter, Name = Name, Theme = Theme, ModuleChapter = 1, Final = Final, CapStart = CapStart, CapEnd = CapEnd };
+            for (int i = 0; i < Slots.Count; i++) d.Slots.Add(Any());
+            return d;
+        }
     }
 
     public struct PlannedRoom
@@ -118,6 +139,14 @@ namespace HS.Rooms
     /// </summary>
     public static class RoomAssembler
     {
+        /// <summary>Does the library have a module for every slot?</summary>
+        public static bool CanFill(ChapterDef chapter, IReadOnlyList<ModuleInfo> library)
+        {
+            foreach (var slot in chapter.Slots)
+                if (!library.Any(m => slot.Allowed.Contains(m.Kind))) return false;
+            return true;
+        }
+
         public static ChapterPlan Plan(int seed, ChapterDef chapter, IReadOnlyList<ModuleInfo> library)
         {
             var rng = new DetRandom(unchecked(seed * 31 + chapter.Chapter * 7919));

@@ -34,7 +34,13 @@ namespace HS.Flow
             public bool LearnsRecall;
             /// <summary>Chapter 3: the dossier scrap is read by the fire.</summary>
             public bool ReadsDossier;
+            /// <summary>Chapter 4: after the level-up, the capstone is revealed (one of four, for the rest of the run).</summary>
+            public bool CapstoneReveal;
+            /// <summary>AutoPlay's capstone (bots, the harness).</summary>
+            public string AutoCapstone = "hold_please";
         }
+
+        public CapstonePicker Capstones { get; private set; }
 
         public CampfireVariant Variant { get; private set; }
         public bool Warm => Variant == CampfireVariant.Warm;
@@ -168,6 +174,8 @@ namespace HS.Flow
                 skills.System.AtCamp = true;
                 foreach (var id in o.AutoPickIds) if (picks > 0 && skills.Learn(id)) picks--;
                 skills.System.AtCamp = false;
+                if (o.CapstoneReveal && skills.System.Capstone == null)
+                    skills.System.LearnCapstone(SkillCatalog.Load()?.Get(o.AutoCapstone) ?? SkillCatalog.Load()?.Get(CapstonePicker.Offered[0]));
                 Invoke(nameof(Finish), AutoSceneSeconds); // bots still sit through the scene (QA watches it)
             }
             else
@@ -203,7 +211,24 @@ namespace HS.Flow
             if (_skipChip != null) Destroy(_skipChip.gameObject);
             if (_skills == null || UIRoot.Instance == null) return;
             Picker = SkillPicker.Show(UIRoot.Instance, _skills.System, _pendingPicks, "» CAMP  ·  LEVEL UP", true, _options.ContinueLabel);
-            Picker.Done += Finish;
+            Picker.Done += AfterLevelUp;
+        }
+
+        /// <summary>Chapter 4: one last trick, chosen once for the run (GDD §5 capstones), before the road goes on.</summary>
+        void AfterLevelUp()
+        {
+            if (!_options.CapstoneReveal || _skills.System.Capstone != null || UIRoot.Instance == null)
+            {
+                Finish();
+                return;
+            }
+            Capstones = CapstonePicker.Show(UIRoot.Instance, _skills.System);
+            Capstones.Chosen += id =>
+            {
+                RunContext.Current?.Events.RaiseNotice("NEW TRICK: " + (SkillCatalog.Load()?.Get(id)?.displayName ?? id).ToUpperInvariant()
+                    + "\n<size=80%>" + KeyGlyphs.Format("On its own key ({capstone}).") + "</size>");
+                Finish();
+            };
         }
 
         void Update()

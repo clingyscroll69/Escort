@@ -19,6 +19,8 @@ namespace HS.Core
         public GameObject sidekick;
         public GameObject[] roomModules;
         public GameObject startCap, endCap, campfire, boss;
+        [Tooltip("The Gallery's boss arena (chapter 5). Null: the slice's rigged-duel arena (boss) stands in.")]
+        public GameObject gallery;
         public List<Entry> enemies = new List<Entry>();
         [Tooltip("Per-chapter road caps by id (road_start, road_end, crypt_start, ...). startCap/endCap are the fallback.")]
         public List<Entry> caps = new List<Entry>();

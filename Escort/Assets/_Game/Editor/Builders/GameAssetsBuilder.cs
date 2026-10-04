@@ -24,6 +24,7 @@ namespace HS.EditorTools
             a.hero = L(GameplayPrefabBuilder.Dir + "/Callum.prefab");
             a.sidekick = L(GameplayPrefabBuilder.Dir + "/Sidekick.prefab");
             a.roomModules = new[] { "crossroads_shrine", "toll_gate", "ruined_gatehouse", "wagon_camp" }.Concat(WhisperwoodRooms.Ids).Concat(CatacombRooms.Ids)
+                .Concat(BastionRooms.Ids).Concat(GalleryRooms.Ids)
                 .Select(id => L($"{RoomBuilder.Dir}/{id}.prefab")).Where(p => p != null).ToArray();
             a.startCap = L(RoomBuilder.Dir + "/road_cap_start.prefab");
             a.endCap = L(RoomBuilder.Dir + "/road_cap_end.prefab");
@@ -32,7 +33,10 @@ namespace HS.EditorTools
             a.caps.Add(new GameAssets.Entry { id = "road_start", prefab = a.startCap });
             a.caps.Add(new GameAssets.Entry { id = "road_end", prefab = a.endCap });
             foreach (var id in CatacombRooms.Caps) a.caps.Add(new GameAssets.Entry { id = id, prefab = L($"{RoomBuilder.Dir}/{id.Replace("crypt_", "crypt_cap_")}.prefab") });
+            foreach (var id in BastionRooms.Caps) a.caps.Add(new GameAssets.Entry { id = id, prefab = L($"{RoomBuilder.Dir}/{id.Replace("bastion_", "bastion_cap_")}.prefab") });
+            foreach (var id in GalleryRooms.Caps) a.caps.Add(new GameAssets.Entry { id = id, prefab = L($"{RoomBuilder.Dir}/{id.Replace("gallery_", "gallery_cap_")}.prefab") });
             a.boss = L(RoomBuilder.Dir + "/rigged_duel.prefab");
+            a.gallery = L($"{RoomBuilder.Dir}/{GalleryRooms.ArenaId}.prefab");
             a.enemies.Clear();
             foreach (var (arch, _, _) in GameplayPrefabBuilder.Enemies)
                 a.enemies.Add(new GameAssets.Entry { id = arch, prefab = L(GameplayPrefabBuilder.EnemyPrefabPath(arch)) });
@@ -41,6 +45,17 @@ namespace HS.EditorTools
             EditorUtility.SetDirty(a);
             AssetDatabase.SaveAssets();
             HS.Agent.AgentBridge.Write("builder.json", "{\"ok\":true,\"msg\":\"game assets\"}");
+        }
+
+        /// <summary>Chapters 4–5 in one pass: their rooms, the new skill data, every gameplay prefab, then this registry.</summary>
+        [MenuItem("Tools/HS/Build/Chapters 4–5 (everything)")]
+        public static void BuildChapters4And5()
+        {
+            BastionRooms.BuildAll();
+            GalleryRooms.BuildAll();
+            SkillDataBuilder.Build();
+            GameplayPrefabBuilder.BuildAll();
+            Build();
         }
 
         public const string MainScenePath = "Assets/_Game/Scenes/Main.unity";
