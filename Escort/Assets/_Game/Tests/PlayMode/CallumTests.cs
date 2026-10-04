@@ -281,21 +281,48 @@ namespace HS.Tests
         }
 
         [UnityTest]
-        public IEnumerator A_Staggering_Hit_Is_Judged_On_The_Victim_As_It_Was_Not_As_It_Became()
+        public IEnumerator He_Judges_Her_Blows_On_His_Duel_And_The_Helpless_Not_Her_Own_Fights()
         {
             yield return MakeCallum(Vector3.zero);
             var duel = Enemy(new Vector3(0f, 0f, 2.6f));
-            duel.Status.Apply(StatusType.Stunned, 5f);
-            var other = Enemy(new Vector3(3f, 0f, 6f));
-            other.Status.Apply(StatusType.Stunned, 0.01f);
-            Loop.StepMany(3);
-            var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(4f, 0f, 3f));
+            var hers = Enemy(new Vector3(-3f, 0f, 7f));
+            var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(-3f, 0f, 9.5f));
             sk.Commands = new ScriptedCommands();
             Ctx.Sidekick = sk;
+            var barks = new List<string>();
+            Ctx.Events.Bark += b => { if (b.SpeakerId == "callum") barks.Add(b.Text); };
+            hers.TakeDamage(DamageInfo.Make(sk, hers, 5f, DamageKind.Knife, "knife")); // she starts it: he turns on her
+            Loop.StepMany(2);
+            while (_cm.Saluting) Loop.Step();
+            Assert.AreSame(duel, _cm.Challenged);
+            Assert.AreSame(sk, hers.Target);
+            hers.transform.rotation = Quaternion.LookRotation(Vector3.forward); // squared up with her, his back to Callum
             float honor = _cm.Honor;
-            // a crossbow bolt (0.3 s stagger) on a ready bandit he can see: interfering, not "striking the helpless"
-            other.TakeDamage(DamageInfo.Make(sk, other, 38f, DamageKind.Ranged, "crossbow", 0.3f));
+
+            // Her own fight, in plain sight: a bolt (its own 0.3 s stagger) then a knife. Neither is his business.
+            hers.TakeDamage(DamageInfo.Make(sk, hers, 5f, DamageKind.Ranged, "crossbow", 0.3f));
+            hers.TakeDamage(DamageInfo.Make(sk, hers, 5f, DamageKind.Knife, "knife"));
+            Assert.AreEqual(honor, _cm.Honor, 0.01f, "a fair fight of her own costs nothing");
+
+            // A bolt into his duel: a slight (Minor), and he says so about the bolt.
+            barks.Clear();
+            duel.TakeDamage(DamageInfo.Make(sk, duel, 5f, DamageKind.Ranged, "crossbow", 0.3f));
             Assert.AreEqual(honor - _cm.T.honorLossMinor, _cm.Honor, 0.01f, "Minor (−8), not Major (−20)");
+            var bolt = new SabotageEvent { Tag = "crossbow", Severity = SabotageSeverity.Minor, Victim = duel };
+            CollectionAssert.Contains(CallumModule.CaughtLines(bolt), barks[barks.Count - 1]);
+
+            // Knifing a blinded man in her own fight: striking the helpless (Major), and he names the blindness.
+            honor = _cm.Honor;
+            hers.Status.Apply(StatusType.Blinded, 3f);
+            barks.Clear();
+            hers.TakeDamage(DamageInfo.Make(sk, hers, 5f, DamageKind.Knife, "knife"));
+            Assert.AreEqual(honor - _cm.T.honorLossMajor, _cm.Honor, 0.01f);
+            var blind = new SabotageEvent { Tag = "knife", Severity = SabotageSeverity.Major, Victim = hers };
+            CollectionAssert.Contains(CallumModule.CaughtLines(blind), barks[barks.Count - 1]);
+
+            var sand = new SabotageEvent { Tag = "pocket_sand", Severity = SabotageSeverity.Major, Victim = hers };
+            CollectionAssert.AreNotEqual(CallumModule.CaughtLines(sand), CallumModule.CaughtLines(bolt), "a bolt is not sand");
+            CollectionAssert.AreNotEqual(CallumModule.CaughtLines(sand), CallumModule.CaughtLines(blind));
         }
 
         [UnityTest]

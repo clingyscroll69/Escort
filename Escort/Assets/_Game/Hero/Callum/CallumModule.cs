@@ -432,10 +432,9 @@ namespace HS.Hero.Callum
             }
             var sev = SabotageSeverity.None;
             if (NoAidTerms) sev = SabotageSeverity.Major;                              // "no aid": any help breaks the terms
-            else if (target.IsUnreadyFor(Hero)) sev = SabotageSeverity.Major;         // striking the helpless
+            else if (target.IsHelpless(Hero, d.Source)) sev = SabotageSeverity.Major; // striking the helpless
             else if (target == Challenged && DuelActive) sev = SabotageSeverity.Minor; // interfering in his duel
-            else if (d.Tag == "crossbow") sev = SabotageSeverity.Minor;                // shooting from the shadows
-            if (sev == SabotageSeverity.None) return;
+            if (sev == SabotageSeverity.None) return;                                  // a fair fight of her own is her business
             OnSabotage(new SabotageEvent
             {
                 Tag = d.Tag, Severity = sev, Position = d.Point, ActorPosition = d.Source.Position, Victim = target,
@@ -456,7 +455,21 @@ namespace HS.Hero.Callum
             if (HonorLow && !wasLow) Bark(LowHonorLines, 3);
             else if (NoAidTerms) Bark(TermsLines, 2);
             else if (byStone) Bark(StoneLines, 2);
-            else Bark(e.Severity == SabotageSeverity.Major ? CaughtMajorLines : CaughtMinorLines, 2);
+            else Bark(CaughtLines(e), 2);
+        }
+
+        /// <summary>He names what he saw: the trick itself, or what made the blow foul (judged on the victim as it was).</summary>
+        public static string[] CaughtLines(SabotageEvent e)
+        {
+            if (e.Tag == "pocket_sand") return SandLines;
+            if (e.Tag == "loosen_bolt") return CollapseLines;
+            if (e.Severity == SabotageSeverity.Minor) return e.Tag == "crossbow" ? DuelBoltLines : DuelKnifeLines;
+            if (!(e.Victim is EnemyAgent v)) return CaughtMajorLines;
+            if (v.State == EnemyState.Surrendered) return HitYieldedLines;
+            if (v.State == EnemyState.Fleeing) return HitFleeingLines;
+            if (v.Status.Has(StatusType.Sleeping)) return HitSleepingLines;
+            if (v.Status.Has(StatusType.Blinded)) return HitBlindedLines;
+            return HitReelingLines; // staggered or stunned by someone else
         }
 
         void OnCoverStory(float restore, float window)
@@ -540,8 +553,16 @@ namespace HS.Hero.Callum
         static readonly string[] RiposteLines = { "Parried!", "Too slow.", "Mind your guard!" };
         static readonly string[] FallbackLines = { "To the narrows! One at a time!", "Back — make them come single file!" };
         static readonly string[] SpoiledLines = { "I had not finished my salute!", "The salute, sidekick! The salute!" };
-        static readonly string[] CaughtMajorLines = { "What was that?! We do not fight like thieves!", "Sand? SAND? Have you no shame?", "I saw that. The Code saw that." };
-        static readonly string[] CaughtMinorLines = { "Let a man finish his own fight.", "Hold your aim. This duel is mine." };
+        static readonly string[] CaughtMajorLines = { "What was that?! We do not fight like thieves!", "I saw that. The Code saw that." };
+        static readonly string[] SandLines = { "Sand? SAND? Have you no shame?", "Sand in a man's eyes? We are not street urchins!" };
+        static readonly string[] CollapseLines = { "You dropped that on him?!", "Masonry is not a weapon, sidekick!" };
+        static readonly string[] DuelKnifeLines = { "Let a man finish his own fight.", "Sheathe that knife. This duel is mine." };
+        static readonly string[] DuelBoltLines = { "Hold your aim. This duel is mine.", "Lower that crossbow. He's mine to fight." };
+        static readonly string[] HitYieldedLines = { "He yielded! A yield is sacred!", "You struck a man on his knees?!" };
+        static readonly string[] HitFleeingLines = { "In the back, as he ran?! Never the back!", "He was running! Let him run!" };
+        static readonly string[] HitSleepingLines = { "He was asleep! Wake a man before you fight him!", "A sleeping man? Have you no shame?" };
+        static readonly string[] HitBlindedLines = { "He couldn't even see you!", "A blinded man? The Code saw that." };
+        static readonly string[] HitReelingLines = { "He was reeling! Let him find his feet!", "Not while he's down! The Code forbids it." };
         static readonly string[] StoneLines = { "The stones saw that. Everyone will have seen that.", "That will be all over the taverns by nightfall." };
         static readonly string[] LowHonorLines = { "My blade feels heavy with your tricks.", "I cannot fight well with a stained conscience." };
         static readonly string[] CoverAcceptedLines = { "...Very well. Perhaps I misjudged.", "Hm. The wind, you say.", "I shall choose to believe you." };

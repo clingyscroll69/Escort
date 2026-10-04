@@ -320,7 +320,7 @@ Every hero module defines: belief, rule sets by stage, signature skills, stone b
 
 | Stage | Rules |
 |---|---|
-| S0 | (1) Fight the challenged target. (2) Challenge the nearest hostile within 15m (1.2s salute). (3) Wait up to 3s if the target is Unready (sleeping, fleeing, surrendered, staggered, turned away). (4) Fall back to a chokepoint if 3+ enemies engage him. (5) **Honor:** witnessing dishonor (your sabotage in his 120° cone within 12m, or an active stone) drops Honor; below 40 he deals −25% damage and scolds you. |
+| S0 | (1) Fight the challenged target. (2) Challenge the nearest hostile within 15m (1.2s salute). (3) Wait up to 3s if the target is Unready (sleeping, fleeing, surrendered, staggered, turned away). (4) Fall back to a chokepoint if 3+ enemies engage him. (5) **Honor:** witnessing dishonor (your sabotage in his 120° cone within 12m, or an active stone) drops Honor. Dishonor is sand or a collapse (Major), a blow on the helpless (sleeping, fleeing, surrendered, blinded, or knocked off balance by a third party: Major), or any blow on his duel opponent (Minor). Your own fair fights are your business; below 40 he deals −25% damage and scolds you. |
 | S1 | Honor loss from minor assists is halved. Waiting cap 2s. |
 | S2 | **Look Away:** when you use Cover Story or ping "cover", he turns his back for 3s (an Unseen Window with witness checks suspended). Waiting cap 1s against dirty enemies. |
 | S3 | **Fair to Cheat a Cheater:** against flagged cheaters he has no Honor penalties and asks for help ("A hand, friend?"), opening Duet Windows where your hits during his Finisher add damage. |

@@ -177,16 +177,23 @@ namespace HS.Enemies
         public bool IsActive => State == EnemyState.Engaged;
 
         /// <summary>Callum's code: sleeping, fleeing, surrendered, staggered, blinded, or turned away (GDD §6.1).</summary>
-        public bool IsUnreadyFor(Agent hero)
+        public bool IsUnreadyFor(Agent hero) =>
+            IsHelpless(hero) || (hero != null && Geo.AngleTo(Position, Forward, hero.Position) > 100f && Target != hero); // turned away
+
+        /// <summary>
+        /// Can't fight back: sleeping, fleeing, surrendered, blinded, or knocked off balance by someone other than the
+        /// fighters named (their own blows and parries are part of the fight). Callum judges the sidekick's blows by this,
+        /// not IsUnreadyFor: "turned away" is his own etiquette, and a bandit squared up with her is turned away from him.
+        /// </summary>
+        public bool IsHelpless(Agent fighter, Agent otherFighter = null)
         {
             if (State == EnemyState.Surrendered || State == EnemyState.Fleeing || Status.Has(StatusType.Sleeping)) return true;
-            // His own blows and parries don't count: Unready means someone (or something) else knocked them off balance.
-            if (KnockedByOther(StatusType.Staggered, hero) || KnockedByOther(StatusType.Stunned, hero) || Status.Has(StatusType.Blinded)) return true;
-            if (hero != null && Geo.AngleTo(Position, Forward, hero.Position) > 100f && Target != hero) return true; // turned away
-            return false;
+            return KnockedByOther(StatusType.Staggered, fighter, otherFighter) || KnockedByOther(StatusType.Stunned, fighter, otherFighter)
+                   || Status.Has(StatusType.Blinded);
         }
 
-        bool KnockedByOther(StatusType s, Agent hero) => Status.Has(s) && (hero == null || Status.SourceOf(s) != hero);
+        bool KnockedByOther(StatusType s, Agent a, Agent b) =>
+            Status.Has(s) && (a == null || Status.SourceOf(s) != a) && (b == null || Status.SourceOf(s) != b);
 
         public void Spare()
         {
