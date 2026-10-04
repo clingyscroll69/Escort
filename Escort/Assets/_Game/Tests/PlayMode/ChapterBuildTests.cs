@@ -49,8 +49,8 @@ namespace HS.Tests
                     Assert.Greater(route[i].Position.z, route[i - 1].Position.z - 0.01f, $"route runs forward (seed {seed}, node {i})");
                 Assert.AreEqual(3, route.Count(n => n.Threshold), "one threshold pause per room");
                 for (int i = 0; i < 3; i++) Assert.IsTrue(route.Any(n => n.RoomIndex == i), "every room contributes route nodes");
-                Assert.NotNull(b.Campfire);
-                Assert.NotNull(b.Boss);
+                Assert.NotNull(b.Campfire, "the Old Road ends at its campfire");
+                Assert.IsNull(b.Boss, "the boss is the Gallery's");
                 Debug.Log($"[Chapter] seed {seed}: {b.Plan.Signature} length {b.ChapterLength:F0} m, built in {buildMs:F0} ms");
                 Assert.Less(buildMs, 2500f, "chapter assembly must be quick enough for restore points");
                 var sig = b.Plan.Signature;
@@ -80,6 +80,18 @@ namespace HS.Tests
             Assert.Greater(dynamicCount, 0, "chapter has armable props / hazards / stones");
             Assert.AreEqual(0, frozenDynamic, "falling props, traps and stones must stay movable");
             Assert.Greater(batchedScenery, 100, "the scenery is still batched");
+            Object.Destroy(b.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator The_Gallery_Builds_The_Boss_Arena_And_No_Campfire()
+        {
+            var b = MakeBuilder();
+            b.Build(3, ChapterDef.For(5));
+            yield return null;
+            Assert.AreEqual(2, b.Rooms.Count);
+            Assert.NotNull(b.Boss);
+            Assert.IsNull(b.Campfire);
             Object.Destroy(b.gameObject);
         }
     }

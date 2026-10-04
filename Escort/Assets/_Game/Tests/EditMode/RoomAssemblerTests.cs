@@ -60,5 +60,31 @@ namespace HS.Tests
             for (int s = 0; s < 200; s++) foreach (var r in RoomAssembler.Plan(s, ChapterDef.OldRoad(), Library()).Rooms) seen.Add(r.ModuleId);
             Assert.AreEqual(4, seen.Count);
         }
+
+        [Test]
+        public void Every_Chapter_Plans_Deterministically_From_Its_Library()
+        {
+            for (int ch = 1; ch <= 5; ch++)
+            {
+                var def = ChapterDef.For(ch);
+                Assert.AreEqual(ch, def.Chapter);
+                var a = RoomAssembler.Plan(42, def, Library());
+                var b = RoomAssembler.Plan(42, def, Library());
+                Assert.AreEqual(def.Slots.Count, a.Rooms.Count, def.Name);
+                Assert.AreEqual(a.Signature, b.Signature, def.Name);
+            }
+            Assert.AreEqual(new[] { 3, 4, 4, 4, 2 }, new[] { 1, 2, 3, 4, 5 }.Select(c => ChapterDef.For(c).Slots.Count).ToArray());
+            Assert.IsTrue(ChapterDef.For(5).Final);
+            Assert.IsFalse(ChapterDef.For(4).Final);
+        }
+
+        [Test]
+        public void Chapters_With_The_Same_Seed_Differ()
+        {
+            int differ = 0;
+            for (int s = 0; s < 10; s++)
+                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(2), Library()).Signature) differ++;
+            Assert.GreaterOrEqual(differ, 8, "the chapter number is mixed into the seed");
+        }
     }
 }

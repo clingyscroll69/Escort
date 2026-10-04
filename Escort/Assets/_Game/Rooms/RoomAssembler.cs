@@ -10,6 +10,7 @@ namespace HS.Rooms
         public string Id;
         public RoomKind Kind;
         public int Variants = 1;
+        public int Chapter = 1;
     }
 
     [Serializable]
@@ -23,21 +24,60 @@ namespace HS.Rooms
     {
         public int Chapter;
         public string Name;
+        /// <summary>ChapterTheme id (light, fog, ambience).</summary>
+        public string Theme = "old_road";
+        /// <summary>Which chapter's modules it draws from. Until a chapter's own rooms exist it borrows chapter 1's.</summary>
+        public int ModuleChapter = 1;
+        /// <summary>The Gallery: the door and the boss follow its rooms; no campfire.</summary>
+        public bool Final;
         public List<ChapterSlot> Slots = new List<ChapterSlot>();
 
-        public static ChapterDef For(int chapter) => OldRoad();
+        public static ChapterDef For(int chapter) => chapter switch
+        {
+            2 => Whisperwood(),
+            3 => Catacombs(),
+            4 => SunkenBastion(),
+            5 => Gallery(),
+            _ => OldRoad(),
+        };
 
-        /// <summary>Chapter 1 "The Old Road" slice: 3 rooms (GDD §11.2) — combat, traps, ambushes.</summary>
+        static ChapterSlot Any() => new ChapterSlot(RoomKind.Combat, RoomKind.Ambush, RoomKind.TrapCorridor);
+
+        /// <summary>Chapter 1 "The Old Road": 3 rooms (GDD §11.2) — combat, traps, ambushes.</summary>
         public static ChapterDef OldRoad() => new ChapterDef
         {
-            Chapter = 1,
-            Name = "The Old Road",
+            Chapter = 1, Name = "The Old Road", Theme = "old_road",
             Slots =
             {
                 new ChapterSlot(RoomKind.Ambush, RoomKind.Combat),
                 new ChapterSlot(RoomKind.TrapCorridor, RoomKind.Combat, RoomKind.Ambush),
                 new ChapterSlot(RoomKind.Combat, RoomKind.Ambush, RoomKind.TrapCorridor),
             },
+        };
+
+        // Chapters 2–5: their rooms come with Plans 2–5. Until then they borrow the Old Road's modules under their own light.
+        public static ChapterDef Whisperwood() => new ChapterDef
+        {
+            Chapter = 2, Name = "Whisperwood", Theme = "whisperwood", ModuleChapter = 1,
+            Slots = { new ChapterSlot(RoomKind.Ambush, RoomKind.Combat), Any(), Any(), Any() },
+        };
+
+        public static ChapterDef Catacombs() => new ChapterDef
+        {
+            Chapter = 3, Name = "Catacombs of Ends", Theme = "catacombs", ModuleChapter = 1,
+            Slots = { new ChapterSlot(RoomKind.TrapCorridor, RoomKind.Combat), Any(), Any(), Any() },
+        };
+
+        public static ChapterDef SunkenBastion() => new ChapterDef
+        {
+            Chapter = 4, Name = "The Sunken Bastion", Theme = "sunken_bastion", ModuleChapter = 1,
+            Slots = { new ChapterSlot(RoomKind.Combat, RoomKind.Ambush), Any(), Any(), Any() },
+        };
+
+        public static ChapterDef Gallery() => new ChapterDef
+        {
+            Chapter = 5, Name = "The Gallery", Theme = "gallery", ModuleChapter = 1, Final = true,
+            Slots = { Any(), Any() },
         };
     }
 

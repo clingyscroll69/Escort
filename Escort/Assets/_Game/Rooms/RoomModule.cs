@@ -18,6 +18,8 @@ namespace HS.Rooms
         public float Width = 26f;
         [Tooltip("XP pot for this room (GDD 4.1: 50% clear, 25% assist, 25% exploration).")]
         public int XpPot = 100;
+        [Tooltip("Which chapter's library this module belongs to.")]
+        public int Chapter = 1;
         public int RoomIndex { get; private set; }
         public int Variant { get; private set; }
 

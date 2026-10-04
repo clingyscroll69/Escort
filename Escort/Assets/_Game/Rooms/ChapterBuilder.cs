@@ -9,7 +9,7 @@ namespace HS.Rooms
     /// <summary>
     /// Runtime assembly of a chapter from the seeded plan (GDD §3): modules chained along +Z (exit of room i = entry of
     /// room i+1), variants applied, caps at both ends, static batching per room, and a concatenated hero route.
-    /// The campfire and boss arena live off to the side and are reached by a fade transition.
+    /// The campfire (chapters 1–4) or the boss arena (the Gallery) lives off to the side and is reached by a fade.
     /// </summary>
     public sealed class ChapterBuilder : MonoBehaviour
     {
@@ -24,14 +24,18 @@ namespace HS.Rooms
         public RoomModule Boss { get; private set; }
         public float ChapterLength { get; private set; }
 
-        public List<ModuleInfo> Library() => ModulePrefabs.Where(p => p != null).Select(p => p.GetComponent<RoomModule>())
-            .Select(m => new ModuleInfo { Id = m.ModuleId, Kind = m.Kind, Variants = m.VariantCount }).ToList();
+        public ChapterDef Def { get; private set; }
+
+        public List<ModuleInfo> Library(int moduleChapter) => ModulePrefabs.Where(p => p != null).Select(p => p.GetComponent<RoomModule>())
+            .Where(m => m.Chapter == moduleChapter)
+            .Select(m => new ModuleInfo { Id = m.ModuleId, Kind = m.Kind, Variants = m.VariantCount, Chapter = m.Chapter }).ToList();
 
         public void Build(int seed, ChapterDef chapter = null)
         {
             Clear();
             chapter ??= ChapterDef.OldRoad();
-            Plan = RoomAssembler.Plan(seed, chapter, Library());
+            Def = chapter;
+            Plan = RoomAssembler.Plan(seed, chapter, Library(chapter.ModuleChapter));
             float z = 0f;
             for (int i = 0; i < Plan.Rooms.Count; i++)
             {
@@ -49,13 +53,13 @@ namespace HS.Rooms
             ChapterLength = z;
             if (StartCapPrefab != null) CombineStatic(Instantiate(StartCapPrefab, Vector3.zero, Quaternion.identity, transform));
             if (EndCapPrefab != null) CombineStatic(Instantiate(EndCapPrefab, new Vector3(0f, 0f, z), Quaternion.identity, transform));
-            if (CampfirePrefab != null)
+            if (CampfirePrefab != null && !chapter.Final)
             {
                 Campfire = Instantiate(CampfirePrefab, CampfireOrigin, Quaternion.identity, transform).GetComponent<RoomModule>();
                 Campfire.SetRoomIndex(100);
                 CombineStatic(Campfire.gameObject);
             }
-            if (BossPrefab != null)
+            if (BossPrefab != null && chapter.Final)
             {
                 Boss = Instantiate(BossPrefab, BossOrigin, Quaternion.identity, transform).GetComponent<RoomModule>();
                 Boss.SetRoomIndex(200);
@@ -77,6 +81,7 @@ namespace HS.Rooms
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var c = transform.GetChild(i).gameObject;
+                c.SetActive(false); // registries (stones, interactables, hazards) drop it now, not at the end of the frame
                 if (Application.isPlaying) Destroy(c);
                 else DestroyImmediate(c);
             }

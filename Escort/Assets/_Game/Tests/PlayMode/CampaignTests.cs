@@ -64,5 +64,26 @@ namespace HS.Tests
             cm.ApplyChapter(1, CampaignSchedule.For(1).Unlocks, 0.5f);
             Assert.AreEqual(2f, cm.RiposteMultiplier, 1e-4f, "Strike I");
         }
+
+        [UnityTest]
+        public IEnumerator A_Chapter_Theme_Changes_The_Light_And_The_Old_Road_Restores_The_Scene()
+        {
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+            var sun = new GameObject("TestSun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            RenderSettings.sun = sun;
+            sun.color = Color.white;
+            RenderSettings.fog = false;
+            RenderSettings.fogColor = Color.magenta;
+            yield return null;
+            HS.Presentation.ChapterTheme.Apply("catacombs");
+            Assert.IsTrue(RenderSettings.fog);
+            Assert.AreNotEqual(Color.white, sun.color);
+            HS.Presentation.ChapterTheme.Apply("old_road");
+            Assert.IsFalse(RenderSettings.fog, "chapter 1 is the scene as authored");
+            Assert.AreEqual(Color.magenta, RenderSettings.fogColor);
+            Assert.AreEqual(Color.white, sun.color);
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
     }
 }
