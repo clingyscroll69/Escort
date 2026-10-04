@@ -20,7 +20,7 @@ namespace HS.Rapport
     /// </summary>
     public sealed class CallumDance : IDanceJudge
     {
-        public const float WUnseenAssist = 3f, WAvertedCheat = 4f, WCoveredLapse = 2f, WWoundTreated = 2f;
+        public const float WUnseenAssist = 3f, WAvertedCheat = 4f, WCoveredLapse = 2f, WWoundTreated = 2f, WChosenBlindness = 2f;
         public const float PCaught = 3f, PCaughtAgain = 6f, PSpoiledDuel = 2f, PFriendlyFire = 3f, PAbandon = 3f;
         public const float FriendlyFireFraction = 0.10f, AbandonRange = 20f, AbandonHp = 0.40f, AbandonGrace = 2f;
         // The ambush is "on offer" from the room's approach (26 m): scouting ahead during his threshold pause and
@@ -58,6 +58,8 @@ namespace HS.Rapport
             _cm.Caught += OnCaught;
             _cm.SpoiledDuel += OnSpoiled;
             _cm.DuelFinished += OnDuelFinished;
+            _cm.LookedAway += OnLookedAway;
+            _cm.UnseenDeed += OnUnseenDeed;
         }
 
         public void Unbind()
@@ -73,6 +75,8 @@ namespace HS.Rapport
                 _cm.Caught -= OnCaught;
                 _cm.SpoiledDuel -= OnSpoiled;
                 _cm.DuelFinished -= OnDuelFinished;
+                _cm.LookedAway -= OnLookedAway;
+                _cm.UnseenDeed -= OnUnseenDeed;
             }
             _ctx = null;
         }
@@ -84,6 +88,7 @@ namespace HS.Rapport
             foreach (var (p, lapse, at) in _lapses) _l.Close(lapse, reason);
             _lapses.Clear();
             _l.Close(_wound, reason);
+            _l.Close(_blind, reason);
         }
 
         public void NewFight()
@@ -147,6 +152,7 @@ namespace HS.Rapport
                 else if (Now - _lapses[i].at > LapseWindowMax) _l.Close(_lapses[i].lapse, "not covered");
             }
             if (_wound != null && _wound.Open && Now > _wound.ClosesAt) _l.Close(_wound, "wound left untreated");
+            if (_blind != null && _blind.Open && Now > _blind.ClosesAt) _l.Close(_blind, "nothing happened behind his back");
             TickAbandon(dt);
         }
 
@@ -188,6 +194,7 @@ namespace HS.Rapport
                 return;
             }
             if (!(d.Target is EnemyAgent e)) return;
+            if (_blind != null && _blind.Open && _cm.LookingAway) _l.Capture(_blind, d.Tag + " behind his back");
             // Fake surrender stopped (the event fires before the hit changes his state).
             if (_averted.TryGetValue(e, out var av) && av != null && av.Open && e.State == EnemyState.Surrendered)
                 Capture(e, av, d.Tag + " on the false surrender");
@@ -263,6 +270,21 @@ namespace HS.Rapport
                 var lapse = _l.Offer("covered_lapse", WCoveredLapse, p, LapseWindowMax, "caught: " + e.Tag);
                 if (lapse != null) _lapses.Add((p, lapse, Now));
             }
+        }
+
+        // ------------------------------------------------------------------ S2: chosen blindness (GDD §6.1 Moments)
+        MomentOffer _blind;
+
+        /// <summary>He looked away on purpose: what you do behind his back in that window is the Moment.</summary>
+        void OnLookedAway()
+        {
+            if (_blind != null && _blind.Open) return;
+            _blind = _l.Offer("chosen_blindness", WChosenBlindness, _hero, HS.Hero.Callum.CallumModule.LookAwayTime + 1f, "he looked away");
+        }
+
+        void OnUnseenDeed(SabotageEvent e)
+        {
+            if (_blind != null && _blind.Open && _cm.LookingAway) _l.Capture(_blind, e.Tag + " behind his back");
         }
 
         void OnSpoiled(EnemyAgent target) => _l.Penalize("spoiled_duel", PSpoiledDuel, Name(target));

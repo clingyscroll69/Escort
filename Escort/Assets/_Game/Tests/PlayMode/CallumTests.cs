@@ -340,5 +340,56 @@ namespace HS.Tests
             tc.TakeDamage(DamageInfo.Make(_hero, tc, 5f, DamageKind.Blade, "sword"));
             Assert.AreEqual(EnemyState.Engaged, tc.State, "the ruse doesn't work twice");
         }
+
+        // ------------------------------------------------------------------ S2 (campaign plan 3)
+
+        [UnityTest]
+        public IEnumerator S2_A_Ping_On_Him_Turns_His_Back_And_He_Sees_Nothing()
+        {
+            yield return MakeCallum(Vector3.zero, Stage.S2);
+            _hero.Route.SetNodes(new List<RouteNode>());
+            var dir = HS.Rapport.OpportunityDirector.Create(Ctx, _hero);
+            var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(1.5f, 0f, -2f), 0.32f);
+            sk.Commands = new ScriptedCommands();
+            Ctx.Sidekick = sk;
+            var thug = Enemy(new Vector3(0f, 0f, 5f), "thug", engage: false);
+            float honor = _cm.Honor;
+            Ctx.Events.RaisePing(new PingInfo { Point = _hero.Position, Target = _hero, Meaning = "mark" });
+            Assert.IsTrue(_cm.LookingAway);
+            Loop.StepMany(3);
+            Assert.AreEqual("callum_look_away", _hero.ActiveRuleId);
+            Assert.IsTrue(dir.Ledger.Log.Exists(l => l.Kind == "offer" && l.Id == "chosen_blindness"), "the Moment is on offer");
+            thug.Status.Apply(StatusType.Blinded, 3f);
+            Ctx.Events.RaiseSabotage(new SabotageEvent { Tag = "pocket_sand", Severity = SabotageSeverity.Major, Position = thug.Position, ActorPosition = sk.Position, Victim = thug, Time = Ctx.SimTime });
+            Assert.AreEqual(honor, _cm.Honor, 0.01f, "behind his back");
+            Assert.IsTrue(dir.Ledger.Log.Exists(l => l.Kind == "capture" && l.Id == "chosen_blindness"));
+            Loop.StepMany(Mathf.CeilToInt((CallumModule.LookAwayTime + 0.2f) / SimLoop.Dt));
+            Assert.IsFalse(_cm.LookingAway, "three seconds, no more");
+            Object.Destroy(dir.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator S1_Never_Looks_Away()
+        {
+            yield return MakeCallum(Vector3.zero, Stage.S1);
+            Ctx.Events.RaisePing(new PingInfo { Point = _hero.Position, Target = _hero, Meaning = "mark" });
+            Assert.IsFalse(_cm.LookingAway);
+            Assert.IsFalse(_cm.LookAway());
+        }
+
+        [UnityTest]
+        public IEnumerator S2_Waits_Only_1s_On_A_Cheater()
+        {
+            yield return MakeCallum(Vector3.zero, Stage.S2);
+            var e = Enemy(new Vector3(0f, 0f, 3f), "turncoat");
+            e.Status.Apply(StatusType.Stunned, 1.6f);
+            Loop.StepMany(2);
+            while (_cm.Saluting) Loop.Step();
+            e.Status.Apply(StatusType.Blinded, 6f);
+            Loop.Step();
+            int waited = 0;
+            while (_hero.ActiveRuleId == "callum_wait_unready" && waited < 1000) { Loop.Step(); waited++; }
+            Assert.That(waited * SimLoop.Dt, Is.InRange(0.9f, 1.1f), "a cheater gets 1 s");
+        }
     }
 }

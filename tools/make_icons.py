@@ -408,6 +408,15 @@ def campaign_icons():
         x1, y1 = 128 + math.cos(a) * 122, 118 + math.sin(a) * 122
         thick(d, [(x0, y0), (x1, y1)], 12)
     finish(im, 'judgment')
+    # look away: a closed eye (a lid's curve and lashes)
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.arc([28, 40, 228, 190], 20, 160, fill=W, width=24)
+    for k in range(5):
+        a = math.radians(40 + k * 25)
+        x0, y0 = 128 + math.cos(a) * 92, 115 + math.sin(a) * 68
+        x1, y1 = 128 + math.cos(a) * 122, 115 + math.sin(a) * 96
+        thick(d, [(x0, y0), (x1, y1)], 12)
+    finish(im, 'look_away')
     print('campaign icons written to', OUT)
 
 

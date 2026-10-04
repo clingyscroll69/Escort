@@ -100,6 +100,8 @@ namespace HS.Core
         public float saluteTime = 1.2f;
         public float waitUnreadyS0 = 3f;
         public float waitUnreadyS1 = 2f;
+        [Tooltip("S2+: he waits only this long on a flagged cheater.")]
+        public float waitUnreadyS2Cheater = 1f;
         public int fallbackEngagers = 3;
         public float engageRadius = 4.6f;   // swinging or circling at menace range (attack tokens)
         public float fallbackHold = 12f;    // holds the narrows (one attacker at a time) before re-evaluating

@@ -78,6 +78,8 @@ MonoBehaviour:
     - 0.3
     - 1
     - 0
+  - id: callum_look_away
+    args: []
   - id: callum_finisher
     args: []
   - id: callum_fallback
@@ -106,6 +108,8 @@ MonoBehaviour:
     - 0.5
     - 1
     - 1
+  - id: callum_look_away
+    args: []
   - id: callum_finisher
     args: []
   - id: callum_fallback

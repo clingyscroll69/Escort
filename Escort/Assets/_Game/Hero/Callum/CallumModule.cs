@@ -121,6 +121,7 @@ namespace HS.Hero.Callum
             _ctx.Events.AttackResolving += OnAttackResolving;
             _ctx.Events.WoundChanged += OnWoundChanged;
             _ctx.Events.RoomEntered += OnRoomEntered;
+            _ctx.Events.Ping += OnPing;
         }
 
         int _lastRoom = -1;
@@ -159,10 +160,32 @@ namespace HS.Hero.Callum
             _ctx.Events.AttackResolving -= OnAttackResolving;
             _ctx.Events.WoundChanged -= OnWoundChanged;
             _ctx.Events.RoomEntered -= OnRoomEntered;
+            _ctx.Events.Ping -= OnPing;
         }
 
         public Stage Stage => Hero != null ? Hero.Stage : Stage.S0;
-        public float WaitCap => Stage >= Stage.S1 ? T.waitUnreadyS1 : T.waitUnreadyS0;
+        /// <summary>S0 3 s, S1 2 s; S2+ only 1 s on a flagged cheater (GDD §6.1).</summary>
+        public float WaitCap => Stage >= Stage.S2 && Challenged != null && Challenged.IsCheater ? T.waitUnreadyS2Cheater
+            : Stage >= Stage.S1 ? T.waitUnreadyS1 : T.waitUnreadyS0;
+
+        // ------------------------------------------------------------------ S2: Look Away (GDD §6.1)
+        public const float LookAwayTime = 3f;
+        public float LookAwayRemaining { get; private set; }
+        public bool LookingAway => LookAwayRemaining > 0f;
+        public event Action LookedAway;
+
+        /// <summary>
+        /// S2+: asked to (Cover Story, or a ping on him), he turns his back for 3 s — an Unseen Window: his own eyes judge
+        /// nothing (stones still do).
+        /// </summary>
+        public bool LookAway()
+        {
+            if (Stage < Stage.S2 || !Hero.IsAlive || LookingAway) return false;
+            LookAwayRemaining = LookAwayTime;
+            Bark(LookAwayLines, 1);
+            LookedAway?.Invoke();
+            return true;
+        }
 
         public float OutgoingDamage(float baseDamage) =>
             baseDamage * (HonorLow ? T.honorLowDamageMul : 1f) * WoundDamageMul * Hero.DamageMultiplier * (Hero.Hunger.Starving ? Hunger.StarvingDamageMul : 1f);
@@ -175,6 +198,7 @@ namespace HS.Hero.Callum
             if (FallbackCooldown > 0f) FallbackCooldown -= dt;
             if (RiposteCooldown > 0f) RiposteCooldown -= dt;
             if (_finCd > 0f) _finCd -= dt;
+            if (LookAwayRemaining > 0f) LookAwayRemaining -= dt;
             ValidateChallenge();
             if (Challenged != null && !Challenged.IsUnreadyFor(Hero) && WaitT > 0f && Challenged.State != EnemyState.Surrendered) WaitT = 0f;
             TickOathCircle(dt);
@@ -471,6 +495,7 @@ namespace HS.Hero.Callum
         /// <summary>Is this position seen by Callum (cone narrowed while the sidekick sneaks with Quiet Feet)?</summary>
         public bool Sees(Vector3 point, bool sneaky)
         {
+            if (LookingAway) return false; // he chose not to
             float angle = T.witnessAngle, range = T.witnessRange;
             if (sneaky && _ctx?.Sidekick is SidekickAgent sk)
             {
@@ -485,6 +510,7 @@ namespace HS.Hero.Callum
         {
             get
             {
+                if (LookingAway) return 0f;
                 float angle = T.witnessAngle;
                 if (_ctx?.Sidekick is SidekickAgent sk && sk.IsSneaking) angle *= sk.QuietFeetConeMul;
                 if (DoubtRemaining > 0f) angle = Mathf.Min(360f, angle * 1.35f);
@@ -568,7 +594,12 @@ namespace HS.Hero.Callum
         {
             DoubtRemaining = 0f;
             Honor = Mathf.Min(T.honorMax, Honor + restore);
-            Bark(CoverAcceptedLines, 1);
+            if (!LookAway()) Bark(CoverAcceptedLines, 1);
+        }
+
+        void OnPing(PingInfo p)
+        {
+            if (p.Target == Hero) LookAway(); // S2+: a ping on him means "cover me"
         }
 
         void OnRoomCleared(int room)
@@ -665,6 +696,7 @@ namespace HS.Hero.Callum
         static readonly string[] DuelBoltLines = { "Hold your aim. This duel is mine.", "Lower that crossbow. He's mine to fight." };
         static readonly string[] HitYieldedLines = { "He yielded! A yield is sacred!", "You struck a man on his knees?!" };
         static readonly string[] HitFleeingLines = { "In the back, as he ran?! Never the back!", "He was running! Let him run!" };
+        static readonly string[] LookAwayLines = { "I'm looking at the sky.", "I didn't see anything. I'm not looking.", "Lovely clouds today." };
         static readonly string[] JudgmentLines = { "Judgment.", "By the Code — judgment!", "Stand and be judged." };
         static readonly string[] JudgmentBrokenLines = { "Gah— lost it.", "Coward! I had him!" };
         static readonly string[] HungryLines = { "My stomach's louder than the bandits.", "When did we last eat? Never mind. Onward." };

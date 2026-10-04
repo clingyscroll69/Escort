@@ -124,10 +124,11 @@ namespace HS.EditorTools
                 new[] { 3f, -1f, 0f, 0.3f, 1f, 0f }, // S2: breaks off combat; no wound
                 new[] { 1.5f, -1f, 0f, 0.5f, 1f, 1f }, // S3: sprints mid-fight; she rises at 50%
             };
-            // S2/S3 keep S1's code until their own rules land (campaign plan 3); only Recall differs.
+            // S2 adds Look Away (and waits only 1 s on a flagged cheater: CallumModule.WaitCap); S3's own rules come in plan 5.
             foreach (var (list, wait, stage) in new[] { (def.s0, 3f, 0), (def.s1, 2f, 1), (def.s2, 2f, 2), (def.s3, 2f, 3) })
             {
                 list.Add(new RuleEntry("callum_recall", recall[stage]));
+                if (stage >= 2) list.Add(new RuleEntry("callum_look_away")); // S2: Look Away when asked
                 list.Add(new RuleEntry("callum_finisher"));             // Judgment (from chapter 3; idle before)
                 list.Add(new RuleEntry("callum_fallback", 3f));        // 4. fall back at 3+ engagers
                 list.Add(new RuleEntry("callum_wait_unready", wait));   // 3. wait on the Unready (S0 3 s, S1 2 s)

@@ -11,6 +11,7 @@ namespace HS.Hero.Callum
         {
             HeroRuleFactory.Register("callum_recall", () => new RecallRule());
             HeroRuleFactory.Register("callum_finisher", () => new FinisherRule());
+            HeroRuleFactory.Register("callum_look_away", () => new LookAwayRule());
             HeroRuleFactory.Register("callum_fallback", () => new FallbackRule());
             HeroRuleFactory.Register("callum_wait_unready", () => new WaitUnreadyRule());
             HeroRuleFactory.Register("callum_salute", () => new SaluteRule());
@@ -19,6 +20,24 @@ namespace HS.Hero.Callum
         }
 
         static CallumModule M(HeroContext c) => c.Hero.Module as CallumModule;
+
+        /// <summary>S2 — Look Away: he turns his back for 3 s when you ask him to.</summary>
+        public sealed class LookAwayRule : HeroRule
+        {
+            public override string Id => "callum_look_away";
+            public override string Icon => "look_away";
+            public override string Label => "Not looking";
+            public override bool CanRun(HeroContext c) => M(c) != null && M(c).LookingAway;
+            public override void Enter(HeroContext c) => c.Hero.Presenter?.PlayAction("folded", CallumModule.LookAwayTime);
+            public override void Tick(HeroContext c, float dt)
+            {
+                c.Hero.Hold(dt);
+                // His back to you: whatever you're about to do is behind him.
+                var sk = RunContext.Current != null ? RunContext.Current.Sidekick : null;
+                if (sk != null) c.Hero.FaceTowards(c.Hero.Position + (c.Hero.Position - sk.Position), dt);
+            }
+            public override void Exit(HeroContext c) => c.Hero.Presenter?.PlayAction("none");
+        }
 
         /// <summary>Finisher — Judgment (chapter 3 on): a 3 s charge (2 s from chapter 5), then one blow for 6×.</summary>
         public sealed class FinisherRule : HeroRule
@@ -65,7 +84,7 @@ namespace HS.Hero.Callum
                 var m = M(c);
                 if (m == null || m.Challenged == null || m.Saluting) return false;
                 if (!m.Challenged.IsUnreadyFor(c.Hero)) return false;
-                float cap = Arg(0, m.WaitCap);
+                float cap = Mathf.Min(Arg(0, m.WaitCap), m.WaitCap);
                 return m.WaitT < cap || m.Challenged.State == EnemyState.Surrendered;
             }
 
