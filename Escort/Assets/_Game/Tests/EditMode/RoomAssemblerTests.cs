@@ -15,6 +15,30 @@ namespace HS.Tests
             new ModuleInfo { Id = "wagon_camp", Kind = RoomKind.Combat, Variants = 2 },
         };
 
+        /// <summary>The libraries by chapter (chapters 3–5 still borrow the Old Road's modules).</summary>
+        static List<ModuleInfo> LibraryFor(int moduleChapter) => moduleChapter == 2
+            ? new List<ModuleInfo>
+            {
+                new ModuleInfo { Id = "snare_line", Kind = RoomKind.TrapCorridor, Variants = 2, Chapter = 2 },
+                new ModuleInfo { Id = "fern_hollow", Kind = RoomKind.Ambush, Variants = 2, Chapter = 2 },
+                new ModuleInfo { Id = "mire_crossing", Kind = RoomKind.SetPiece, Variants = 2, Chapter = 2 },
+                new ModuleInfo { Id = "quills_glade", Kind = RoomKind.Social, Variants = 2, Chapter = 2 },
+                new ModuleInfo { Id = "poacher_camp", Kind = RoomKind.Combat, Variants = 2, Chapter = 2 },
+            }
+            : Library();
+
+        [Test]
+        public void Whisperwood_Always_Has_Quills_Glade_And_Four_Distinct_Rooms()
+        {
+            for (int seed = 0; seed < 20; seed++)
+            {
+                var plan = RoomAssembler.Plan(seed, ChapterDef.For(2), LibraryFor(2));
+                Assert.AreEqual(4, plan.Rooms.Count);
+                Assert.AreEqual("quills_glade", plan.Rooms[1].ModuleId, "the merchant is always on the road");
+                Assert.AreEqual(4, plan.Rooms.Select(r => r.ModuleId).Distinct().Count(), "no room twice: " + plan.Signature);
+            }
+        }
+
         [Test]
         public void SameSeed_SamePlan()
         {
@@ -68,8 +92,8 @@ namespace HS.Tests
             {
                 var def = ChapterDef.For(ch);
                 Assert.AreEqual(ch, def.Chapter);
-                var a = RoomAssembler.Plan(42, def, Library());
-                var b = RoomAssembler.Plan(42, def, Library());
+                var a = RoomAssembler.Plan(42, def, LibraryFor(def.ModuleChapter));
+                var b = RoomAssembler.Plan(42, def, LibraryFor(def.ModuleChapter));
                 Assert.AreEqual(def.Slots.Count, a.Rooms.Count, def.Name);
                 Assert.AreEqual(a.Signature, b.Signature, def.Name);
             }
@@ -83,7 +107,7 @@ namespace HS.Tests
         {
             int differ = 0;
             for (int s = 0; s < 10; s++)
-                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(2), Library()).Signature) differ++;
+                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(3), Library()).Signature) differ++;
             Assert.GreaterOrEqual(differ, 8, "the chapter number is mixed into the seed");
         }
     }

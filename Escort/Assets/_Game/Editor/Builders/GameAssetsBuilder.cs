@@ -23,7 +23,8 @@ namespace HS.EditorTools
             GameObject L(string p) => AssetDatabase.LoadAssetAtPath<GameObject>(p);
             a.hero = L(GameplayPrefabBuilder.Dir + "/Callum.prefab");
             a.sidekick = L(GameplayPrefabBuilder.Dir + "/Sidekick.prefab");
-            a.roomModules = new[] { "crossroads_shrine", "toll_gate", "ruined_gatehouse", "wagon_camp" }.Select(id => L($"{RoomBuilder.Dir}/{id}.prefab")).ToArray();
+            a.roomModules = new[] { "crossroads_shrine", "toll_gate", "ruined_gatehouse", "wagon_camp" }.Concat(WhisperwoodRooms.Ids)
+                .Select(id => L($"{RoomBuilder.Dir}/{id}.prefab")).Where(p => p != null).ToArray();
             a.startCap = L(RoomBuilder.Dir + "/road_cap_start.prefab");
             a.endCap = L(RoomBuilder.Dir + "/road_cap_end.prefab");
             a.campfire = L(RoomBuilder.Dir + "/campfire.prefab");

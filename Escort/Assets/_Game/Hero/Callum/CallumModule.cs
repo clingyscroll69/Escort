@@ -209,10 +209,13 @@ namespace HS.Hero.Callum
             Hero.Presenter?.SetFlag("combat", true);
             Hero.Presenter?.PlayAction("salute");
             Bark(ChallengeLines, 1);
-            // A knight's challenge is loud: anyone dozing nearby is on his feet (and still Unready while he gets up).
+            // A knight's challenge is loud: the man he calls out wakes, and so does anyone dozing near either of them (still
+            // Unready while they scramble up).
+            target.Wake("challenge");
             var all = AgentRegistry.All;
             for (int i = 0; i < all.Count; i++)
-                if (all[i] is EnemyAgent e && e.Asleep && Geo.FlatDistance(e.Position, Hero.Position) <= ChallengeWakeRadius) e.Wake("challenge");
+                if (all[i] is EnemyAgent e && e.Asleep && (Geo.FlatDistance(e.Position, Hero.Position) <= ChallengeWakeRadius || Geo.FlatDistance(e.Position, target.Position) <= ChallengeWakeRadius))
+                    e.Wake("challenge");
             _ctx?.Events.DuelStarted?.Invoke(Hero, target);
             DuelBegan?.Invoke(target);
         }

@@ -37,7 +37,7 @@ namespace HS.EditorTools
             HS.Agent.AgentBridge.Write("builder.json", $"{{\"ok\":true,\"msg\":\"rooms: {string.Join(",", built)}\"}}");
         }
 
-        static string Save(GameObject root)
+        internal static string Save(GameObject root)
         {
             string name = root.name;
             PrefabUtility.SaveAsPrefabAsset(root, $"{Dir}/{name}.prefab");
@@ -45,7 +45,7 @@ namespace HS.EditorTools
             return name;
         }
 
-        static (GameObject root, RoomModule mod) NewRoom(string id, string display, RoomKind kind, float length, float width = 26f)
+        internal static (GameObject root, RoomModule mod) NewRoom(string id, string display, RoomKind kind, float length, float width = 26f)
         {
             var root = new GameObject(id);
             var mod = root.AddComponent<RoomModule>();
@@ -57,14 +57,14 @@ namespace HS.EditorTools
             return (root, mod);
         }
 
-        static Transform Variant(Transform root, int i)
+        internal static Transform Variant(Transform root, int i)
         {
             var v = root.Find("Variants") ?? Empty(root, "Variants", Vector3.zero).transform;
             var existing = v.Find("Variant_" + i);
             return existing != null ? existing : Empty(v, "Variant_" + i, Vector3.zero).transform;
         }
 
-        static SpawnMarker Spawn(Transform parent, string archetype, Vector3 pos, float rotY, bool hidden = false, bool elevated = false, float delay = 0f, int group = 0)
+        internal static SpawnMarker Spawn(Transform parent, string archetype, Vector3 pos, float rotY, bool hidden = false, bool elevated = false, float delay = 0f, int group = 0)
         {
             var m = Marker<SpawnMarker>(parent, "Spawn_" + archetype, pos, rotY);
             m.Archetype = archetype;
@@ -75,14 +75,14 @@ namespace HS.EditorTools
             return m;
         }
 
-        static void Encounter(Transform parent, Vector3 pos, float radius, int group = 0)
+        internal static void Encounter(Transform parent, Vector3 pos, float radius, int group = 0)
         {
             var e = Marker<EncounterZone>(parent, "Encounter_" + group, pos);
             e.Radius = radius;
             e.Group = group;
         }
 
-        static void Explore(Transform parent, Vector3 pos, float rotY, string model, string title, string note)
+        internal static void Explore(Transform parent, Vector3 pos, float rotY, string model, string title, string note)
         {
             var e = Marker<ExploreAnchor>(parent, "Explore", pos, rotY);
             e.Title = title;
@@ -90,7 +90,7 @@ namespace HS.EditorTools
             Place(e.transform, model, Vector3.zero, 0f, 1f, Col.None);
         }
 
-        static void Armable(Transform parent, ArmableKind kind, Vector3 pos, float rotY, Vector3 impactOffset, float radius)
+        internal static void Armable(Transform parent, ArmableKind kind, Vector3 pos, float rotY, Vector3 impactOffset, float radius)
         {
             var a = Marker<ArmableAnchor>(parent, "Armable_" + kind, pos, rotY);
             a.gameObject.AddComponent<HS.Skills.ArmableProp>();
@@ -137,12 +137,12 @@ namespace HS.EditorTools
         }
 
         /// <summary>Moving parts must not be static-batched (the prop tips over when it collapses).</summary>
-        static void Unstatic(GameObject go)
+        internal static void Unstatic(GameObject go)
         {
             foreach (var t in go.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
         }
 
-        static void Stone(Transform parent, Vector3 pos, float rotY, float range = 14f)
+        internal static void Stone(Transform parent, Vector3 pos, float rotY, float range = 14f)
         {
             var s = Marker<StoneAnchor>(parent, "StoneAnchor", pos, rotY);
             s.ViewRange = range;
@@ -155,7 +155,7 @@ namespace HS.EditorTools
             s.gameObject.AddComponent<ChronicleStone>();
         }
 
-        static void Hazard(Transform parent, HazardKind kind, Vector3 pos, float rotY = 0f, float span = 4f)
+        internal static void Hazard(Transform parent, HazardKind kind, Vector3 pos, float rotY = 0f, float span = 4f)
         {
             var h = Marker<HazardMarker>(parent, "Hazard_" + kind, pos, rotY);
             h.Kind = kind;
@@ -163,7 +163,7 @@ namespace HS.EditorTools
             Place(h.transform, kind == HazardKind.SpikePlate ? "SpikePlate" : "TripwireStakes", Vector3.zero, 0f, kind == HazardKind.Tripwire ? span / 4f : 1f, Col.None, true, false);
         }
 
-        static List<Vector3> V(params float[] xz)
+        internal static List<Vector3> V(params float[] xz)
         {
             var l = new List<Vector3>();
             for (int i = 0; i < xz.Length; i += 2) l.Add(new Vector3(xz[i], 0f, xz[i + 1]));

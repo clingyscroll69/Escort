@@ -113,6 +113,12 @@ namespace HS.Rooms
                 {
                     RoomEntered?.Invoke(Chapter.Rooms[roomNow]);
                     ctx.Events.RoomEntered?.Invoke(roomNow);
+                    // A room with nothing to fight (a quiet glade) is clear the moment he walks in: its XP share is paid.
+                    if (!Encounters.Any(e => e.Room == Chapter.Rooms[roomNow]))
+                    {
+                        RoomCleared?.Invoke(Chapter.Rooms[roomNow]);
+                        ctx.Events.RoomCleared?.Invoke(roomNow);
+                    }
                 }
             }
             foreach (var enc in Encounters)

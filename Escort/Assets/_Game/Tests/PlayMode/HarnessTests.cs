@@ -78,5 +78,24 @@ namespace HS.Tests
             var csv = BalanceHarness.Csv(h.Rows);
             Assert.AreEqual(4, csv.Trim().Split('\n').Length, "header + 3 rows");
         }
+
+        /// <summary>No soft-locks (campaign spec §1.5): every chapter-2 run ends at the campfire or in a death, never a timeout.</summary>
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator Whisperwood_Runs_Always_Finish()
+        {
+            var h = Harness(900f);
+            h.StartChapter = 2;
+            h.StopAfterChapter = 2;
+            foreach (var bot in new[] { "idle", "supportive" })
+            foreach (int seed in new[] { 1, 2, 3 })
+            {
+                var row = new BalanceHarness.Row { Seed = seed, Bot = bot };
+                yield return h.RunOne(row);
+                Debug.Log($"[harness ch2] {bot} seed {seed}: {row.Outcome} rooms {row.RoomsCleared} solo {row.SoloOk}/{row.Encounters} sim {row.SimSeconds:0}s {row.Rooms}");
+                Assert.AreNotEqual("timeout", row.Outcome, $"{bot} seed {seed} finished ({row.Rooms})");
+                Assert.AreEqual(2, row.Chapter);
+            }
+        }
     }
 }

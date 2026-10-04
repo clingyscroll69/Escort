@@ -15,6 +15,8 @@ namespace HS.Core
         public Vector3 Velocity { get; private set; }
         public float Speed => Geo.Flat(Velocity).magnitude;
         public float SpeedMultiplier = 1f;
+        /// <summary>Ground underfoot (bogs, water): set each tick by the terrain zones; 1 on firm ground.</summary>
+        public float TerrainMul = 1f;
 
         public CharacterMotor(CharacterController cc)
         {
@@ -28,7 +30,7 @@ namespace HS.Core
         /// <summary>Move toward a desired planar velocity with acceleration, then apply gravity.</summary>
         public void Move(Vector3 desiredPlanarVelocity, float accel, float dt)
         {
-            var desired = Geo.Flat(desiredPlanarVelocity) * SpeedMultiplier;
+            var desired = Geo.Flat(desiredPlanarVelocity) * SpeedMultiplier * TerrainMul;
             var cur = Geo.Flat(Velocity);
             var planar = Vector3.MoveTowards(cur, desired, accel * dt);
             Integrate(planar, dt);

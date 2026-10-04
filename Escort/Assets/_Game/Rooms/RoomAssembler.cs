@@ -55,11 +55,18 @@ namespace HS.Rooms
             },
         };
 
-        // Chapters 2–5: their rooms come with Plans 2–5. Until then they borrow the Old Road's modules under their own light.
+        // Chapters 3–5: their rooms come with Plans 3–5. Until then they borrow the Old Road's modules under their own light.
+        /// <summary>Chapter 2 "Whisperwood": attrition and ambushes — four of five forest modules, Quill's glade always.</summary>
         public static ChapterDef Whisperwood() => new ChapterDef
         {
-            Chapter = 2, Name = "Whisperwood", Theme = "whisperwood", ModuleChapter = 1,
-            Slots = { new ChapterSlot(RoomKind.Ambush, RoomKind.Combat), Any(), Any(), Any() },
+            Chapter = 2, Name = "Whisperwood", Theme = "whisperwood", ModuleChapter = 2,
+            Slots =
+            {
+                new ChapterSlot(RoomKind.Ambush, RoomKind.Combat),
+                new ChapterSlot(RoomKind.Social),
+                new ChapterSlot(RoomKind.TrapCorridor, RoomKind.SetPiece),
+                new ChapterSlot(RoomKind.Combat, RoomKind.Ambush, RoomKind.SetPiece),
+            },
         };
 
         public static ChapterDef Catacombs() => new ChapterDef

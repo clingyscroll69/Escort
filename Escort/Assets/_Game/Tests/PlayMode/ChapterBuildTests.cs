@@ -94,5 +94,30 @@ namespace HS.Tests
             Assert.IsNull(b.Campfire);
             Object.Destroy(b.gameObject);
         }
+
+        [UnityTest]
+        public IEnumerator Whisperwood_Builds_Four_Forest_Rooms_With_Quill()
+        {
+            var assets = HS.Core.GameAssets.Load();
+            var b = new GameObject("Chapter").AddComponent<ChapterBuilder>();
+            b.ModulePrefabs = assets.roomModules;
+            b.StartCapPrefab = assets.startCap;
+            b.EndCapPrefab = assets.endCap;
+            b.CampfirePrefab = assets.campfire;
+            foreach (int seed in new[] { 1, 2, 3 })
+            {
+                b.Build(seed, ChapterDef.For(2));
+                yield return null;
+                Assert.AreEqual(4, b.Rooms.Count);
+                Assert.IsTrue(b.Rooms.All(r => r.Chapter == 2), "only forest rooms: " + b.Plan.Signature);
+                Assert.AreEqual("quills_glade", b.Rooms[1].ModuleId);
+                var route = b.ChapterRoute();
+                for (int i = 1; i < route.Count; i++)
+                    Assert.Greater(route[i].Position.z, route[i - 1].Position.z - 0.01f, $"route runs forward (seed {seed}, node {i})");
+                Assert.AreEqual(4, route.Count(n => n.Threshold), "one threshold per room");
+                Assert.IsTrue(b.Rooms[1].GetComponentsInChildren<SpawnMarker>().Any(m => m.Archetype == "scout_quill"), "Mr. Quill's mark");
+            }
+            Object.Destroy(b.gameObject);
+        }
     }
 }

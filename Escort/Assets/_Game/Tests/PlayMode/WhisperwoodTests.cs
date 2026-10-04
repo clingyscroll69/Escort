@@ -200,5 +200,17 @@ namespace HS.Tests
             Assert.AreEqual(2, sk.Rations.Count);
             Assert.IsTrue(cache.Searched);
         }
+
+        [UnityTest]
+        public IEnumerator A_Sleeper_He_Calls_Out_From_Afar_Wakes()
+        {
+            yield return MakeCallum(Vector3.zero);
+            var far = Sleeper(new Vector3(0f, 0f, 12f), true);
+            var buddy = Sleeper(new Vector3(2f, 0f, 14f), true);
+            yield return null;
+            _cm.StartChallenge(far);
+            Assert.IsFalse(far.Asleep, "the man he names wakes, however far");
+            Assert.IsFalse(buddy.Asleep, "and the man dozing beside him");
+        }
     }
 }
