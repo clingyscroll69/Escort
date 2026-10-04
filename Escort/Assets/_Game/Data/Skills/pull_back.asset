@@ -16,18 +16,19 @@ MonoBehaviour:
   displayName: Pull Back
   family: 1
   type: 0
-  uses: Yank the hero out of a hazard. Partial against some habits; pulling against
-    a committed action repeatedly upsets him.
+  uses: 'Yank the hero up to 4 m toward you (rank 2: 5 m) from as far as 10 m (rank
+    2: 14 m): out of a snare, a bog or a bad spot. A trip is shaken off. Cooldown
+    18 s (rank 2: 14 s).'
   icon: pull_back
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 18
+  - 14
   valueA:
-  - 0
-  - 0
+  - 10
+  - 14
   valueB:
-  - 0
-  - 0
+  - 4
+  - 5
   dishonor: 0

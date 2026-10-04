@@ -16,17 +16,19 @@ MonoBehaviour:
   displayName: Splint & Stitch
   family: 2
   type: 0
-  uses: A 6 s channel that treats a serious wound (uses supplies).
+  uses: 'A 6 s channel beside the hero (rank 2: 4.5 s) that treats one serious wound:
+    cracked ribs, fever or a concussion. Supplies for 2 a chapter (rank 2: 3). Cooldown
+    30 s (rank 2: 24 s).'
   icon: splint_and_stitch
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 30
+  - 24
   valueA:
-  - 0
-  - 0
+  - 6
+  - 4.5
   valueB:
-  - 0
-  - 0
+  - 2
+  - 3
   dishonor: 0

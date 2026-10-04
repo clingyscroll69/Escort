@@ -240,8 +240,11 @@ namespace HS.Rapport
 
         void OnDuelFinished(EnemyAgent target, DuelEndReason reason)
         {
-            // Only offered when there is a wound a bandage can treat (never an uncapturable offer).
-            if (!_hero.IsAlive || !_hero.HasMinorWound) return;
+            // Only offered when there is a wound her kit can treat (never an uncapturable offer): a minor one (bandage), or a
+            // serious one when she carries splints.
+            var kit = Sidekick != null ? Sidekick.GetComponent<SidekickSkills>() : null;
+            bool splints = kit != null && kit.System.Has("splint_and_stitch");
+            if (!_hero.IsAlive || !(_hero.HasMinorWound || (splints && _hero.Wounds.SeriousCount > 0))) return;
             if (_wound != null && _wound.Open) return;
             _wound = _l.Offer("wound_treated", WWoundTreated, _hero, WoundWindow, "wounded after the duel");
         }

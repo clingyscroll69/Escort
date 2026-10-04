@@ -37,6 +37,16 @@ namespace HS.Skills
             new Pair("quiet_feet", "cover_story", "Two answers to the same problem: don't be seen, or talk your way out when you are."),
             new Pair("crossbow", "cover_story", "A bolt into his duel is only a slight. A cover story smooths it over."),
             new Pair("bandage", "cover_story", "Patch his body, mend his pride."),
+            new Pair("splint_and_stitch", "bandage", "Two kits for two kinds of hurt: the bandage takes a sprain or a strain, the splint the broken things."),
+            new Pair("splint_and_stitch", "pocket_sand", "A splint is a long kneel. Sand buys it."),
+            new Pair("pull_back", "bandage", "Haul him clear of the fight, then dress him where nobody is swinging."),
+            new Pair("pull_back", "loosen_bolt", "Pull him back from under the prop before it drops, and whoever followed him gets it instead."),
+            new Pair("sling", "quiet_feet", "A stone from a crouch: his cone is narrower, and the bandits don't look your way."),
+            new Pair("sling", "crossbow", "The sling for the flinch, the crossbow for the finish."),
+            new Pair("sling", "cover_story", "A stone into his duel is only a slight. A cover story smooths it over."),
+            new Pair("read_the_room", "pocket_sand", "Marked where he hides, a hidden man can be sanded out before the ambush."),
+            new Pair("read_the_room", "crossbow", "Shows which shooter is drawing, and which is reloading."),
+            new Pair("read_the_room", "quiet_feet", "Read them from the shadows: they never notice who's watching."),
         };
 
         public static IReadOnlyList<Pair> All => _all;

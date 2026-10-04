@@ -70,6 +70,34 @@ namespace HS.Skills
                 CallumView = "He chooses to believe you. Mostly.",
                 Stats = new[] { Stat("Honor", (d, r) => "+" + N(d.A(r))), Stat("After being caught", (d, r) => "within " + N(d.B(r)) + " s"), Cooldown },
             },
+            ["splint_and_stitch"] = new SkillGuide
+            {
+                Id = "splint_and_stitch", Tagline = "Bones set, wounds closed, complaints ignored.",
+                HowTo = "Press its key right beside him and stay still for the whole channel. It treats one serious wound: cracked ribs, fever or a concussion.",
+                CallumView = "Honest work. He holds still for it, and grumbles.",
+                Stats = new[] { Stat("Channel", (d, r) => N(d.A(r)) + " s"), Stat("Per chapter", (d, r) => N(d.B(r))), Cooldown },
+            },
+            ["pull_back"] = new SkillGuide
+            {
+                Id = "pull_back", Tagline = "A rope, a heave, and an indignant knight.",
+                HowTo = "Press its key with him in reach: he's hauled toward you, out of whatever had him. A trip or a snare is shaken off.",
+                CallumView = "Undignified, but no dishonour in it. He may even thank you.",
+                Stats = new[] { Stat("Reach", (d, r) => N(d.A(r)) + " m"), Stat("Pull", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["sling"] = new SkillGuide
+            {
+                Id = "sling", Tagline = "A stone, a strap, and a long tradition of annoying people.",
+                HowTo = "Aim with {aim} and press its key. Light, fast, and it never runs out; a hit makes them flinch.",
+                CallumView = "A stone into his duel is a slight; one at a helpless man is a disgrace. Unseen, it's just a stone.",
+                Stats = new[] { Stat("Damage", (d, r) => N(d.A(r))), Stat("Range", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["read_the_room"] = new SkillGuide
+            {
+                Id = "read_the_room", Tagline = "Everyone is planning something. Now you know what.",
+                HowTo = "Press its key. For a few seconds, every foe near you shows what he means to do, and anyone hiding is marked where he lies.",
+                CallumView = "He never notices you doing it.",
+                Stats = new[] { Stat("Lasts", (d, r) => N(d.A(r)) + " s"), Stat("Radius", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
         };
 
         public static SkillGuide Get(string id) => id != null && Guides.TryGetValue(id, out var g) ? g : null;

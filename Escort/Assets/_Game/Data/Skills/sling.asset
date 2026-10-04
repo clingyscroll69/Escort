@@ -16,17 +16,18 @@ MonoBehaviour:
   displayName: Sling
   family: 4
   type: 0
-  uses: Cheap ranged shot with a small stagger and unlimited ammunition.
+  uses: 'A stone out to 16 m (rank 2: 18 m): 9 damage (rank 2: 13), a small stagger,
+    unlimited ammunition. Cooldown 1.4 s (rank 2: 1.1 s).'
   icon: sling
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 1.4
+  - 1.1
   valueA:
-  - 0
-  - 0
+  - 9
+  - 13
   valueB:
-  - 0
-  - 0
-  dishonor: 0
+  - 16
+  - 18
+  dishonor: 1

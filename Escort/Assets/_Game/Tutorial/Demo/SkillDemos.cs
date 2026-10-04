@@ -26,6 +26,10 @@ namespace HS.Tutorial.Demo
 
         public static bool Has(string skillId) => skillId != null && Builders.ContainsKey(skillId);
 
+        /// <summary>Implemented skills whose live demo comes with the campaign's polish pass (plan 6); until then the
+        /// picker goes straight to their end card (numbers and how Callum reads them).</summary>
+        public static readonly HashSet<string> Pending = new HashSet<string> { "splint_and_stitch", "pull_back", "sling", "read_the_room" };
+
         public static DemoScript Build(string skillId, DemoContext c) => Has(skillId) ? Builders[skillId](c) : null;
 
         static string N(float v) => v.ToString("0.#", CultureInfo.InvariantCulture);

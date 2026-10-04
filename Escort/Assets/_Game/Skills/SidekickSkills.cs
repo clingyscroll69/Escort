@@ -22,6 +22,10 @@ namespace HS.Skills
             { "crossbow", new CrossbowSkill() },
             { "bandage", new BandageSkill() },
             { "cover_story", new CoverStorySkill() },
+            { "splint_and_stitch", new SplintAndStitchSkill() },
+            { "pull_back", new PullBackSkill() },
+            { "sling", new SlingSkill() },
+            { "read_the_room", new ReadTheRoomSkill() },
         };
 
         void Awake()

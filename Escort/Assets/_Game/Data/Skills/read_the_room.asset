@@ -16,17 +16,19 @@ MonoBehaviour:
   displayName: Read the Room
   family: 3
   type: 0
-  uses: Show enemy intent and attack timing for 6 s; reveals scouts.
+  uses: 'For 6 s (rank 2: 8 s) every foe within 20 m of you (rank 2: 26 m) shows
+    what he means to do; hidden ones are marked where they lie; a scout''s pendant
+    shows. Cooldown 20 s (rank 2: 16 s).'
   icon: read_the_room
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 20
+  - 16
   valueA:
-  - 0
-  - 0
+  - 6
+  - 8
   valueB:
-  - 0
-  - 0
+  - 20
+  - 26
   dishonor: 0

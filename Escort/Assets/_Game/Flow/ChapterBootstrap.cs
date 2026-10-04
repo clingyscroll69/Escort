@@ -96,6 +96,7 @@ namespace HS.Flow
             HS.UI.SystemWindow.Create(ui);
             HS.UI.ThreatIndicators.Create(ui);
             HS.UI.HitFeedback.Create(ui, Hud);
+            HS.UI.IntentMarkers.Create(ui);
             _streamer = gameObject.AddComponent<RoomStreamer>();
             _streamer.Chapter = Chapter;
             _streamer.Focus = Hero.transform;
