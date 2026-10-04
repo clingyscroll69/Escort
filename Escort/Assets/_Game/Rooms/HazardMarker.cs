@@ -32,7 +32,51 @@ namespace HS.Rooms
         public const float SnareTrip = 1.6f;
         public float AlarmRadius = 24f;
 
+        [Tooltip("Catacombs: invisible until the sidekick is close, Map Sketch is up, or sand lands on it.")]
+        public bool Hidden;
+        public const float RevealRange = 2.5f;
+        public bool Revealed { get; private set; }
+        /// <summary>Seen by the player (always, unless it's a hidden plate not yet found).</summary>
+        public bool Visible => !Hidden || Revealed;
+
         public HazardState State { get; private set; } = HazardState.Armed;
+
+        void Start()
+        {
+            if (Hidden && !Revealed) SetRenderers(false);
+        }
+
+        /// <summary>Found: the plate shows (and can now be disarmed).</summary>
+        public void Reveal()
+        {
+            if (Revealed) return;
+            Revealed = true;
+            SetRenderers(true);
+            if (Hidden) Vfx.Burst(VfxKind.Glint, transform.position + Vector3.up * 0.3f, 0.6f);
+        }
+
+        void SetRenderers(bool on)
+        {
+            foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = on;
+        }
+
+        public static readonly System.Collections.Generic.List<HazardMarker> All = new System.Collections.Generic.List<HazardMarker>();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => All.Clear();
+
+        /// <summary>Reveal every hidden plate within a radius (Pocket Sand's cloud, Map Sketch).</summary>
+        public static int RevealAround(Vector3 p, float radius)
+        {
+            int n = 0;
+            foreach (var h in All)
+                if (h != null && h.Hidden && !h.Revealed && Geo.FlatDistance(h.transform.position, p) <= radius)
+                {
+                    h.Reveal();
+                    n++;
+                }
+            return n;
+        }
         public int TickOrder => TickOrders.Physics;
         readonly System.Collections.Generic.Dictionary<Agent, float> _side = new System.Collections.Generic.Dictionary<Agent, float>();
 
@@ -41,6 +85,7 @@ namespace HS.Rooms
             if (!Application.isPlaying) return;
             SimLoop.Register(this);
             Interactables.Register(this);
+            if (!All.Contains(this)) All.Add(this);
         }
 
         void OnDisable()
@@ -48,13 +93,14 @@ namespace HS.Rooms
             if (!Application.isPlaying) return;
             SimLoop.Unregister(this);
             Interactables.Unregister(this);
+            All.Remove(this);
         }
 
         // ------------------------------------------------------------------ IInteractable (disarm)
         public Vector3 InteractPosition => transform.position;
         public string Prompt => "Disarm";
         public float InteractDuration => 1.2f;
-        public bool CanInteract(Agent who) => State == HazardState.Armed && who is SidekickAgent;
+        public bool CanInteract(Agent who) => State == HazardState.Armed && Visible && who is SidekickAgent;
 
         public void Interact(Agent who)
         {
@@ -76,6 +122,8 @@ namespace HS.Rooms
                 var a = all[i];
                 if (a == null || !a.IsAlive || a is EnemyAgent) continue;
                 bool isSidekick = a is SidekickAgent;
+                // Unlisted eyes: she finds a hidden plate by coming close (and steps clear of it as she does).
+                if (isSidekick && Hidden && !Revealed && Geo.FlatDistance(a.Position, transform.position) <= RevealRange) Reveal();
                 if (isSidekick && Careful((SidekickAgent)a))
                 {
                     Remember(a);

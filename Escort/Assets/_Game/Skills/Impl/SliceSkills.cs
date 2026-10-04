@@ -39,6 +39,7 @@ namespace HS.Skills.Impl
         void Cloud(RunContext run, Agent user, Vector3 point, float blind)
         {
             Vfx.Burst(VfxKind.Sand, point + Vector3.up * 0.4f);
+            HS.Rooms.HazardMarker.RevealAround(point, Radius); // sand settles on a hidden plate's edges
             AgentRegistry.InRadius(point, Radius, _scratch, a => a != user);
             Agent firstHostile = null;
             foreach (var a in _scratch)

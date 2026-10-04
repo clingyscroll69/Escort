@@ -13,6 +13,8 @@ namespace HS.Rooms
         [TextArea] public string Note = "";
         [Tooltip("Rations the sidekick finds here (a forage cache).")]
         public int Rations;
+        [Tooltip("A seal key: searching this opens that seal.")]
+        public SealDoor OpensSeal;
         public bool Searched { get; private set; }
 
         void OnEnable()
@@ -36,6 +38,7 @@ namespace HS.Rooms
             Searched = true;
             var ctx = RunContext.Current;
             var room = GetComponentInParent<RoomModule>();
+            if (OpensSeal != null && !OpensSeal.IsOpen) OpensSeal.Open("key");
             int found = Rations > 0 && who is HS.Sidekick.SidekickAgent sk ? sk.Rations.Give(Rations) : 0;
             string extra = found > 0 ? $"\n<size=80%>+{found} ration{(found > 1 ? "s" : "")}.</size>" : "";
             ctx?.Events.RaiseNotice($"{Title.ToUpperInvariant()}\n<size=80%>{Note}</size>{extra}");

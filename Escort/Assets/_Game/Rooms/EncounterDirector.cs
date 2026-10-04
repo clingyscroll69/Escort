@@ -76,7 +76,7 @@ namespace HS.Rooms
                 var enc = new Encounter { Room = room, Zone = zone };
                 foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
                 {
-                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_")) continue;
+                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_") || m.GetComponentInParent<SealDoor>() != null) continue;
                     var prefab = EnemyPrefab?.Invoke(m.Archetype);
                     if (prefab == null)
                     {
@@ -98,6 +98,30 @@ namespace HS.Rooms
                 Encounters.Add(enc);
             }
             if (!Encounters.Any(e => e.Room == room)) _cleared.Add(room.RoomIndex);
+        }
+
+        /// <summary>Enemies that arrive mid-room (a broken seal's guardians): a new encounter, already started.</summary>
+        public Encounter SpawnLate(RoomModule room, IEnumerable<SpawnMarker> markers)
+        {
+            var enc = new Encounter { Room = room, Zone = null, Started = true, StartedAt = RunContext.Current != null ? RunContext.Current.SimTime : 0f };
+            foreach (var m in markers)
+            {
+                var prefab = EnemyPrefab?.Invoke(m.Archetype);
+                if (prefab == null) continue;
+                var go = Instantiate(prefab, m.transform.position + Vector3.up * 0.05f, m.transform.rotation, transform);
+                go.name = $"{(room != null ? room.name : "room")}_{m.Archetype}_late{enc.Enemies.Count}";
+                var e = go.GetComponent<EnemyAgent>();
+                e.AgentId = go.name;
+                e.Archetype = m.Archetype;
+                e.Group = (room != null ? room.RoomIndex : 0) * 10 + 9;
+                e.JoinDelay = m.Delay;
+                enc.Enemies.Add(e);
+                e.Activate(Mathf.Max(0.5f, m.Delay));
+            }
+            if (room != null) _cleared.Remove(room.RoomIndex);
+            Encounters.Add(enc);
+            EncounterStarted?.Invoke(enc);
+            return enc;
         }
 
         public void SimTick(float dt)
