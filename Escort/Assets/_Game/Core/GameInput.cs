@@ -7,8 +7,8 @@ namespace HS.Core
     /// <summary>
     /// Code-defined Input System actions (keyboard+mouse and gamepad for every verb, GDD §2).
     /// Keyboard: WASD move, mouse aim, LMB knife, Space dodge, Q/MMB ping, E interact, C/Ctrl crouch, Shift walk,
-    /// 1-4 skills, Esc pause, Tab hero insight. Gamepad: LS move, RS aim, X knife, B dodge, Y ping, A interact,
-    /// L3 crouch, RT/RB/LT/LB skills 1-4, Start pause, Select insight.
+    /// 1-6 skills, Esc pause, Tab hero insight. Gamepad: LS move, RS aim, X knife, B dodge, Y ping, A interact,
+    /// L3 crouch, RT/RB/LT/LB and D-pad left/right skills 1-6, Start pause, Select insight.
     /// </summary>
     public sealed class GameInput : IDisposable
     {
@@ -16,7 +16,7 @@ namespace HS.Core
         public readonly InputActionMap UI = new InputActionMap("UI");
 
         public readonly InputAction Move, AimPointer, AimStick, Attack, Dodge, Ping, Interact, Crouch, Walk, Pause, Insight;
-        public readonly InputAction[] Skills = new InputAction[4];
+        public readonly InputAction[] Skills = new InputAction[6];
         public readonly InputAction Navigate, Confirm, Cancel, Any;
         /// <summary>Skill demos (picker, Field Guide): skip to the end card / play again.</summary>
         public readonly InputAction DemoSkip, DemoReplay;
@@ -63,9 +63,9 @@ namespace HS.Core
             Insight = Gameplay.AddAction("Insight", InputActionType.Button, "<Keyboard>/tab");
             Insight.AddBinding("<Gamepad>/select");
 
-            string[] keys = { "<Keyboard>/1", "<Keyboard>/2", "<Keyboard>/3", "<Keyboard>/4" };
-            string[] pads = { "<Gamepad>/rightTrigger", "<Gamepad>/rightShoulder", "<Gamepad>/leftTrigger", "<Gamepad>/leftShoulder" };
-            for (int i = 0; i < 4; i++)
+            string[] keys = { "<Keyboard>/1", "<Keyboard>/2", "<Keyboard>/3", "<Keyboard>/4", "<Keyboard>/5", "<Keyboard>/6" };
+            string[] pads = { "<Gamepad>/rightTrigger", "<Gamepad>/rightShoulder", "<Gamepad>/leftTrigger", "<Gamepad>/leftShoulder", "<Gamepad>/dpad/left", "<Gamepad>/dpad/right" };
+            for (int i = 0; i < Skills.Length; i++)
             {
                 Skills[i] = Gameplay.AddAction("Skill" + (i + 1), InputActionType.Button, keys[i]);
                 Skills[i].AddBinding(pads[i]);

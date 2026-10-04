@@ -28,7 +28,7 @@ namespace HS.Tutorial
             {
                 case "move": return pad ? "LS" : "WASD";
                 case "aim": return pad ? "RS" : "Mouse";
-                case "skills": return pad ? "RT RB LT LB" : "1–4";
+                case "skills": return pad ? "RT RB LT LB D-pad ←→" : "1–6";
                 case "walk": return pad ? "LS (lightly)" : First(input.Walk, false);
                 case "attack": return First(input.Attack, pad);
                 case "dodge": return First(input.Dodge, pad);
@@ -89,9 +89,15 @@ namespace HS.Tutorial
             { "leftStick", "LS" }, { "rightStick", "RS" }, { "dpad", "D-pad" },
         };
 
+        static readonly Dictionary<string, string> DpadArrows = new Dictionary<string, string>
+        {
+            { "left", "←" }, { "right", "→" }, { "up", "↑" }, { "down", "↓" },
+        };
+
         static string Name(string path)
         {
             int slash = path.LastIndexOf('/');
+            if (path.Contains("/dpad/") && DpadArrows.TryGetValue(path.Substring(slash + 1), out var arrow)) return "D-pad " + arrow;
             var control = slash >= 0 ? path.Substring(slash + 1) : path;
             if (Names.TryGetValue(control, out var n)) return n;
             return control.Length == 1 ? control.ToUpperInvariant() : char.ToUpperInvariant(control[0]) + control.Substring(1);

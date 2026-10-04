@@ -252,5 +252,20 @@ namespace HS.Tests
             Assert.IsTrue(cont);
             Assert.IsFalse(view.FocusVisible);
         }
+
+        [UnityTest]
+        public IEnumerator The_Skill_Bar_Grows_To_Six_Slots()
+        {
+            var flow = TestUi.StartChapterAsPlayer("pocket_sand");
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.Chapter, 5f, "the road");
+            var skills = flow.Chapter.Sidekick.GetComponent<HS.Skills.SidekickSkills>();
+            yield return null;
+            Assert.AreEqual(4, flow.Chapter.Hud.VisibleSlots);
+            skills.System.SetChapter(3);
+            yield return null;
+            Assert.AreEqual(6, flow.Chapter.Hud.VisibleSlots);
+            Assert.AreEqual(6, HS.Core.GameInput.Instance.Skills.Length);
+            Assert.AreEqual("6", HS.Tutorial.KeyGlyphs.Label("skill6", HS.Tutorial.GlyphDevice.Keyboard));
+        }
     }
 }

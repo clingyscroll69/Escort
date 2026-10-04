@@ -178,14 +178,15 @@ namespace HS.UI
             _skillsRt = At(root, "Skills", new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(barW, SlotSize + 24f));
             _skillsRt.pivot = new Vector2(0.5f, 0f);
             _skillsRt.anchoredPosition = new Vector2(0f, 20f);
-            _slots = new Slot[4];
-            for (int i = 0; i < 4; i++) _slots[i] = BuildSlot(_skillsRt, i);
+            _slots = new Slot[MaxSlots];
+            for (int i = 0; i < MaxSlots; i++) _slots[i] = BuildSlot(_skillsRt, i);
             // Verbs (left of the bar): the knife, the roll, the ping, the crouch.
             var verbs = new[] { ("verb_knife", "attack", "Knife"), ("verb_dodge", "dodge", "Dodge"), ("verb_ping", "ping", "Ping"), ("verb_crouch", "crouch", "Crouch") };
             float verbsW = verbs.Length * VerbSize + (verbs.Length - 1) * VerbGap;
             var vr = At(root, "Verbs", new Vector2(0.5f, 0f), Vector2.zero, new Vector2(verbsW, VerbSize + 24f));
             vr.pivot = new Vector2(1f, 0f);
             vr.anchoredPosition = new Vector2(-barW * 0.5f - BarGap, 20f);
+            _verbsRt = vr;
             _verbs = new Verb[verbs.Length];
             for (int i = 0; i < verbs.Length; i++)
             {
@@ -206,6 +207,25 @@ namespace HS.UI
             _passivesRt = At(root, "Passives", new Vector2(0.5f, 0f), Vector2.zero, new Vector2(160f, VerbSize + 24f));
             _passivesRt.pivot = new Vector2(0f, 0f);
             _passivesRt.anchoredPosition = new Vector2(barW * 0.5f + BarGap, 20f);
+            ShowSlots(4);
+        }
+
+        // Chapter 1 has 4 slots, chapter 2 five, chapter 3 on six (GDD §4.1). The bar widens; verbs and passives move out.
+        const int MaxSlots = 6;
+        int _shownSlots = -1;
+        RectTransform _verbsRt;
+        public int VisibleSlots => _shownSlots;
+
+        void ShowSlots(int n)
+        {
+            n = Mathf.Clamp(n, 1, MaxSlots);
+            if (n == _shownSlots) return;
+            _shownSlots = n;
+            float barW = n * SlotSize + (n - 1) * SlotGap;
+            _skillsRt.sizeDelta = new Vector2(barW, _skillsRt.sizeDelta.y);
+            for (int i = 0; i < _slots.Length; i++) _slots[i].Root.gameObject.SetActive(i < n);
+            if (_verbsRt != null) _verbsRt.anchoredPosition = new Vector2(-barW * 0.5f - BarGap, 20f);
+            if (_passivesRt != null) _passivesRt.anchoredPosition = new Vector2(barW * 0.5f + BarGap, 20f);
         }
 
         Slot BuildSlot(RectTransform bar, int i)
@@ -462,6 +482,7 @@ namespace HS.UI
             SetChip(_reachChip, sk.IsAlive && !sk.InSupportRange, "OUT OF REACH", UIKit.Danger);
             LayoutStatus();
             var skills = sk.GetComponent<SidekickSkills>();
+            ShowSlots(skills != null ? skills.System.SlotCount : 4);
             for (int i = 0; i < _slots.Length; i++) UpdateSlot(_slots[i], skills != null ? skills.System.InSlot(i) : null, dt);
             UpdatePassives(skills, sk);
             if (sk.IsChanneling)
