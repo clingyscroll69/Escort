@@ -117,5 +117,100 @@ namespace HS.Tests
                 CollectionAssert.Contains(now, e, "no chapter 1 bandit survives the rebuild");
             HS.Presentation.ChapterTheme.ForgetSceneDefaults();
         }
+
+        static GameFlow Flow(int startChapter = 1, int stopAfter = 0)
+        {
+            var go = new GameObject("GameFlow");
+            go.SetActive(false);
+            var flow = go.AddComponent<GameFlow>();
+            flow.AutoPlay = true;
+            flow.Fast = true;
+            flow.StartChapter = startChapter;
+            flow.StopAfterChapter = stopAfter;
+            go.SetActive(true);
+            return flow;
+        }
+
+        /// <summary>Skip the road: no bandits, the hero at its end (exercises the loop, not the fights).</summary>
+        static void SkipRoad(GameFlow flow)
+        {
+            foreach (var e in Object.FindObjectsByType<EnemyAgent>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var hero = flow.Chapter.Hero;
+            hero.Route.SetNodes(new System.Collections.Generic.List<RouteNode>());
+            hero.Motor.Teleport(new Vector3(0f, 0.05f, flow.Chapter.Chapter.ChapterLength - 2f));
+        }
+
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator The_Campaign_Runs_Chapter_To_Chapter_Into_The_Gallery()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow();
+            yield return null;
+            flow.Chapter.Hero.Health.Invulnerable = true;
+            var seen = new System.Collections.Generic.List<int>();
+            for (int ch = 1; ch <= 5; ch++)
+            {
+                yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.Chapter && flow.CurrentChapter == ch, 20f, "chapter " + ch);
+                seen.Add(flow.CurrentChapter);
+                var skills = flow.Chapter.Sidekick.GetComponent<HS.Skills.SidekickSkills>();
+                Assert.AreEqual(CampaignSchedule.For(ch).Slots, skills.System.SlotCount, "slots in chapter " + ch);
+                Assert.AreEqual(260f * Mathf.Pow(2f, ch - 1), flow.Chapter.Hero.Health.BaseMax, 0.01f, "his HP tier in chapter " + ch);
+                Assert.IsNotNull(RunState.ChapterStartOf(ch), "a Restore Point at chapter " + ch);
+                SkipRoad(flow);
+            }
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.Duel, 20f, "the door, then the boss");
+            Assert.IsNotNull(RunState.Door, "a Restore Point before the door");
+            CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, seen);
+            flow.Duel.Ashgrave.TakeDamage(DamageInfo.Make(flow.Chapter.Hero, flow.Duel.Ashgrave, 1e9f, DamageKind.Blade, "sword"));
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.End, 10f, "the end");
+            Assert.AreEqual("won", flow.Outcome);
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
+
+        [UnityTest]
+        public IEnumerator Starting_At_Chapter_4_Skips_The_Opening_With_A_Fitting_Kit()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow(4);
+            yield return null;
+            Assert.AreEqual(GameFlow.State.Chapter, flow.Current);
+            Assert.AreEqual(4, RunContext.Current.Chapter);
+            Assert.AreEqual(CampaignSchedule.LevelTarget(3), flow.Chapter.Sidekick.Level);
+            Assert.AreEqual(6, flow.Chapter.Sidekick.GetComponent<HS.Skills.SidekickSkills>().System.SlotCount);
+            Assert.AreEqual(260f * 8f, flow.Chapter.Hero.Health.BaseMax, 0.01f);
+            Assert.IsTrue(RenderSettings.fog);
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
+
+        [UnityTest]
+        public IEnumerator A_Chapter_3_Restore_Point_Brings_Back_Chapter_3()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow(3);
+            yield return null;
+            var point = RunState.ChapterStartOf(3);
+            Assert.IsNotNull(point);
+            Assert.AreEqual(3, point.Chapter);
+            var hero = flow.Chapter.Hero;
+            hero.ApplyStage(HS.Core.Stage.S2);
+            var later = flow.Snapshot();
+            Assert.AreEqual(3, later.Chapter);
+            flow.Apply(point);
+            Assert.AreEqual(HS.Core.Stage.S0, hero.Stage);
+            Assert.AreEqual(6, flow.Chapter.Sidekick.GetComponent<HS.Skills.SidekickSkills>().System.SlotCount);
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
+
+        [UnityTest]
+        public IEnumerator Stop_After_Chapter_Ends_The_Run_At_Its_Campfire()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow(1, 1);
+            yield return null;
+            SkipRoad(flow);
+            yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.End, 20f, "the end of chapter 1");
+            Assert.AreEqual("chapter_done", flow.Outcome);
+        }
     }
 }

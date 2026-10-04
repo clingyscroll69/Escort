@@ -106,5 +106,26 @@ namespace HS.Tests
                 if (SimLoop.Instance) UnityEngine.Object.DestroyImmediate(SimLoop.Instance.gameObject);
             }
         }
+
+        [Test]
+        public void Restore_Points_Resolve_By_Name()
+        {
+            RunState.Clear();
+            var p2 = new RunState.Point();
+            var p3 = new RunState.Point();
+            var door = new RunState.Point { Chapter = 5 };
+            RunState.SetChapterStart(2, p2);
+            RunState.SetChapterStart(3, p3);
+            RunState.Door = door;
+            Assert.AreSame(p3, RunState.ChapterStart, "the latest chapter start");
+            Assert.AreSame(p2, RunState.Resolve("chapter:2"));
+            Assert.AreSame(p3, RunState.Resolve("chapter"));
+            Assert.AreSame(door, RunState.Resolve("door"));
+            Assert.AreEqual(3, p3.Chapter);
+            RunState.ForgetAfter(2);
+            Assert.IsNull(RunState.ChapterStartOf(3), "restoring to chapter 2 forgets the later timeline");
+            Assert.IsNull(RunState.Door);
+            RunState.Clear();
+        }
     }
 }

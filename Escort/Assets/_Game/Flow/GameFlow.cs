@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HS.Boss;
 using HS.Core;
 using HS.Hero;
@@ -14,9 +15,10 @@ using UnityEngine.SceneManagement;
 namespace HS.Flow
 {
     /// <summary>
-    /// The vertical slice, start to finish (GDD §11.2): opening → the Old Road (3 seeded rooms) → campfire (Stage check,
-    /// rest, picks) → the Rigged Duel → end screen. Restore Points: chapter start and the campfire (skills kept, Rapport
-    /// restored to the snapshot — GDD §11.3). AutoPlay skips UI for bots and the balance harness.
+    /// The campaign, start to finish (campaign spec §3.1): opening → five chapters, each built in place (chapters 1–4 end
+    /// at a campfire: rest, picks, the Ch2/Ch3 Stage checks) → the Gallery door (the last check) → the boss → end screen.
+    /// Restore Points: every chapter start reached, and the door (skills kept, Rapport restored to the snapshot — GDD
+    /// §11.3). AutoPlay skips UI for bots and the balance harness; StartChapter / StopAfterChapter serve QA and the harness.
     /// </summary>
     public sealed class GameFlow : MonoBehaviour
     {
@@ -28,6 +30,11 @@ namespace HS.Flow
         public bool Fast;
         /// <summary>Harness "solo" measurement: the hero enters every room fresh (GDD §3 "hero can solo" is per encounter).</summary>
         public bool IsolateEncounters;
+        [Tooltip("QA / Tools/HS/Play from chapter: start the run here with a preset kit (skips the opening).")]
+        public int StartChapter = 1;
+        public Stage StartStage = Stage.S0;
+        [Tooltip("Harness: 0 plays the whole campaign; N ends the run at chapter N's campfire (outcome chapter_done).")]
+        public int StopAfterChapter;
         public string[] OpeningPicks = { "pocket_sand", "crossbow" };
         public string[] CampPicks = { "quiet_feet", "bandage", "cover_story", "loosen_bolt" };
         /// <summary>AutoPlay bot by name (idle, sloppy, supportive, follow) — serialized, so QA scenes keep it.</summary>
@@ -47,6 +54,12 @@ namespace HS.Flow
         public PauseMenu Pause { get; private set; }
         public string Outcome { get; private set; }
         public string LastHitTag { get; private set; }
+
+        public int CurrentChapter => _ctx != null ? _ctx.Chapter : 1;
+        /// <summary>Chapter 5's road is done: the door line and the last check are under way.</summary>
+        public bool AtDoor { get; private set; }
+        public const string PlayFromChapterKey = "hs.playFromChapter";
+        ChapterRules Rules => CampaignSchedule.For(CurrentChapter);
 
         RunContext _ctx;
         int _levelAtChapterStart = 1;
@@ -90,15 +103,28 @@ namespace HS.Flow
             if (!Application.isEditor) ReadCommandLine();
             HS.Tutorial.ModalGate.Clear(); // a reloaded scene (Restore Point) starts with nothing paused or blocked
             _ctx = RunContext.Current;
+#if UNITY_EDITOR
+            int fromMenu = UnityEditor.SessionState.GetInt(PlayFromChapterKey, 0);
+            if (fromMenu > 0)
+            {
+                UnityEditor.SessionState.EraseInt(PlayFromChapterKey);
+                StartChapter = fromMenu;
+            }
+#endif
             string resume = RunState.Resume;
             RunState.Resume = null;
-            var point = resume == "campfire" ? RunState.Campfire : resume == "chapter" ? RunState.ChapterStart : null;
+            var point = RunState.Resolve(resume);
             Chapter = gameObject.AddComponent<ChapterBootstrap>();
             Chapter.AutoBuild = false;
             Chapter.Seed = point != null ? point.Seed : Seed;
             Chapter.SidekickBot = false;
             Chapter.StartingSkills = new string[0];
-            Chapter.Build();
+            Xp = new XpTracker();
+            Xp.Bind(_ctx);
+            _ctx.Register(Xp);
+            _ctx.Register(this);
+            Chapter.BuildRun();
+            PrepareChapter(point != null ? point.Chapter : Mathf.Clamp(StartChapter, 1, CampaignSchedule.Chapters));
             ScreenFade.Ensure(UIRoot.Ensure());
             if (AutoPlay)
             {
@@ -106,10 +132,6 @@ namespace HS.Flow
                 if (pc != null) pc.enabled = false;
                 Sk.Commands = Bot != null ? Bot(Sk) : HS.Bots.BotFactory.Make(BotName, Sk);
             }
-            Xp = new XpTracker();
-            Xp.Bind(_ctx);
-            _ctx.Register(Xp);
-            _ctx.Register(this);
             if (!AutoPlay)
             {
                 Chapter.Hud.InsightOn = HS.Tutorial.TutorialProgress.InsightDefault;
@@ -131,16 +153,54 @@ namespace HS.Flow
             {
                 Chapter.Hud.MeetHero("CALLUM", true); // met him on the first attempt
                 Apply(point);
-                if (resume == "campfire")
+                if (resume == "door")
                 {
                     Hero.Route.SetNodes(new List<RouteNode>());
                     StartDuel();
                 }
-                else EnterChapter(false);
+                else
+                {
+                    RunState.ForgetAfter(point.Chapter);
+                    EnterChapter(false);
+                }
                 return;
             }
             RunState.Clear();
+            if (CurrentChapter > 1)
+            {
+                ApplyPreset();
+                EnterChapter(true);
+                return;
+            }
             BeginOpening();
+        }
+
+        /// <summary>Build chapter N in place and set everything the schedule says about it.</summary>
+        void PrepareChapter(int ch)
+        {
+            var rules = CampaignSchedule.For(ch);
+            Chapter.BuildChapter(ch, Chapter.Seed);
+            Sk.GetComponent<SidekickSkills>().System.SetChapter(ch);
+            if (Hero.Module is HS.Hero.Callum.CallumModule cm) cm.ApplyChapter(ch, rules.Unlocks, rules.Recovery);
+            var rooms = Chapter.Chapter.Rooms;
+            Xp.BeginChapter(r => CampaignSchedule.RoomPot(ch, rooms[Mathf.Clamp(r, 0, rooms.Count - 1)].XpPot));
+            AtDoor = false;
+        }
+
+        /// <summary>A run started past chapter 1 (QA, "Play from chapter N"): the kit a thorough player would have by now.</summary>
+        void ApplyPreset()
+        {
+            var skills = Sk.GetComponent<SidekickSkills>();
+            var build = HS.Bots.BotFactory.Build("supportive");
+            var ids = AutoPlay ? OpeningPicks.Concat(CampPicks) : build.opening.Concat(build.camp);
+            skills.System.AtCamp = true;
+            foreach (var id in ids) skills.Learn(id);
+            skills.System.AtCamp = false;
+            int level = CampaignSchedule.LevelTarget(CurrentChapter - 1);
+            Sk.SetLevel(level, true);
+            Xp.Restore(XpTracker.Thresholds[Mathf.Clamp(level - 2, 0, XpTracker.Thresholds.Length - 1)]);
+            Hero.ApplyStage(StartStage);
+            Chapter.Hud.MeetHero("CALLUM", true);
         }
 
         void SetState(State s)
@@ -173,12 +233,12 @@ namespace HS.Flow
 
         void EnterChapter(bool snapshot)
         {
-            if (snapshot) RunState.ChapterStart = Snapshot();
+            if (snapshot) RunState.SetChapterStart(CurrentChapter, Snapshot());
             _levelAtChapterStart = Sk.Level;
             SetState(State.Chapter);
             SimLoop.Instance.Paused = false;
-            _ctx.Events.RaiseNotice("PARTY: SIR CALLUM <size=80%>(Hero)</size>  ·  YOU <size=80%>(HERO's SIDEKICK)</size>\nQUEST: The Old Road.");
-            if (snapshot) StartCoroutine(MeetCallum());
+            _ctx.Events.RaiseNotice($"PARTY: SIR CALLUM <size=80%>(Hero)</size>  ·  YOU <size=80%>(HERO's SIDEKICK)</size>\nQUEST: {Rules.Name}.");
+            if (snapshot && CurrentChapter == 1) StartCoroutine(MeetCallum());
         }
 
         /// <summary>GDD §8: the first meeting. He introduces himself, and the System's "HERO" quietly becomes his name.</summary>
@@ -193,14 +253,18 @@ namespace HS.Flow
         // ------------------------------------------------------------------ chapter
         void Update()
         {
-            if (Current == State.Chapter)
+            if (Current == State.Chapter && !AtDoor)
             {
                 if (!Hero.IsAlive || !Sk.IsAlive)
                 {
                     EndRun(false, CuratorDiagnosis.ForRoad(LastHitTag, !Sk.IsAlive), !Sk.IsAlive);
                     return;
                 }
-                if (Hero.Route.AtEnd && Hero.Position.z > Chapter.Chapter.ChapterLength - 6f) ToCamp();
+                if (Hero.Route.AtEnd && Hero.Position.z > Chapter.Chapter.ChapterLength - 6f)
+                {
+                    if (Chapter.Def.Final) StartCoroutine(ToDoor());
+                    else ToCamp();
+                }
             }
         }
 
@@ -208,22 +272,65 @@ namespace HS.Flow
         {
             SetState(State.Camp);
             SimLoop.Instance.Paused = true;
+            int ch = CurrentChapter;
             Transition(() =>
             {
                 ClearEnemies();
                 int levelNow = XpTracker.LevelFor(Xp.Xp);
-                int picks = Mathf.Max(1, levelNow - _levelAtChapterStart); // the camp always brings at least one lesson
+                int cap = CampaignSchedule.LevelTarget(4);
+                // The camp always brings at least one lesson, up to the last level (GDD §4.1: 13 levels across Ch1–4).
+                int picks = Sk.Level >= cap ? 0 : Mathf.Min(cap - _levelAtChapterStart, Mathf.Max(1, levelNow - _levelAtChapterStart));
                 Sk.SetLevel(_levelAtChapterStart + picks, true);
                 Camp = new GameObject("Campfire").AddComponent<CampfireDirector>();
                 if (Fast) Camp.AutoSceneSeconds = 0f;
                 Camp.Finished += () =>
                 {
-                    RunState.Campfire = Snapshot();
-                    Transition(StartDuel);
+                    if (StopAfterChapter == ch)
+                    {
+                        EndRun(true, new List<string> { $"CHAPTER {ch}: {CampaignSchedule.For(ch).Name.ToUpperInvariant()} — CLEARED." }, false, null, "chapter_done");
+                        return;
+                    }
+                    Transition(NextChapter);
                 };
-                Camp.Begin(Chapter.Chapter.Campfire, Hero, Sk, picks, AutoPlay, CampPicks);
+                var next = CampaignSchedule.For(ch + 1);
+                Camp.Begin(Chapter.Chapter.Campfire, Hero, Sk, new CampfireDirector.Options
+                {
+                    Chapter = ch, Check = CampaignSchedule.For(ch).CampCheck, Picks = picks, AutoPicks = AutoPlay, AutoPickIds = CampPicks,
+                    ContinueLabel = $"CONTINUE  »  {next.Name.ToUpperInvariant()}",
+                });
                 SimLoop.Instance.Paused = false;
             });
+        }
+
+        void NextChapter()
+        {
+            if (Camp != null) Destroy(Camp.gameObject);
+            Camp = null;
+            Chapter.TeardownChapter();
+            PrepareChapter(CurrentChapter + 1);
+            EnterChapter(true);
+        }
+
+        static readonly string[] DoorLines =
+        {
+            "Stay behind me. This is my fight.",
+            "Whatever is behind this door... keep your distance. And your eyes open.",
+            "If I don't look back in there, it isn't because I've forgotten you.",
+            "Whatever comes, I will not lie about who helped me.",
+        };
+
+        /// <summary>The Gallery door (GDD §11.3.4: "the hero's own line at the door"): the last Stage check, a Restore Point.</summary>
+        System.Collections.IEnumerator ToDoor()
+        {
+            AtDoor = true;
+            var ledger = _ctx.Get<RapportLedger>();
+            Hero.ApplyStage(StageEvaluator.Evaluate(Hero.Stage, ledger != null ? ledger.CaptureRate : 0f, StageCheck.Door));
+            _ctx.Events.RaiseBark("callum", DoorLines[(int)Hero.Stage], 3.6f, 3);
+            if (!Fast) yield return new WaitForSeconds(3.8f);
+            if (Current != State.Chapter) yield break;
+            RunState.Door = Snapshot();
+            Hero.Route.SetNodes(new List<RouteNode>());
+            Transition(StartDuel);
         }
 
         void Transition(Action atBlack)
@@ -261,7 +368,7 @@ namespace HS.Flow
                     foreach (var a in Duel.Archers) if (a != null && !a.IsAlive) silenced++;
                     var quote = CuratorDiagnosis.VictoryLine(Hero.Stage, silenced);
                     _ctx.Events.RaiseBark("callum", quote, 4f, 3);
-                    EndRun(true, new List<string> { "CHAPTER 1: THE OLD ROAD — CLEARED." }, false, quote);
+                    EndRun(true, new List<string> { "CHAPTER 5: THE GALLERY — CLEARED." }, false, quote);
                 }
                 else if (p == RiggedDuelDirector.Phase.Lost)
                     EndRun(false, CuratorDiagnosis.For(Hero.Stage, Duel.LossCause, Duel.SidekickDied), Duel.SidekickDied);
@@ -269,11 +376,11 @@ namespace HS.Flow
         }
 
         // ------------------------------------------------------------------ end
-        void EndRun(bool won, List<string> diagnosis, bool sidekickDied, string quote = null)
+        void EndRun(bool won, List<string> diagnosis, bool sidekickDied, string quote = null, string outcome = null)
         {
             if (Current == State.End) return;
             SetState(State.End);
-            Outcome = won ? "won" : sidekickDied ? "sidekick_died" : "hero_died";
+            Outcome = outcome ?? (won ? "won" : sidekickDied ? "sidekick_died" : "hero_died");
             Debug.Log($"[Flow] outcome {Outcome}");
             HS.Audio.AudioDirector.Instance?.OnFlow("End", won);
             _ctx.Get<OpportunityDirector>()?.EndOfFight(won ? "the run ended" : "he fell");
@@ -281,7 +388,7 @@ namespace HS.Flow
             var m = new EndScreen.Model
             {
                 Error = !won,
-                Title = won ? "THE RIGGED DUEL — WON" : sidekickDied ? "SIDEKICK: DECEASED. NO RECALL AVAILABLE." : "HERO: CALLUM. DECEASED",
+                Title = outcome == "chapter_done" ? diagnosis[0] : won ? "THE GALLERY — WON" : sidekickDied ? "SIDEKICK: DECEASED. NO RECALL AVAILABLE." : "HERO: CALLUM. DECEASED",
                 Diagnosis = diagnosis,
                 Quote = quote,
                 Lines = ledger != null ? PostMortem.From(ledger) : new List<PostMortem.Line>(),
@@ -295,8 +402,13 @@ namespace HS.Flow
             if (won) m.Buttons.Add(("PLAY AGAIN · NEW ROAD", PlayAgain));
             else
             {
-                if (RunState.Campfire != null) m.Buttons.Add(("RESTORE · BEFORE THE DUEL", () => Restore("campfire")));
-                m.Buttons.Add(("RESTORE · CHAPTER START", () => Restore("chapter")));
+                if (RunState.Door != null) m.Buttons.Add(("RESTORE · BEFORE THE DOOR", () => Restore("door")));
+                for (int c = CurrentChapter; c >= 1; c--)
+                {
+                    int chapter = c;
+                    if (RunState.ChapterStartOf(chapter) != null)
+                        m.Buttons.Add(($"RESTORE · CHAPTER {chapter} START", () => Restore("chapter:" + chapter)));
+                }
             }
             m.Buttons.Add(("QUIT", Quit));
             if (_quitAtEnd)
@@ -340,6 +452,7 @@ namespace HS.Flow
             var skills = Sk.GetComponent<SidekickSkills>();
             var p = new RunState.Point
             {
+                Chapter = CurrentChapter,
                 Seed = Chapter.Seed,
                 Level = Sk.Level,
                 Xp = Xp.Xp,

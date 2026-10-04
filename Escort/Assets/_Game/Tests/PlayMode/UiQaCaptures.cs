@@ -81,7 +81,7 @@ namespace HS.Tests
             p.Continue();
             yield return null;
             skills.System.AtCamp = true;
-            var camp = HS.UI.SkillPicker.Show(HS.UI.UIRoot.Ensure(), skills.System, 1, "» CAMP  ·  LEVEL UP", true, "CONTINUE  »  THE RIGGED DUEL");
+            var camp = HS.UI.SkillPicker.Show(HS.UI.UIRoot.Ensure(), skills.System, 1, "» CAMP  ·  LEVEL UP", true, "CONTINUE  »  WHISPERWOOD");
             camp.Select("pocket_sand");
             yield return new WaitForSecondsRealtime(3.4f);
             Shot("ui_picker_camp");
@@ -95,15 +95,15 @@ namespace HS.Tests
         [Timeout(240000)]
         public IEnumerator Duel_Lesson_And_Boss_Bar()
         {
-            var point = new RunState.Point { Seed = 2, Level = 2, Xp = 130, HeroStage = Stage.S0 };
+            var point = new RunState.Point { Chapter = 5, Seed = 2, Level = 2, Xp = 130, HeroStage = Stage.S0 };
             foreach (var id in new[] { "pocket_sand", "crossbow", "quiet_feet" })
             {
                 point.Skills.Add((id, 1));
                 if (HS.Skills.SkillCatalog.Load().Get(id).UsesSlot) point.Loadout.Add(id);
             }
-            RunState.ChapterStart = point;
-            RunState.Campfire = point;
-            RunState.Resume = "campfire";
+            RunState.SetChapterStart(5, point);
+            RunState.Door = point;
+            RunState.Resume = "door";
             RunState.Runs = 1;
             foreach (var id in new[] { "move", "hero_rules", "cone", "insight", "salute" }) HS.Tutorial.TutorialProgress.MarkSeen(id);
 #if UNITY_EDITOR

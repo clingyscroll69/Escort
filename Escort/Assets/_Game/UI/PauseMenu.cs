@@ -113,7 +113,8 @@ namespace HS.UI
             for (int i = _page.childCount - 1; i >= 0; i--) Destroy(_page.GetChild(i).gameObject);
             _buttons.Clear();
             var sk = RunContext.Current != null ? RunContext.Current.Sidekick as HS.Sidekick.SidekickAgent : null;
-            _sub.text = (_flow != null && _flow.Current == GameFlow.State.Duel ? "The Rigged Duel" : "The Old Road") + (sk != null ? $"  ·  Callum's sidekick  ·  level {sk.Level}" : "");
+            _sub.text = (_flow == null ? "The Old Road" : _flow.Current == GameFlow.State.Duel ? "The Gallery" : CampaignSchedule.For(_flow.CurrentChapter).Name)
+                        + (sk != null ? $"  ·  Callum's sidekick  ·  level {sk.Level}" : "");
             switch (id)
             {
                 case "settings":
@@ -150,11 +151,12 @@ namespace HS.UI
                     });
                     Add("CONTROLS", () => ShowPage("controls"));
                     Add("SETTINGS", () => ShowPage("settings"));
-                    if (RunState.ChapterStart != null && _flow != null)
-                        Confirmed("RESTART CHAPTER", "PRESS AGAIN TO RESTART", "restart", () =>
+                    bool inBoss = _flow != null && _flow.Current == GameFlow.State.Duel && RunState.Door != null;
+                    if (_flow != null && (inBoss || RunState.ChapterStartOf(_flow.CurrentChapter) != null))
+                        Confirmed(inBoss ? "RESTART AT THE DOOR" : "RESTART CHAPTER", "PRESS AGAIN TO RESTART", "restart", () =>
                         {
                             Close();
-                            _flow.Restore("chapter");
+                            _flow.Restore(inBoss ? "door" : "chapter:" + _flow.CurrentChapter);
                         });
                     Confirmed("QUIT", "PRESS AGAIN TO QUIT", "quit", () =>
                     {
