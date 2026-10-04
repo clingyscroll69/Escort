@@ -9,6 +9,9 @@ namespace HS.Rooms
         public Transform Focus;
         int _last = -99;
 
+        /// <summary>A new chapter's rooms: decide again from scratch.</summary>
+        public void Reset() => _last = -99;
+
         void LateUpdate()
         {
             if (Chapter == null || Focus == null || Chapter.Rooms.Count == 0) return;

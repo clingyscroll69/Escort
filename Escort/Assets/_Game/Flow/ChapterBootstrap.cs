@@ -10,8 +10,9 @@ using UnityEngine;
 namespace HS.Flow
 {
     /// <summary>
-    /// Assembles a playable chapter from the run seed: rooms, hero route, encounters, the pair, camera, streaming.
-    /// The game flow (Task 13/14) drives it; QA scenes use it directly.
+    /// The run's world: once per run the pair, the ledger, the stones, the UI and the camera (<see cref="BuildRun"/>); per
+    /// chapter its rooms, theme, route and encounters (<see cref="BuildChapter"/>, <see cref="TeardownChapter"/>). The game
+    /// flow drives it; QA scenes call <see cref="Build"/>.
     /// </summary>
     public sealed class ChapterBootstrap : MonoBehaviour
     {
@@ -34,12 +35,23 @@ namespace HS.Flow
         [Tooltip("Off when a GameFlow drives the build.")]
         public bool AutoBuild = true;
 
+        public ChapterDef Def { get; private set; }
+        RoomStreamer _streamer;
+
         void Start()
         {
             if (AutoBuild) Build();
         }
 
+        /// <summary>QA scenes: the run and one chapter (chapter 1 unless the run context says otherwise), as before.</summary>
         public void Build()
+        {
+            BuildRun();
+            BuildChapter(RunContext.Current != null && RunContext.Current.Chapter > 1 ? RunContext.Current.Chapter : 1, Seed);
+        }
+
+        /// <summary>Once per run: the pair, the ledger, the stones, the UI, the camera. They outlive every chapter.</summary>
+        public void BuildRun()
         {
             var assets = GameAssets.Load();
             var ctx = RunContext.Current;
@@ -51,13 +63,11 @@ namespace HS.Flow
             Chapter.EndCapPrefab = assets.endCap;
             Chapter.CampfirePrefab = assets.campfire;
             Chapter.BossPrefab = assets.boss;
-            Chapter.Build(Seed);
 
             Hero = Instantiate(assets.hero, new Vector3(0f, 0.05f, -1.5f), Quaternion.identity).GetComponent<HeroAgent>();
             Sidekick = Instantiate(assets.sidekick, new Vector3(-1.6f, 0.05f, -1.9f), Quaternion.identity).GetComponent<SidekickAgent>();
             ctx.Hero = Hero;
             ctx.Sidekick = Sidekick;
-            Hero.Route.SetNodes(Chapter.ChapterRoute());
             Hero.ApplyStage(HeroStage);
             if (SidekickBot)
             {
@@ -69,11 +79,6 @@ namespace HS.Flow
             Stones = StoneSystem.Create(ctx, Hero);
             var skills = Sidekick.GetComponent<SidekickSkills>();
             if (skills != null) skills.StartingSkills = StartingSkills;
-
-            Encounters = new GameObject("Encounters").AddComponent<EncounterDirector>();
-            Encounters.Chapter = Chapter;
-            Encounters.EnemyPrefab = assets.Enemy;
-            Encounters.SpawnAll();
 
             Camera = CameraRig.Build(Hero.transform.Find("CamTarget") ?? Hero.transform, Sidekick.transform.Find("CamTarget") ?? Sidekick.transform, ctx.Tuning.camera);
             Camera.TravelDirection = () =>
@@ -91,9 +96,45 @@ namespace HS.Flow
             HS.UI.SystemWindow.Create(ui);
             HS.UI.ThreatIndicators.Create(ui);
             HS.UI.HitFeedback.Create(ui, Hud);
-            var streamer = gameObject.AddComponent<RoomStreamer>();
-            streamer.Chapter = Chapter;
-            streamer.Focus = Hero.transform;
+            _streamer = gameObject.AddComponent<RoomStreamer>();
+            _streamer.Chapter = Chapter;
+            _streamer.Focus = Hero.transform;
+        }
+
+        /// <summary>A chapter: its rooms, theme, route and encounters. The pair is placed at the road's start.</summary>
+        public void BuildChapter(int chapter, int seed)
+        {
+            var assets = GameAssets.Load();
+            var ctx = RunContext.Current;
+            ctx.Chapter = chapter;
+            ctx.Seed = seed;
+            if (Director != null) Director.Ledger.Chapter = chapter;
+            Def = ChapterDef.For(chapter);
+            Chapter.Build(seed, Def);
+            ChapterTheme.Apply(Def.Theme);
+            Hero.Motor.Teleport(new Vector3(0f, 0.05f, -1.5f));
+            Hero.Motor.FaceInstant(Vector3.forward);
+            Sidekick.Motor.Teleport(new Vector3(-1.6f, 0.05f, -1.9f));
+            Sidekick.Motor.FaceInstant(Vector3.forward);
+            Hero.Route.SetNodes(Chapter.ChapterRoute());
+            Encounters = new GameObject("Encounters").AddComponent<EncounterDirector>();
+            Encounters.Chapter = Chapter;
+            Encounters.EnemyPrefab = assets.Enemy;
+            Encounters.SpawnAll();
+            _streamer?.Reset();
+        }
+
+        /// <summary>Between chapters, at black: everything of the old road goes, now (not at the end of the frame).</summary>
+        public void TeardownChapter()
+        {
+            if (Encounters != null)
+            {
+                Encounters.gameObject.SetActive(false);
+                Destroy(Encounters.gameObject);
+                Encounters = null;
+            }
+            foreach (var p in FindObjectsByType<ProjectileSystem>(FindObjectsSortMode.None)) p.ClearAll();
+            Chapter.Clear();
         }
     }
 }

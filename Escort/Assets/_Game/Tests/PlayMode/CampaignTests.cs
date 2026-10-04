@@ -85,5 +85,37 @@ namespace HS.Tests
             Assert.AreEqual(Color.white, sun.color);
             HS.Presentation.ChapterTheme.ForgetSceneDefaults();
         }
+
+        [UnityTest]
+        public IEnumerator Chapters_Rebuild_In_Place_And_The_Pair_Carries_Over()
+        {
+            Ctx(1);
+            var boot = new GameObject("GameFlow").AddComponent<ChapterBootstrap>();
+            boot.AutoBuild = false;
+            boot.Seed = 5;
+            boot.BuildRun();
+            boot.BuildChapter(1, 5);
+            yield return null;
+            var hero = boot.Hero;
+            var sk = boot.Sidekick;
+            Assert.AreEqual(3, boot.Chapter.Rooms.Count);
+            hero.Motor.Teleport(new Vector3(0f, 0.05f, 60f));
+            boot.TeardownChapter();
+            boot.BuildChapter(2, 5);
+            yield return null;
+            Assert.AreSame(hero, boot.Hero, "the same Callum");
+            Assert.AreSame(sk, boot.Sidekick);
+            Assert.AreEqual(2, RunContext.Current.Chapter);
+            Assert.AreEqual(2, boot.Director.Ledger.Chapter, "the ledger books chapter 2's offers");
+            Assert.AreEqual(4, boot.Chapter.Rooms.Count);
+            Assert.AreEqual("whisperwood", boot.Def.Theme);
+            Assert.Less(hero.Position.z, 1f, "he starts at the new road's start");
+            Assert.Greater(hero.Route.Nodes.Count, 12);
+            Assert.AreEqual(1, Object.FindObjectsByType<HS.UI.HudView>(FindObjectsSortMode.None).Length, "one HUD for the whole run");
+            var now = new System.Collections.Generic.List<EnemyAgent>(boot.Encounters.AllEnemies);
+            foreach (var e in Object.FindObjectsByType<EnemyAgent>(FindObjectsSortMode.None))
+                CollectionAssert.Contains(now, e, "no chapter 1 bandit survives the rebuild");
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
     }
 }
