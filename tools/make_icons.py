@@ -417,6 +417,33 @@ def campaign_icons():
         x1, y1 = 128 + math.cos(a) * 122, 115 + math.sin(a) * 96
         thick(d, [(x0, y0), (x1, y1)], 12)
     finish(im, 'look_away')
+    # read runes: a rune stone with a glyph
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([58, 26, 198, 232], 40, fill=W)
+    thick(d, [(128, 58), (128, 200)], 14, CLEAR); thick(d, [(128, 92), (168, 64)], 14, CLEAR); thick(d, [(128, 140), (88, 112)], 14, CLEAR)
+    finish(im, 'skill_read_runes')
+    # lockpick: a padlock with a pick in the keyhole
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.arc([70, 24, 186, 140], 180, 360, fill=W, width=22)
+    d.rectangle([70, 80, 92, 112], fill=W); d.rectangle([164, 80, 186, 112], fill=W)
+    d.rounded_rectangle([46, 104, 210, 228], 22, fill=W)
+    d.ellipse([112, 138, 144, 170], fill=CLEAR); d.rectangle([122, 160, 134, 196], fill=CLEAR)
+    thick(d, [(130, 160), (232, 238)], 10)
+    finish(im, 'skill_lockpick')
+    # map sketch: a scroll with a dotted path and an X
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([30, 46, 226, 210], 18, fill=W)
+    for k, (x, y) in enumerate([(62, 176), (88, 150), (112, 132), (138, 124), (162, 108)]):
+        d.ellipse([x - 9, y - 9, x + 9, y + 9], fill=CLEAR)
+    thick(d, [(176, 74), (204, 102)], 12, CLEAR); thick(d, [(204, 74), (176, 102)], 12, CLEAR)
+    finish(im, 'skill_map_sketch')
+    # buckler: a round shield with a boss
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([34, 34, 222, 222], fill=W); d.ellipse([58, 58, 198, 198], fill=CLEAR); d.ellipse([96, 96, 160, 160], fill=W)
+    for a in range(0, 360, 45):
+        r = math.radians(a)
+        d.ellipse([128 + math.cos(r) * 82 - 7, 128 + math.sin(r) * 82 - 7, 128 + math.cos(r) * 82 + 7, 128 + math.sin(r) * 82 + 7], fill=CLEAR)
+    finish(im, 'skill_buckler')
     print('campaign icons written to', OUT)
 
 

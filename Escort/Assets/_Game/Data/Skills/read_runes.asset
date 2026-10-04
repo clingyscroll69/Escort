@@ -16,17 +16,18 @@ MonoBehaviour:
   displayName: Read Runes
   family: 3
   type: 0
-  uses: Open seals and wards.
+  uses: 'Kneel at a rune seal within 3 m and read it open: a 2 s channel (rank 2:
+    1.2 s). Cooldown 6 s (rank 2: 4 s).'
   icon: read_runes
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 6
+  - 4
   valueA:
-  - 0
-  - 0
+  - 2
+  - 1.2
   valueB:
-  - 0
-  - 0
+  - 3
+  - 3
   dishonor: 0

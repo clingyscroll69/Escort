@@ -52,9 +52,30 @@ namespace HS.Sidekick
         public event Action WentDown, Rose, DownedTimedOut;
         bool _goDown;
 
+        // ------------------------------------------------------------------ Buckler (Combat skill)
+        public float BlockRemaining { get; private set; }
+        public bool Blocking => BlockRemaining > 0f;
+        /// <summary>Rank 2: shots aimed at him are caught while she stands this close to him (0: no).</summary>
+        public float BucklerCoverRange { get; private set; }
+
+        public void RaiseBuckler(float seconds, float coverRange)
+        {
+            BlockRemaining = seconds;
+            BucklerCoverRange = coverRange;
+            CancelChannel();
+            Presenter?.PlayAction("block", seconds);
+        }
+
         protected override float ModifyIncomingDamage(DamageInfo d)
         {
             if (IsDowned) return 0f; // nobody finishes off the unlisted
+            if (Blocking && d.Source != null && Geo.AngleTo(Position, Forward, d.Source.Position) <= 75f)
+            {
+                // Parried: the blow glances off, and a man who swung at her reels.
+                if (d.Kind != DamageKind.Ranged && d.Source is HS.Enemies.EnemyAgent attacker) attacker.Status.Apply(StatusType.Staggered, 1f, this);
+                HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Sparks, Position + Forward * 0.5f + Vector3.up * 1.2f, 0.8f);
+                return 0f;
+            }
             if (CanBeDowned && d.Amount >= Health.Current)
             {
                 _goDown = true;
@@ -164,6 +185,11 @@ namespace HS.Sidekick
                 return;
             }
             var t = T;
+            if (BlockRemaining > 0f)
+            {
+                BlockRemaining -= dt;
+                if (BlockRemaining <= 0f) BucklerCoverRange = 0f;
+            }
             Dodge.Tick(dt);
             if (_knifeCd > 0f) _knifeCd -= dt;
             if (_pingCd > 0f) _pingCd -= dt;

@@ -26,6 +26,10 @@ namespace HS.Skills
             { "pull_back", new PullBackSkill() },
             { "sling", new SlingSkill() },
             { "read_the_room", new ReadTheRoomSkill() },
+            { "read_runes", new ReadRunesSkill() },
+            { "lockpick", new LockpickSkill() },
+            { "map_sketch", new MapSketchSkill() },
+            { "buckler", new BucklerSkill() },
         };
 
         void Awake()

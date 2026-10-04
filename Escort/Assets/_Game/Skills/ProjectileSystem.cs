@@ -163,6 +163,15 @@ namespace HS.Skills
                     Hit?.Invoke(p.Spec, null, hit.point);
                 }
                 var victim = FirstAgentOnSegment(p, from, to);
+                var guard = victim != null ? HS.Skills.Impl.BucklerSkill.GuardFor(victim) : null;
+                if (guard != null && p.Spec.Owner != guard)
+                {
+                    // Her buckler takes the shot meant for him (Buckler rank 2).
+                    p.Done = true;
+                    HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Sparks, guard.Position + Vector3.up * 1.3f, 1f);
+                    Hit?.Invoke(p.Spec, guard, to);
+                    victim = null;
+                }
                 if (victim != null)
                 {
                     p.Struck.Add(victim);

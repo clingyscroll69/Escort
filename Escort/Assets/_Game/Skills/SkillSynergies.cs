@@ -47,6 +47,12 @@ namespace HS.Skills
             new Pair("read_the_room", "pocket_sand", "Marked where he hides, a hidden man can be sanded out before the ambush."),
             new Pair("read_the_room", "crossbow", "Shows which shooter is drawing, and which is reloading."),
             new Pair("read_the_room", "quiet_feet", "Read them from the shadows: they never notice who's watching."),
+            new Pair("map_sketch", "pocket_sand", "Two ways to find a hidden plate: sketch the road, or throw grit and watch where it settles."),
+            new Pair("map_sketch", "lockpick", "Found by the map, cut by the pick (rank II) from a step away."),
+            new Pair("read_runes", "lockpick", "Between them, no seal and no gate keeps you out."),
+            new Pair("buckler", "bandage", "Shield up, then dress him while the man who swung at you reels."),
+            new Pair("buckler", "crossbow", "Parry, and the reeling man is an easy shot. If he's helpless in Callum's sight, it's a disgrace."),
+            new Pair("buckler", "pull_back", "Haul him clear, then stand between him and the shooters."),
         };
 
         public static IReadOnlyList<Pair> All => _all;

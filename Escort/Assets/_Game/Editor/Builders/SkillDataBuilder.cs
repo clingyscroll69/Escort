@@ -38,7 +38,7 @@ namespace HS.EditorTools
             R("bait_and_switch", "Bait & Switch", SkillFamily.Fixer, SkillType.Active, "Drop a decoy; enemies within 8 m retarget it for 4 s (rank 2: 6 s)."),
             R("grease", "Grease", SkillFamily.Fixer, SkillType.Active, "A slick patch that staggers enemies. The hero slips too (rank 2: hero-safe toggle)."),
             R("rope_trick", "Rope Trick", SkillFamily.Fixer, SkillType.Active, "A tether: trip or pull enemies, cross gaps, pull the hero out of pits."),
-            R("lockpick", "Lockpick", SkillFamily.Fixer, SkillType.Active, "Open locks. Rank 2 disarms traps."),
+            R("lockpick", "Lockpick", SkillFamily.Fixer, SkillType.Active, "Kneel at an iron gate and open it: a 3 s channel (rank 2: 2 s). Rank 2 also cuts a trap you can see from 2.5 m away, at once. Cooldown 6 s (rank 2: 4 s).", true, new[] { 6f, 4f }, new[] { 3f, 2f }, new[] { 0f, 2.5f }),
             R("caltrops", "Caltrops", SkillFamily.Fixer, SkillType.Active, "Area denial that slows by 40%. Rank 2 adds bleed."),
             // Handler
             R("signal_codes", "Signal Codes", SkillFamily.Handler, SkillType.Passive, "Pings carry a second meaning (hold, advance, fall back) and reach further."),
@@ -60,8 +60,8 @@ namespace HS.EditorTools
             R("splint_and_stitch", "Splint & Stitch", SkillFamily.Provisioner, SkillType.Active, "A 6 s channel beside the hero (rank 2: 4.5 s) that treats one serious wound: cracked ribs, fever or a concussion. Supplies for 2 a chapter (rank 2: 3). Cooldown 30 s (rank 2: 24 s).", true, new[] { 30f, 24f }, new[] { 6f, 4.5f }, new[] { 2f, 3f }),
             // Scholar
             R("read_the_room", "Read the Room", SkillFamily.Scholar, SkillType.Active, "For 6 s (rank 2: 8 s) every foe within 20 m of you (rank 2: 26 m) shows what he means to do; hidden ones are marked where they lie; a scout's pendant shows. Cooldown 20 s (rank 2: 16 s).", true, new[] { 20f, 16f }, new[] { 6f, 8f }, new[] { 20f, 26f }),
-            R("map_sketch", "Map Sketch", SkillFamily.Scholar, SkillType.Active, "Show the hero's path for 10 s and reveal hidden doors and traps."),
-            R("read_runes", "Read Runes", SkillFamily.Scholar, SkillType.Active, "Open seals and wards."),
+            R("map_sketch", "Map Sketch", SkillFamily.Scholar, SkillType.Active, "For 10 s (rank 2: 14 s) the hero's path ahead shows as a line; hidden traps and caches within 30 m (rank 2: 40 m) are found. Cooldown 24 s (rank 2: 18 s).", true, new[] { 24f, 18f }, new[] { 10f, 14f }, new[] { 30f, 40f }),
+            R("read_runes", "Read Runes", SkillFamily.Scholar, SkillType.Active, "Kneel at a rune seal within 3 m and read it open: a 2 s channel (rank 2: 1.2 s). Cooldown 6 s (rank 2: 4 s).", true, new[] { 6f, 4f }, new[] { 2f, 1.2f }, new[] { 3f, 3f }),
             R("bestiary", "Bestiary", SkillFamily.Scholar, SkillType.Passive, "After 3 encounters with a kind of enemy, its weak points are flagged (soft damage bonus)."),
             R("translate", "Translate", SkillFamily.Scholar, SkillType.Active, "Parley with creatures or people who can be parleyed with. Some heroes hate it."),
             R("forecast", "Forecast", SkillFamily.Scholar, SkillType.Passive, "Warns 1.5 s earlier of ambushes and hazards."),
@@ -74,7 +74,7 @@ namespace HS.EditorTools
             R("dagger_flurry", "Dagger Flurry", SkillFamily.Combat, SkillType.Active, "Melee burst; can be cancelled into a dodge."),
             R("backstab", "Backstab", SkillFamily.Combat, SkillType.Passive, "+100% damage from behind against unaware enemies or ones engaged with the hero."),
             R("bomb_bag", "Bomb Bag", SkillFamily.Combat, SkillType.Active, "Area damage. Hits the hero too."),
-            R("buckler", "Buckler", SkillFamily.Combat, SkillType.Active, "Block and parry. Rank 2 intercepts projectiles aimed at the hero within 2 m."),
+            R("buckler", "Buckler", SkillFamily.Combat, SkillType.Active, "Raise a small shield for 1.2 s (rank 2: 1.5 s): a blow from the front glances off and the attacker reels for 1 s. Rank 2 also catches shots aimed at the hero while you stand within 2 m of him. Cooldown 6 s (rank 2: 5 s).", true, new[] { 6f, 5f }, new[] { 1.2f, 1.5f }, new[] { 0f, 2f }),
             R("shoulder_check", "Shoulder Check", SkillFamily.Combat, SkillType.Active, "Knockback and stagger."),
             // Capstones (revealed at the end of chapter 4)
             R("domino_effect", "Domino Effect", SkillFamily.Capstone, SkillType.Active, "Chain-trigger every armed prop in the room."),

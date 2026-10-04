@@ -16,17 +16,18 @@ MonoBehaviour:
   displayName: Map Sketch
   family: 3
   type: 0
-  uses: Show the hero's path for 10 s and reveal hidden doors and traps.
+  uses: 'For 10 s (rank 2: 14 s) the hero''s path ahead shows as a line; hidden traps
+    and caches within 30 m (rank 2: 40 m) are found. Cooldown 24 s (rank 2: 18 s).'
   icon: map_sketch
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 24
+  - 18
   valueA:
-  - 0
-  - 0
+  - 10
+  - 14
   valueB:
-  - 0
-  - 0
+  - 30
+  - 40
   dishonor: 0

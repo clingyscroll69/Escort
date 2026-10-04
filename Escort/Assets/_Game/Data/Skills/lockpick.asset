@@ -16,17 +16,18 @@ MonoBehaviour:
   displayName: Lockpick
   family: 0
   type: 0
-  uses: Open locks. Rank 2 disarms traps.
+  uses: 'Kneel at an iron gate and open it: a 3 s channel (rank 2: 2 s). Rank 2 also
+    cuts a trap you can see from 2.5 m away, at once. Cooldown 6 s (rank 2: 4 s).'
   icon: lockpick
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 6
+  - 4
   valueA:
-  - 0
-  - 0
+  - 3
+  - 2
   valueB:
   - 0
-  - 0
+  - 2.5
   dishonor: 0

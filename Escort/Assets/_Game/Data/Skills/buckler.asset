@@ -16,18 +16,19 @@ MonoBehaviour:
   displayName: Buckler
   family: 4
   type: 0
-  uses: Block and parry. Rank 2 intercepts projectiles aimed at the hero within 2
-    m.
+  uses: 'Raise a small shield for 1.2 s (rank 2: 1.5 s): a blow from the front glances
+    off and the attacker reels for 1 s. Rank 2 also catches shots aimed at the hero
+    while you stand within 2 m of him. Cooldown 6 s (rank 2: 5 s).'
   icon: buckler
-  implemented: 0
+  implemented: 1
   capstone: 0
   cooldown:
-  - 0
-  - 0
+  - 6
+  - 5
   valueA:
-  - 0
-  - 0
+  - 1.2
+  - 1.5
   valueB:
   - 0
-  - 0
+  - 2
   dishonor: 0

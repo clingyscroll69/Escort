@@ -98,6 +98,34 @@ namespace HS.Skills
                 CallumView = "He never notices you doing it.",
                 Stats = new[] { Stat("Lasts", (d, r) => N(d.A(r)) + " s"), Stat("Radius", (d, r) => N(d.B(r)) + " m"), Cooldown },
             },
+            ["read_runes"] = new SkillGuide
+            {
+                Id = "read_runes", Tagline = "Old words, written to keep people out. You read them anyway.",
+                HowTo = "Stand at a rune seal and press its key, then stay still while you read. The seal goes dark and the way opens.",
+                CallumView = "Scholarship. He finds it faintly suspicious, and very useful.",
+                Stats = new[] { Stat("Channel", (d, r) => N(d.A(r)) + " s"), Stat("Reach", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["lockpick"] = new SkillGuide
+            {
+                Id = "lockpick", Tagline = "Every lock is a puzzle someone else already solved.",
+                HowTo = "Stand at an iron gate and press its key, then stay still. At rank II, press it near a trap you can see to cut it from a step away.",
+                CallumView = "He doesn't ask where you learned it.",
+                Stats = new[] { Stat("Channel", (d, r) => N(d.A(r)) + " s"), Stat("Cuts traps from", (d, r) => r >= 2 ? N(d.B(r)) + " m" : "-"), Cooldown },
+            },
+            ["map_sketch"] = new SkillGuide
+            {
+                Id = "map_sketch", Tagline = "Charcoal, a scrap of vellum, and a good guess.",
+                HowTo = "Press its key. His road ahead appears as a line for a while, and any hidden plates and caches near you are found.",
+                CallumView = "He never notices you doing it.",
+                Stats = new[] { Stat("Lasts", (d, r) => N(d.A(r)) + " s"), Stat("Finds within", (d, r) => N(d.B(r)) + " m"), Cooldown },
+            },
+            ["buckler"] = new SkillGuide
+            {
+                Id = "buckler", Tagline = "Small, round, and extremely rude to anyone who swings at you.",
+                HowTo = "Face the blow with {aim} and press its key. A strike from the front glances off and the striker reels. At rank II, stand by him and it takes shots meant for him.",
+                CallumView = "Defending yourself is your business. Defending him, he'll pretend not to notice.",
+                Stats = new[] { Stat("Raised for", (d, r) => N(d.A(r)) + " s"), Stat("Covers him within", (d, r) => r >= 2 ? N(d.B(r)) + " m" : "-"), Cooldown },
+            },
         };
 
         public static SkillGuide Get(string id) => id != null && Guides.TryGetValue(id, out var g) ? g : null;
