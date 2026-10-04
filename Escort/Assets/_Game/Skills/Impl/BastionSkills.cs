@@ -127,6 +127,7 @@ namespace HS.Skills.Impl
             for (int i = 0; i < all.Count; i++)
             {
                 if (!(all[i] is EnemyAgent e) || !e.IsAlive || e.IsHidden || !e.gameObject.activeInHierarchy) continue;
+                if (!Melee.CanTouch(user, e)) continue;
                 float d = Geo.FlatDistance(user.Position, e.Position);
                 if (d > Reach + Lunge || Geo.AngleTo(user.Position, dir, e.Position) > 50f) continue;
                 if (d < bestD)

@@ -126,6 +126,41 @@ namespace HS.Tests
         }
 
         [UnityTest]
+        public IEnumerator Contact_Needs_The_Same_Level_As_A_Man_On_A_Perch()
+        {
+            // A 2.2 m perch, its deck spanning z 0..2.4.
+            var perch = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            perch.transform.position = new Vector3(0f, 2.05f, 1.2f);
+            perch.transform.localScale = new Vector3(2.4f, 0.3f, 2.4f);
+            var s = Spawn<SidekickAgent>(new Vector3(0f, 0f, 0.4f));
+            var archer = Spawn<DummyHostile>(new Vector3(0f, 2.2f, 1.4f));
+            var hidden = Spawn<HS.Enemies.EnemyAgent>(new Vector3(0.9f, 2.2f, 0.4f)); // beside her, outside the knife's arc
+            hidden.Archetype = "archer";
+            hidden.Configure("archer");
+            hidden.StartsHidden = true;
+            hidden.Elevated = true;
+            hidden.Scripted = true;
+            var stab = new SidekickCommand { Attack = true, AimPoint = new Vector3(0, 0, 5), HasAim = true, Skill = -1 };
+            var cmd = new ScriptedCommands { Current = stab };
+            s.Commands = cmd;
+            yield return null;
+            Loop.StepMany(20);
+            Assert.AreEqual(100f, archer.Health.Current, 0.01f, "from the floor beneath, nobody on a perch is in reach");
+            Assert.IsTrue(hidden.IsHidden, "standing under him bumps into nobody");
+            Assert.IsFalse(Melee.CanTouch(s, archer));
+
+            cmd.Current = SidekickCommand.None;
+            s.Motor.Teleport(new Vector3(0f, 2.25f, 0.2f));
+            Loop.StepMany(3);
+            Assert.IsTrue(Melee.CanTouch(s, archer), "up on the deck with him");
+            Assert.IsFalse(hidden.IsHidden, "on his level, she bumps into him");
+            cmd.Current = stab;
+            Loop.StepMany(20);
+            Assert.AreEqual(92f, archer.Health.Current, 0.01f, "on his level, the knife lands");
+            Object.Destroy(perch);
+        }
+
+        [UnityTest]
         public IEnumerator Support_Range_Flag_Flips_At_25m()
         {
             var ctx = RunContext.Current;
