@@ -619,3 +619,46 @@ framing at 25 m, harness determinism hash, the opening's keyboard check, and two
 "judge only his duel and the helpless"). `HitFeedbackTests` failed once in a full run and passed in the next two runs
 (timing-dependent, not caused by this work: it passes after `CampaignTests` too).
 
+## Chapter 2: Whisperwood (2026-10-04, plan 2 of 6)
+Plan: `docs/superpowers/plans/2026-10-04-chapter-2-whisperwood.md`. Branch `claude/callum-campaign`.
+
+**What's in**
+- *Rooms* (`Editor/Builders/WhisperwoodRooms.cs`, `Tools/HS/Build/Rooms · Whisperwood`): Snare Line (three snares, poachers
+  in tree stands), Fern Hollow (ambushers in fern clumps), Mire Crossing (two bogs: him ×0.6, everyone else ×0.8), Quill's
+  Glade (the merchant scout, a stone; quiet in variant 0 — a room with nothing to fight is cleared as he walks in, so it
+  pays its XP), Poacher Camp (two poachers asleep by the fire). Chapter 2 is now 4 of these 5 (Quill always 2nd).
+  Forest floor/trail/bog textures (`tools/make_ground_textures.py forest`).
+- *Mechanics:* snares (trip 1.6 s, 6%, a sprain on him); sleepers (Unready; a challenge wakes the man it names and anyone
+  near either of them; footsteps within 3 m; a blow); hunger (chapters 2–4, ~6 min to empty; STARVING: −20% damage, no
+  between-room recovery) with rations (forage caches, Quill's gift, one at each chapter start; feed him with Interact out
+  of a fight); Stance I/II (Unyielding ×0.7/×0.6 from his duel opponent); Recall (learned at the chapter 2 campfire; Downed
+  20 s; his Recall by Stage per GDD §4.2; two per chapter; nobody comes → the room's entrance at 30%, a wound for him,
+  the room's open Moments close).
+- *Scouts:* Mr. Quill (`Curator/Scout.cs`): pendant glint, ping inside 3 s of first sight or Read the Room → he bolts
+  (−1 Intel, a dossier fragment); missed → reports at camp (+1 Intel). He gives one ration and greets Callum.
+- *Skills:* Splint & Stitch, Pull Back, Sling, Read the Room (with intent chips over foes). Live demos pending (plan 6):
+  the picker shows their end card.
+- *Cast* (headless Blender recipes): Poacher, Woodsman, Mr. Quill; the fern ambusher reuses the Ambusher.
+- *Tutorial:* hunger, snare, sleeper, scout (the dull pendant), mud, Downed.
+
+**Found and fixed while measuring**
+1. *Duel with a sleeping man:* Callum challenged a dozing poacher 11 m away; the challenge only woke men within 8 m of
+   Callum, so he stood in a duel with a sleeper while the woodsman and turncoat beat him to death in 23 s. A challenge now
+   wakes the man it names, and anyone dozing near either of them.
+2. *Soft-lock behind a spared man:* a spared turncoat stood on the trail ("walks off the road" was only a comment) and
+   Callum's CharacterController could not pass him: supportive seed 10 sat 780 s at z 149 of 168. Spared men now walk off
+   to the nearer side and leave after 5 s. Regression test `A_Spared_Man_Walks_Off_The_Road`.
+3. *Giant ferns:* the nature kit's ferns and big-leaf plants are tree-sized at scale 1 and hid both characters. Per-model
+   base scales (ferns 0.32, big-leaf 0.3–0.4) and a 3.2 m clearance from the trail.
+4. *Tooling:* `tools/recolor_textures.py` and `tools/make_ground_textures.py` wrote to the main checkout from a worktree
+   (hard-coded root); both now use the checkout they live in.
+
+**Balance** (`CATEGORY=QA … Balance_Whisperwood`, seeds 1–10, chapter 2 alone, preset kit; `docs/qa/balance/ch2/`):
+idle solos 15/24 fight rooms (62%; GDD ~50%); the supportive bot reaches the campfire 6/10 — it never feeds him, splints
+him or uses the new skills; it learns them in plan 6. No run times out.
+
+**Visual QA:** `ch2_cast.png`, `ch2_<module>.png` (all five modules, staged mid-room).
+
+**Tests:** EditMode 107/107; PlayMode 152/153 (the one failure is the camera framing test whose fix is uncommitted on
+`main`).
+

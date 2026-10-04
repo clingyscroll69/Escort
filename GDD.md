@@ -59,6 +59,9 @@ stay constant), slots 4/5/6, XP pots per chapter (levels 3/6/9/13 by the end of 
 Ch2/Ch3 campfires and at the Gallery door, and Restore Points at every chapter start reached and before the door. The rigged
 duel moved from the end of chapter 1 to the Gallery. Chapters 2–5 use the Old Road's rooms under their own light until
 their modules land. See `docs/superpowers/specs/2026-10-04-callum-campaign-design.md`.
+*Built (chapter 2, 2026-10-04):* Whisperwood's five forest modules (snare line, fern hollow, mire crossing, Quill's glade,
+poacher camp); hunger and rations; snares; sleeping enemies; Mr. Quill the scout (dull pendant, 3 s ping window, Read the
+Room); Stance I; Recall and the Downed state from chapter 3 on; Splint & Stitch, Pull Back, Sling, Read the Room.
 
 - **Modules per chapter:** about 5 (combat arena, trap corridor, ambush, seal or puzzle, social, set piece), plus a campfire.
 - **Hero death ends the run.** The game then offers **Restore Points** (chapter starts).
