@@ -50,6 +50,8 @@ namespace HS.Flow
         public XpTracker Xp { get; private set; }
         /// <summary>Recall (learned at the chapter 2 campfire): Downed instead of dead, two Recalls a chapter.</summary>
         public RecallState Recall { get; private set; }
+        /// <summary>The Curator's file on Callum, as far as the sidekick has seen it (scouts' fragments, the chapter 3 scrap).</summary>
+        public HS.Curator.Dossier Dossier { get; private set; }
         /// <summary>The learn-as-you-go tutorial (players only: AutoPlay runs never get one).</summary>
         public HS.Tutorial.TutorialDirector Tutorial { get; private set; }
         /// <summary>Esc / Start (players only).</summary>
@@ -126,6 +128,8 @@ namespace HS.Flow
             _ctx.Register(Xp);
             Recall = new RecallState();
             _ctx.Register(Recall);
+            Dossier = new HS.Curator.Dossier();
+            _ctx.Register(Dossier);
             _ctx.Register(this);
             Chapter.BuildRun();
             Sk.DownedTimedOut += OnDownedTimedOut;
@@ -503,6 +507,7 @@ namespace HS.Flow
                 Wounds = Hero.Wounds.Snapshot(),
                 Hunger = Hero.Hunger.Value,
                 RecallLearned = Recall.Learned,
+                Dossier = Dossier.Snapshot(),
                 Rations = Sk.Rations.Count,
             };
             return p;
@@ -529,6 +534,7 @@ namespace HS.Flow
             Hero.Wounds.Restore(p.Wounds);
             Hero.Hunger.Restore(p.Hunger);
             Recall.Learned = p.RecallLearned;
+            Dossier.Restore(p.Dossier);
             Sk.CanBeDowned = Recall.Learned;
             Sk.Rations.Restore(p.Rations);
             Hero.ApplyWoundEffects();

@@ -52,14 +52,31 @@ namespace HS.Rooms
             if (Chapter.Boss != null) { /* boss encounter is run by the rigged-duel director */ }
         }
 
+        /// <summary>Curator scouts placed in this chapter's rooms (not part of any encounter).</summary>
+        public readonly List<HS.Curator.Scout> Scouts = new List<HS.Curator.Scout>();
+
         public void SpawnRoom(RoomModule room)
         {
+            foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
+            {
+                if (!m.Archetype.StartsWith("scout_")) continue;
+                var prefab = EnemyPrefab?.Invoke(m.Archetype);
+                if (prefab == null)
+                {
+                    Debug.LogWarning("[Encounter] no prefab for " + m.Archetype);
+                    continue;
+                }
+                var go = Instantiate(prefab, m.transform.position + Vector3.up * 0.05f, m.transform.rotation, transform);
+                go.name = $"{room.name}_{m.Archetype}";
+                var sc = go.GetComponent<HS.Curator.Scout>();
+                if (sc != null) Scouts.Add(sc);
+            }
             foreach (var zone in room.GetComponentsInChildren<EncounterZone>(false))
             {
                 var enc = new Encounter { Room = room, Zone = zone };
                 foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
                 {
-                    if (m.Group != zone.Group) continue;
+                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_")) continue;
                     var prefab = EnemyPrefab?.Invoke(m.Archetype);
                     if (prefab == null)
                     {

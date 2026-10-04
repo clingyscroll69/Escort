@@ -24,6 +24,7 @@ namespace HS.Flow
             public List<HS.Hero.WoundType> Wounds = new List<HS.Hero.WoundType>();
             public float Hunger = HS.Hero.Hunger.Max;
             public bool RecallLearned;
+            public List<string> Dossier = new List<string>();
             public int Rations;
         }
 

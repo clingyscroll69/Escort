@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HS.Core;
 using HS.Hero;
 using HS.Hero.Callum;
@@ -137,7 +138,10 @@ namespace HS.Flow
             RestNote = treated ? "Rest: one of Callum's wounds is tended. You are both rested." : "Rest: you are both rested.";
             ctx.Events.RaiseNotice(RestNote);
             // 5) Stones relay what they saw.
-            ctx.Get<StoneSystem>()?.RelayAll();
+            var stones = ctx.Get<StoneSystem>();
+            stones?.RelayAll();
+            // Scouts nobody caught send their reports too (GDD §4.3).
+            foreach (var scout in HS.Curator.Scout.All.ToArray()) scout.Report(stones);
             // 6) The scene's lines (draft copy for the owner; GDD §6.1 campfire beats).
             _lines = CampfireScenes.Lines(o.Chapter, Variant, _sawDishonour);
             if (o.LearnsRecall)
