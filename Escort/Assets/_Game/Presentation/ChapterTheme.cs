@@ -33,8 +33,8 @@ namespace HS.Presentation
             },
             ["catacombs"] = new ChapterTheme
             {
-                Id = "catacombs", Sun = new Color(0.62f, 0.56f, 0.72f), SunIntensity = 0.38f, SunEuler = new Vector3(62f, -10f, 0f),
-                AmbientSky = new Color(0.22f, 0.2f, 0.26f), AmbientEquator = new Color(0.16f, 0.14f, 0.16f), AmbientGround = new Color(0.08f, 0.07f, 0.07f),
+                Id = "catacombs", Sun = new Color(0.66f, 0.6f, 0.76f), SunIntensity = 0.55f, SunEuler = new Vector3(62f, -10f, 0f),
+                AmbientSky = new Color(0.3f, 0.27f, 0.34f), AmbientEquator = new Color(0.22f, 0.2f, 0.22f), AmbientGround = new Color(0.11f, 0.1f, 0.1f),
                 FogColor = new Color(0.07f, 0.06f, 0.09f), FogStart = 26f, FogEnd = 70f,
             },
             ["sunken_bastion"] = new ChapterTheme
