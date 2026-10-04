@@ -249,5 +249,31 @@ namespace HS.Tests
             Assert.AreEqual(2, sk.Rations.Count);
             HS.Presentation.ChapterTheme.ForgetSceneDefaults();
         }
+
+        [UnityTest]
+        public IEnumerator Unyielding_Softens_His_Opponents_Blows()
+        {
+            var ctx = Ctx(2);
+            var assets = GameAssets.Load();
+            var hero = Object.Instantiate(assets.hero, Vector3.zero, Quaternion.identity).GetComponent<HeroAgent>();
+            var foe = Object.Instantiate(assets.Enemy("thug"), new Vector3(0f, 0.05f, 3f), Quaternion.identity).GetComponent<EnemyAgent>();
+            var other = Object.Instantiate(assets.Enemy("thug"), new Vector3(3f, 0.05f, 0f), Quaternion.identity).GetComponent<EnemyAgent>();
+            ctx.Hero = hero;
+            yield return null;
+            var cm = (CallumModule)hero.Module;
+            cm.ApplyChapter(2, CampaignSchedule.For(2).Unlocks, 0.3f);
+            cm.StartChallenge(foe);
+            float hp = hero.Health.Current;
+            hero.TakeDamage(DamageInfo.Make(foe, hero, 10f, DamageKind.Melee, "melee"));
+            Assert.AreEqual(10f * 2f * 0.7f, hp - hero.Health.Current, 0.01f, "Stance I: x0.7 from the challenged foe (x2 tier)");
+            hp = hero.Health.Current;
+            hero.TakeDamage(DamageInfo.Make(other, hero, 10f, DamageKind.Melee, "melee"));
+            Assert.AreEqual(20f, hp - hero.Health.Current, 0.01f, "anyone else: full");
+            ctx.Chapter = 4;
+            cm.ApplyChapter(4, CampaignSchedule.For(4).Unlocks, 0.3f);
+            hp = hero.Health.Current;
+            hero.TakeDamage(DamageInfo.Make(foe, hero, 10f, DamageKind.Melee, "melee"));
+            Assert.AreEqual(10f * 8f * 0.6f, hp - hero.Health.Current, 0.01f, "Stance II: x0.6");
+        }
     }
 }

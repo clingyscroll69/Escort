@@ -518,22 +518,28 @@ namespace HS.Hero.Callum
         /// <summary>The first meeting (GDD §8): he introduces himself, and his first rule.</summary>
         public void Greet() => Bark(GreetLines, 2);
 
+        /// <summary>Stance — Unyielding (GDD §6.1): blows from the man he challenged land softer (I: −30%, II: −40%).</summary>
+        public float StanceMultiplier =>
+            (Unlocks & Signature.StanceII) != 0 ? T.stanceIIMul : (Unlocks & Signature.StanceI) != 0 ? T.stanceIMul : 1f;
+
         public override float ModifyIncoming(DamageInfo d)
         {
-            if (d.Tag != "arrow") return d.Amount;
+            float amount = d.Amount;
+            if (d.Source != null && d.Source == Challenged) amount *= StanceMultiplier;
+            if (d.Tag != "arrow") return amount;
             ArrowsTaken++;
             if (Stage >= Stage.S1)
             {
                 if (GuardingArrows)
                 {
                     if (!Attacking) Hero.Presenter?.PlayAction("block", 0.4f);
-                    return d.Amount * ArrowGuardMul;
+                    return amount * ArrowGuardMul;
                 }
                 GuardingArrows = true; // the first volley lands in full; then his guard comes up
                 Bark(GuardLines, 2);
             }
             else if (ArrowsTaken == 1) Bark(StoicLines, 1); // S0: he doesn't flinch
-            return d.Amount;
+            return amount;
         }
 
         public override void OnHurt(DamageInfo d, float applied)

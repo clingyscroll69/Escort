@@ -127,6 +127,10 @@ namespace HS.Core
         [Tooltip("Strike II (chapter 4): the counter lands for 3x.")]
         public float riposteMultiplierII = 3f;
 
+        [Header("Stance: Unyielding (from his challenged opponent)")]
+        public float stanceIMul = 0.7f;
+        public float stanceIIMul = 0.6f;
+
         [Header("Route")]
         public float thresholdPause = 1.5f;
         public float thresholdMaxWait = 6f;
