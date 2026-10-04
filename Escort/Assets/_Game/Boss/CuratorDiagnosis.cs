@@ -48,6 +48,7 @@ namespace HS.Boss
                 case "cheap_shot": l.Add("He waited for a yielded man to rise. The man did not wait for him."); break;
                 case "ambush": l.Add("He walked past a hedge he had no reason to fear."); break;
                 case "spike_plate":
+                case "snare":
                 case "tripwire": l.Add("He watched his opponent, never the ground."); break;
                 case "bolt":
                 case "arrow": l.Add("He would not leave a fair fight to chase a coward on a roof."); break;

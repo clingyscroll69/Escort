@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HS.Rooms
 {
-    public enum HazardKind { SpikePlate, Tripwire }
+    public enum HazardKind { SpikePlate, Tripwire, Snare }
 
     /// <summary>
     /// Environmental hazard (trap corridor, GDD §3 Ch1 "traps"). The loud hero walks his route straight over them; the
@@ -14,6 +14,8 @@ namespace HS.Rooms
     /// Tripwire: trips whoever crosses it (1.2 s down, 8%) and rings the alarm for the bandits nearby. A hazard always
     /// wounds the hero (GDD §4.2) — that is its real cost, so the damage scales with his per-chapter HP instead of
     /// being a flat death trap. Bandits know their own traps; a careful (walking or crouching) sidekick steps over them.
+    /// Snare (Whisperwood): a poacher's rope loop: whoever steps in is yanked off their feet (1.6 s, 6%) — on him, a
+    /// sprained ankle.
     /// </summary>
     public sealed class HazardMarker : MonoBehaviour, ISimTickable, IInteractable, IDynamicVisual
     {
@@ -26,6 +28,8 @@ namespace HS.Rooms
         [Tooltip("Fraction of the victim's max HP.")]
         public float SpikeDamageFraction = 0.18f;
         public float TripwireDamageFraction = 0.08f;
+        public float SnareDamageFraction = 0.06f;
+        public const float SnareTrip = 1.6f;
         public float AlarmRadius = 24f;
 
         public HazardState State { get; private set; } = HazardState.Armed;
@@ -58,7 +62,7 @@ namespace HS.Rooms
             State = HazardState.Disarmed;
             SetVisualSpent(true);
             Vfx.Burst(VfxKind.Glint, transform.position + Vector3.up * 0.4f, 0.6f);
-            RunContext.Current?.Events.RaiseThought(Kind == HazardKind.Tripwire ? "Wire's cut." : "Spikes jammed.");
+            RunContext.Current?.Events.RaiseThought(Kind == HazardKind.Tripwire ? "Wire's cut." : Kind == HazardKind.Snare ? "Snare cut." : "Spikes jammed.");
             RunContext.Current?.Events.RaiseSkillUsed("disarm", who);
         }
 
@@ -79,7 +83,7 @@ namespace HS.Rooms
                 }
                 // The sidekick sees the plate; only a careless run straight across its middle springs it.
                 float r = isSidekick ? Radius * 0.6f : Radius;
-                if (Kind == HazardKind.SpikePlate ? Geo.FlatDistance(a.Position, transform.position) <= r : CrossedWire(a))
+                if (Kind == HazardKind.Tripwire ? CrossedWire(a) : Geo.FlatDistance(a.Position, transform.position) <= r)
                 {
                     Spring(a);
                     return;
@@ -116,6 +120,11 @@ namespace HS.Rooms
                 victim.TakeDamage(DamageInfo.Make(null, victim, Mathf.Round(max * SpikeDamageFraction), DamageKind.Trap, "spike_plate", 0.5f));
                 Vfx.Burst(VfxKind.Sparks, transform.position + Vector3.up * 0.3f);
             }
+            else if (Kind == HazardKind.Snare)
+            {
+                victim.TakeDamage(DamageInfo.Make(null, victim, Mathf.Round(max * SnareDamageFraction), DamageKind.Trap, "snare", SnareTrip));
+                Vfx.Burst(VfxKind.Dust, victim.Position + Vector3.up * 0.2f);
+            }
             else
             {
                 victim.TakeDamage(DamageInfo.Make(null, victim, Mathf.Round(max * TripwireDamageFraction), DamageKind.Trap, "tripwire", 1.2f));
@@ -123,8 +132,11 @@ namespace HS.Rooms
                 // The wire rings a bell: bandits nearby come running.
                 var all = AgentRegistry.All;
                 for (int i = 0; i < all.Count; i++)
-                    if (all[i] is EnemyAgent e && e.State == EnemyState.Dormant && Geo.FlatDistance(e.Position, transform.position) <= AlarmRadius)
-                        e.Activate(0.3f);
+                    if (all[i] is EnemyAgent e && Geo.FlatDistance(e.Position, transform.position) <= AlarmRadius)
+                    {
+                        if (e.Asleep) e.Wake("alarm");
+                        if (e.State == EnemyState.Dormant) e.Activate(0.3f);
+                    }
                 ctx?.Events.RaiseNotice("A bell rings somewhere ahead.");
             }
             SetVisualSpent(true);

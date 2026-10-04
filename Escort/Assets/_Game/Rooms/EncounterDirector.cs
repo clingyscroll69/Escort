@@ -73,6 +73,7 @@ namespace HS.Rooms
                     e.Archetype = m.Archetype;
                     e.Group = room.RoomIndex * 10 + zone.Group;
                     e.StartsHidden = m.Hidden;
+                    e.StartsAsleep = m.Sleeping;
                     e.Elevated = m.Elevated;
                     e.JoinDelay = m.Delay;
                     enc.Enemies.Add(e);

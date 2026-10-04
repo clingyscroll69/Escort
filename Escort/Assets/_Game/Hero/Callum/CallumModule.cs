@@ -191,6 +191,8 @@ namespace HS.Hero.Callum
             else if (Challenged.State == EnemyState.Spared) EndDuel(DuelEndReason.Abandoned);
         }
 
+        public const float ChallengeWakeRadius = 8f;
+
         public void StartChallenge(EnemyAgent target)
         {
             Challenged = target;
@@ -202,6 +204,10 @@ namespace HS.Hero.Callum
             Hero.Presenter?.SetFlag("combat", true);
             Hero.Presenter?.PlayAction("salute");
             Bark(ChallengeLines, 1);
+            // A knight's challenge is loud: anyone dozing nearby is on his feet (and still Unready while he gets up).
+            var all = AgentRegistry.All;
+            for (int i = 0; i < all.Count; i++)
+                if (all[i] is EnemyAgent e && e.Asleep && Geo.FlatDistance(e.Position, Hero.Position) <= ChallengeWakeRadius) e.Wake("challenge");
             _ctx?.Events.DuelStarted?.Invoke(Hero, target);
             DuelBegan?.Invoke(target);
         }

@@ -22,6 +22,8 @@ namespace HS.Enemies
         public bool StartsHidden;
         public bool Elevated;
         public float JoinDelay;
+        /// <summary>Dozing at his post (Whisperwood's poacher camp): Unready until something wakes him.</summary>
+        public bool StartsAsleep;
         /// <summary>Set-piece actor (the rigged duel): only a director wakes it — no sidekick spotting, no ambush springing.</summary>
         public bool Scripted;
 
@@ -66,6 +68,7 @@ namespace HS.Enemies
         {
             Configure(Archetype);
             if (StartsHidden) SetState(EnemyState.Hidden);
+            if (StartsAsleep) FallAsleep();
         }
 
         public void Configure(string archetype)
@@ -173,6 +176,34 @@ namespace HS.Enemies
                 HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Glint, Position + Vector3.up * 1.15f, 0.55f);
         }
 
+        // ------------------------------------------------------------------ sleep (Unready from the start)
+        public const float WakeRadius = 3f, GetUpTime = 1.6f;
+        public bool Asleep => Status.Has(StatusType.Sleeping);
+
+        void FallAsleep()
+        {
+            Status.Apply(StatusType.Sleeping, float.PositiveInfinity, this);
+            Presenter?.PlayAction("sit");
+        }
+
+        /// <summary>Woken (a challenge, a blow, an alarm, the loud hero walking up): he scrambles up — still Unready.</summary>
+        public void Wake(string why)
+        {
+            if (!Asleep) return;
+            Status.Clear(StatusType.Sleeping);
+            Status.Apply(StatusType.Stunned, GetUpTime, this);
+            Presenter?.PlayAction("getup", GetUpTime);
+            if (State == EnemyState.Dormant) Activate();
+        }
+
+        void TickAsleep()
+        {
+            Motor.Move(Vector3.zero, 30f, SimLoop.Dt);
+            Presenter?.SetLocomotion(0f, false);
+            var hero = Ctx != null ? Ctx.Hero : null;
+            if (hero != null && hero.IsAlive && Geo.FlatDistance(Position, hero.Position) <= WakeRadius) Wake("footsteps");
+        }
+
         public bool IsHidden => State == EnemyState.Hidden;
         public bool IsActive => State == EnemyState.Engaged;
 
@@ -215,6 +246,7 @@ namespace HS.Enemies
         protected override void OnHurt(DamageInfo d, float applied)
         {
             base.OnHurt(d, applied);
+            if (Asleep) Wake("hurt"); // after the blow was judged: it fell on a sleeping man
             if (d.Stagger > 0f) CancelAttack();
             // Turncoat: fake surrender at low health (GDD §6.1 "fake surrenders") — once; the ruse doesn't work twice.
             if (Stats.surrenderAtHp > 0f && !_surrenderUsed && State == EnemyState.Engaged && Health.Fraction <= Stats.surrenderAtHp)
@@ -250,6 +282,11 @@ namespace HS.Enemies
         {
             if (!IsAlive) return;
             TimeSinceSidekickHurtMe += dt;
+            if (Asleep)
+            {
+                TickAsleep();
+                return;
+            }
             switch (State)
             {
                 case EnemyState.Dormant:
