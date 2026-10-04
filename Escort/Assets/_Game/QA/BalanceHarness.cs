@@ -105,6 +105,14 @@ namespace HS.QA
             var previous = SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(scene);
             RunState.Clear();
+            // The run ticks on its own loop, from tick 0. A loop left running outside the run (a test that built rooms
+            // without a TearDown) would win SimLoop's one-instance check, and the run would tick on it at wall-clock
+            // speed from wherever it had got to: slow, and a different state hash every time.
+            if (SimLoop.Instance != null)
+            {
+                Debug.LogWarning($"[Harness] a SimLoop was left running ({SimLoop.Instance.gameObject.scene.name}/{SimLoop.Instance.name}, tick {SimLoop.Instance.TickIndex}); the run replaces it");
+                DestroyImmediate(SimLoop.Instance);
+            }
             var loopGo = new GameObject("SimLoop");
             var loop = loopGo.AddComponent<SimLoop>();
             loop.FastTicksPerFrame = TicksPerFrame; // from the very first frame: no real-time ticks, ever (determinism)

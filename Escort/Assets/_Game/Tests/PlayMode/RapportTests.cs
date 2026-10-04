@@ -115,13 +115,30 @@ namespace HS.Tests
             var thug = Enemy(new Vector3(0f, 0f, 2.6f), "thug");
             thug.Status.Apply(StatusType.Stunned, 3f);
             var shooter = Enemy(new Vector3(3f, 0f, 8f), "crossbowman", perch: true);
+            shooter.Status.Apply(StatusType.Blinded, 5f); // sanded: helpless
             StepUntilDuel();
             Use(0, shooter.Position);
             Loop.StepMany(30);
             Assert.Less(shooter.Health.Current, shooter.Health.Max);
             Assert.AreEqual(0f, L.Earned, 1e-3f);
-            Assert.AreEqual(CallumDance.PCaught, L.RawPenaltiesIn(1), 1e-3f, "seen shooting from the shadows: Caught −3");
+            Assert.AreEqual(CallumDance.PCaught, L.RawPenaltiesIn(1), 1e-3f, "seen putting a bolt into a blinded man: Caught −3");
             Assert.Less(_cm.Honor, 100f);
+        }
+
+        [UnityTest]
+        public IEnumerator A_Witnessed_Fair_Shot_Is_Neither_Credited_Nor_Caught()
+        {
+            yield return Setup(new Vector3(4f, 0f, 2f), "crossbow");
+            var thug = Enemy(new Vector3(0f, 0f, 2.6f), "thug");
+            thug.Status.Apply(StatusType.Stunned, 3f);
+            var shooter = Enemy(new Vector3(3f, 0f, 8f), "crossbowman", perch: true);
+            StepUntilDuel();
+            Use(0, shooter.Position);
+            Loop.StepMany(30);
+            Assert.Less(shooter.Health.Current, shooter.Health.Max);
+            Assert.AreEqual(0f, L.Earned, 1e-3f, "he saw it: not an unseen assist");
+            Assert.AreEqual(0f, L.RawPenaltiesIn(1), 1e-3f, "a ready shooter outside his duel is her own fair fight (GDD §6.1 rule 5)");
+            Assert.AreEqual(100f, _cm.Honor, 1e-3f);
         }
 
         [UnityTest]

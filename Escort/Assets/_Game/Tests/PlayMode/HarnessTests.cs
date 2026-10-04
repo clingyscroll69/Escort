@@ -1,4 +1,5 @@
 using System.Collections;
+using HS.Core;
 using HS.QA;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,12 +10,13 @@ namespace HS.Tests
     /// <summary>Task 15: determinism and the balance harness itself.</summary>
     public class HarnessTests
     {
-        GameObject _go;
+        GameObject _go, _stray;
 
         [TearDown]
         public void TearDown()
         {
             if (_go) Object.Destroy(_go);
+            if (_stray) Object.Destroy(_stray);
         }
 
         BalanceHarness Harness(float maxSim)
@@ -41,6 +43,22 @@ namespace HS.Tests
             Assert.AreEqual(a.Hash, b.Hash, "same seed + same deterministic bot ⇒ identical state after the same ticks");
             Assert.AreEqual(a.Earned, b.Earned);
             Assert.AreNotEqual(a.Hash, c.Hash, "a different seed is a different road");
+        }
+
+        [UnityTest]
+        public IEnumerator A_Loop_Left_Running_Does_Not_Drive_The_Run()
+        {
+            var h = Harness(10f);
+            var clean = new BalanceHarness.Row { Seed = 3, Bot = "supportive" };
+            yield return h.RunOne(clean);
+            // What a test that builds rooms without a TearDown leaves behind: a loop ticking at wall-clock speed.
+            _stray = new GameObject("SimLoop");
+            var stray = _stray.AddComponent<SimLoop>();
+            yield return new WaitForSecondsRealtime(0.2f);
+            var after = new BalanceHarness.Row { Seed = 3, Bot = "supportive" };
+            yield return h.RunOne(after);
+            Assert.AreEqual(clean.Hash, after.Hash, "the run ticked on its own loop from tick 0, not on the stray from wherever it had got to");
+            Assert.IsFalse(stray, "the run replaced the stray loop");
         }
 
         [UnityTest]

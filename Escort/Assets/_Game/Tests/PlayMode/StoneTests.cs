@@ -118,6 +118,7 @@ namespace HS.Tests
             var thug = Enemy(new Vector3(0f, 0f, 2.6f), "thug");
             thug.Status.Apply(StatusType.Stunned, 3f);
             var shooter = Enemy(new Vector3(0f, 0f, -8f), "crossbowman", perch: true);
+            shooter.Status.Apply(StatusType.Blinded, 5f); // a bolt into a blinded man is dishonour, if anyone sees it
             if (wall)
             {
                 var w = GameObject.CreatePrimitive(PrimitiveType.Cube);
