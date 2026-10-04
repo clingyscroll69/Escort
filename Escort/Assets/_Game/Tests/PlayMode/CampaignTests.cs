@@ -212,5 +212,21 @@ namespace HS.Tests
             yield return TestUi.WaitUntil(() => flow.Current == GameFlow.State.End, 20f, "the end of chapter 1");
             Assert.AreEqual("chapter_done", flow.Outcome);
         }
+
+        [UnityTest]
+        public IEnumerator The_Play_From_Chapter_Menu_Starts_There_Once()
+        {
+#if UNITY_EDITOR
+            UnityEditor.SessionState.SetInt(GameFlow.PlayFromChapterKey, 3);
+#endif
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow();
+            yield return null;
+            Assert.AreEqual(3, flow.CurrentChapter);
+#if UNITY_EDITOR
+            Assert.AreEqual(0, UnityEditor.SessionState.GetInt(GameFlow.PlayFromChapterKey, 0), "consumed: the next Play starts at the opening");
+#endif
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
     }
 }
