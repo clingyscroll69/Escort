@@ -131,5 +131,37 @@ namespace HS.Tests
             }
             Assert.GreaterOrEqual(seen.Count, 5, "all five modules: " + string.Join(",", seen));
         }
+
+        /// <summary>The crypt cast under chapter 3's light (cultist, tomb robber, ward guardian, shield-bearer, the Prisoner).</summary>
+        [UnityTest]
+        [Timeout(120000)]
+        public IEnumerator Catacombs_Cast() => Cast(3, new[] { "cultist", "tomb_robber", "ward_guardian", "shield_bearer", "scout_prisoner" }, "ch3_cast");
+
+        IEnumerator Cast(int chapter, string[] ids, string shot)
+        {
+#if UNITY_EDITOR
+            UnityEditor.SessionState.SetInt(GameFlow.PlayFromChapterKey, chapter);
+            RunState.Runs = 1;
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(MainScene, new LoadSceneParameters(LoadSceneMode.Single));
+#endif
+            yield return null;
+            var flow = Object.FindAnyObjectByType<GameFlow>();
+            SimLoop.Instance.Paused = true;
+            foreach (var e in Object.FindObjectsByType<HS.Enemies.EnemyAgent>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var assets = GameAssets.Load();
+            var basePos = flow.Chapter.Hero.Position + new Vector3(-(ids.Length - 1), 0f, 3f);
+            for (int i = 0; i < ids.Length; i++)
+            {
+                var go = Object.Instantiate(assets.Enemy(ids[i]), basePos + new Vector3(i * 2f, 0.05f, 0f), Quaternion.Euler(0f, 180f, 0f));
+                if (go.TryGetComponent<HS.Enemies.EnemyAgent>(out var e))
+                {
+                    e.Scripted = true;
+                    e.StartsHidden = false;
+                }
+            }
+            SimLoop.Instance.StepMany(2);
+            yield return new WaitForSecondsRealtime(2.5f);
+            QaCapture.Capture(Camera.main, shot, 1600, 900);
+        }
     }
 }

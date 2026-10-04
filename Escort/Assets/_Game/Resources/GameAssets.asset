@@ -49,8 +49,20 @@ MonoBehaviour:
     prefab: {fileID: 3864306651667042580, guid: 2b49e21f4025c476cb48ea42bd4f944b, type: 3}
   - id: fern_ambusher
     prefab: {fileID: 5677022914477636302, guid: cd4549ca037c14f62adead22bb98f9bf, type: 3}
+  - id: cultist
+    prefab: {fileID: 6020151366358683809, guid: 5189ed4ce744c444fb99a425e8a5f2c4, type: 3}
+  - id: tomb_robber
+    prefab: {fileID: 5211831113997763401, guid: 465e9147947ca48c4a820a76911c6b04, type: 3}
+  - id: ward_guardian
+    prefab: {fileID: 6171369643789653303, guid: 2c6e2ede62e704c5fbd893834b49740f, type: 3}
+  - id: shield_bearer
+    prefab: {fileID: 3302833009671422697, guid: 5e7b6eef826504745bfa6fb5745b3e99, type: 3}
+  - id: alcove_archer
+    prefab: {fileID: 9135179580151064075, guid: 4bab62c850ff1405f8ad1d679dd323b2, type: 3}
   - id: scout_quill
     prefab: {fileID: 4061799378903470936, guid: 3d83b445ca49947d2b08afe80466ef2f, type: 3}
+  - id: scout_prisoner
+    prefab: {fileID: 4293788811397510596, guid: 805f6d712e89f4f58b730fae9284f2a7, type: 3}
   demoProps:
   - id: barrel_stack
     prefab: {fileID: 5136621309628842892, guid: b81027a719c15436dbd2544eb860c0ab, type: 3}

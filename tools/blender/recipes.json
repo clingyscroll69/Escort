@@ -498,5 +498,191 @@
       "chest": "Pendant"
     },
     "skin_variant": "fair"
+  },
+  "Cultist": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Buzzed"
+    ],
+    "scale": 0.98,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 262,
+        "to_sat": 0.3,
+        "val_mul": 0.5
+      }
+    ],
+    "hair_color": [
+      0.15,
+      0.12,
+      0.12
+    ],
+    "eye_color": [
+      0.5,
+      0.45,
+      0.3
+    ],
+    "props": {
+      "hand_r": "Dagger"
+    },
+    "skin_variant": "pale"
+  },
+  "TombRobber": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Long"
+    ],
+    "scale": 0.97,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 38,
+        "to_sat": 0.3,
+        "val_mul": 0.62
+      }
+    ],
+    "hair_color": [
+      0.3,
+      0.24,
+      0.18
+    ],
+    "eye_color": [
+      0.3,
+      0.25,
+      0.2
+    ],
+    "props": {
+      "hand_r": "Dagger"
+    },
+    "skin_variant": "tan"
+  },
+  "WardGuardian": {
+    "role": "enemy",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_Beard"
+    ],
+    "scale": 1.15,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 48,
+        "to_sat": 0.12,
+        "val_mul": 1.35
+      }
+    ],
+    "hair_color": [
+      0.8,
+      0.78,
+      0.72
+    ],
+    "eye_color": [
+      0.6,
+      0.7,
+      0.8
+    ],
+    "props": {
+      "hand_r": "Axe"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "mirror_parts": [
+      "Male_Ranger_Acc_Pauldron"
+    ],
+    "skin_variant": "pale"
+  },
+  "ShieldBearer": {
+    "role": "enemy",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_Buzzed"
+    ],
+    "scale": 1.05,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 220,
+        "to_sat": 0.12,
+        "val_mul": 0.7
+      }
+    ],
+    "hair_color": [
+      0.2,
+      0.16,
+      0.12
+    ],
+    "eye_color": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "props": {
+      "hand_r": "Sword",
+      "hand_l": "Shield"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "skin_variant": "medium"
+  },
+  "Prisoner": {
+    "role": "npc",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Long",
+      "Hair_Beard"
+    ],
+    "scale": 0.95,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 40,
+        "to_sat": 0.12,
+        "val_mul": 0.55
+      }
+    ],
+    "hair_color": [
+      0.36,
+      0.3,
+      0.24
+    ],
+    "eye_color": [
+      0.4,
+      0.4,
+      0.35
+    ],
+    "props": {
+      "chest": "Pendant"
+    },
+    "skin_variant": "fair"
   }
 }

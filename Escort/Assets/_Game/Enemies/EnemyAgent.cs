@@ -544,6 +544,12 @@ namespace HS.Enemies
                 return;
             }
             Target.TakeDamage(d);
+            // A shield-bearer's heavy blow shoves (the bone bridge): swept through the CharacterController, so walls stop it.
+            if (heavy && Stats.shove > 0f && Target != null && Target.IsAlive && Target.Motor != null)
+            {
+                var push = Geo.Flat(Target.Position - Position);
+                if (push.sqrMagnitude > 1e-4f) Target.Motor.MoveExact(push.normalized * Stats.shove / SimLoop.Dt, SimLoop.Dt);
+            }
         }
 
         bool _parried;

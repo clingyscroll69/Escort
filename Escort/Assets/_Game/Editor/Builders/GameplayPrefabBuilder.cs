@@ -62,6 +62,8 @@ namespace HS.EditorTools
             ("turncoat", "Turncoat_Visual", 0.98f), ("ambusher", "Ambusher_Visual", 0.98f), ("archer", "Archer_Visual", 1f),
             ("ashgrave", "Ashgrave_Visual", 1.09f),
             ("poacher", "Poacher_Visual", 1f), ("woodsman", "Woodsman_Visual", 1.12f), ("fern_ambusher", "Ambusher_Visual", 0.98f),
+            ("cultist", "Cultist_Visual", 0.98f), ("tomb_robber", "TombRobber_Visual", 0.97f), ("ward_guardian", "WardGuardian_Visual", 1.15f),
+            ("shield_bearer", "ShieldBearer_Visual", 1.05f), ("alcove_archer", "Archer_Visual", 1f),
         };
 
         /// <summary>Curator scouts (GDD §4.3): id, display name, visual, scale.</summary>
