@@ -76,7 +76,8 @@ namespace HS.Rooms
                 var enc = new Encounter { Room = room, Zone = zone };
                 foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false))
                 {
-                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_") || m.GetComponentInParent<SealDoor>() != null) continue;
+                    if (m.Group != zone.Group || m.Archetype.StartsWith("scout_") || m.GetComponentInParent<SealDoor>() != null
+                        || (m.transform.parent != null && m.transform.parent.name == "SealGuardians")) continue;
                     var prefab = EnemyPrefab?.Invoke(m.Archetype);
                     if (prefab == null)
                     {

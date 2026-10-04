@@ -119,5 +119,30 @@ namespace HS.Tests
             }
             Object.Destroy(b.gameObject);
         }
+
+        [UnityTest]
+        public IEnumerator Catacombs_Build_Four_Crypt_Rooms_Ending_At_The_Vault()
+        {
+            var assets = HS.Core.GameAssets.Load();
+            var b = new GameObject("Chapter").AddComponent<ChapterBuilder>();
+            b.ModulePrefabs = assets.roomModules;
+            b.StartCapPrefab = assets.Cap("crypt_start");
+            b.EndCapPrefab = assets.Cap("crypt_end");
+            Assert.IsNotNull(b.StartCapPrefab, "crypt caps registered");
+            foreach (int seed in new[] { 1, 2, 3 })
+            {
+                b.Build(seed, ChapterDef.For(3));
+                yield return null;
+                Assert.AreEqual(4, b.Rooms.Count);
+                Assert.IsTrue(b.Rooms.All(r => r.Chapter == 3), b.Plan.Signature);
+                Assert.AreEqual("prisoners_cell", b.Rooms[1].ModuleId);
+                Assert.AreEqual("sealed_vault", b.Rooms[3].ModuleId, "the way out is sealed");
+                Assert.IsNotNull(b.Rooms[3].GetComponentInChildren<SealDoor>());
+                var route = b.ChapterRoute();
+                for (int i = 1; i < route.Count; i++)
+                    Assert.Greater(route[i].Position.z, route[i - 1].Position.z - 0.01f, $"route runs forward (seed {seed}, node {i})");
+            }
+            Object.Destroy(b.gameObject);
+        }
     }
 }

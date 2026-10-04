@@ -20,7 +20,7 @@ namespace HS.Rooms
         public float Width = 4.4f;
         public float BreakAfter = 8f;
         public float HeroReach = 3.4f;
-        public float WardDamageFraction = 0.12f;
+        public float WardDamageFraction = 0.1f;
 
         public bool IsOpen { get; private set; }
         public string OpenedBy { get; private set; }
@@ -117,12 +117,14 @@ namespace HS.Rooms
             if (hero.IsAlive) hero.Wounds.Add(WoundType.CrackedRibs);
             if (hero.Module is HS.Hero.Callum.CallumModule cm) cm.Bark(BreakLines, 2);
             Open("broken");
+            var markers = new List<SpawnMarker>();
             var guardians = transform.Find("Guardians");
-            if (guardians != null)
-            {
-                var director = FindAnyObjectByType<EncounterDirector>();
-                director?.SpawnLate(GetComponentInParent<RoomModule>(), guardians.GetComponentsInChildren<SpawnMarker>(true));
-            }
+            if (guardians != null) markers.AddRange(guardians.GetComponentsInChildren<SpawnMarker>(true));
+            var room = GetComponentInParent<RoomModule>();
+            if (room != null)
+                foreach (var m in room.GetComponentsInChildren<SpawnMarker>(false)) // the active variant's extra guardians
+                    if (m.transform.parent != null && m.transform.parent.name == "SealGuardians") markers.Add(m);
+            if (markers.Count > 0) FindAnyObjectByType<EncounterDirector>()?.SpawnLate(room, markers);
         }
 
         static readonly string[] BreakLines = { "Enough of this. Stand back!", "A knight does not wait on a door." };

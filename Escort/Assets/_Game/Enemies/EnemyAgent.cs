@@ -548,7 +548,13 @@ namespace HS.Enemies
             if (heavy && Stats.shove > 0f && Target != null && Target.IsAlive && Target.Motor != null)
             {
                 var push = Geo.Flat(Target.Position - Position);
-                if (push.sqrMagnitude > 1e-4f) Target.Motor.MoveExact(push.normalized * Stats.shove / SimLoop.Dt, SimLoop.Dt);
+                if (push.sqrMagnitude > 1e-4f)
+                {
+                    // Shield first, then a twist: back and to one side (alternating), which is what makes a narrow bridge deadly.
+                    var side = Vector3.Cross(Vector3.up, push.normalized) * (_attackCount % 2 == 0 ? 1f : -1f);
+                    var dir = (push.normalized + side * 0.9f).normalized;
+                    Target.Motor.MoveExact(dir * Stats.shove / SimLoop.Dt, SimLoop.Dt);
+                }
             }
         }
 

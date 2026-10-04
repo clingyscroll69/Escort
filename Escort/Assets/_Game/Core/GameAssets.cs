@@ -20,6 +20,15 @@ namespace HS.Core
         public GameObject[] roomModules;
         public GameObject startCap, endCap, campfire, boss;
         public List<Entry> enemies = new List<Entry>();
+        [Tooltip("Per-chapter road caps by id (road_start, road_end, crypt_start, ...). startCap/endCap are the fallback.")]
+        public List<Entry> caps = new List<Entry>();
+
+        public GameObject Cap(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            foreach (var e in caps) if (e.id == id) return e.prefab;
+            return null;
+        }
         [Tooltip("Props for the skill-demo stage (Tutorial/Demo): barrel stack, crate perch, bush, stone.")]
         public List<Entry> demoProps = new List<Entry>();
 

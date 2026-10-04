@@ -24,6 +24,11 @@ MonoBehaviour:
   - {fileID: 5533807818764241950, guid: 822324ab0945f417d94ea6b7e59b611c, type: 3}
   - {fileID: 255642326989994025, guid: 8ec6c4796648e45338264ba81628a57d, type: 3}
   - {fileID: 8458359635430731966, guid: a3481bad810dc412f9ad7961c34696f9, type: 3}
+  - {fileID: 2522020579993339659, guid: c813ea38605fa42fd98717dd13c9c7c2, type: 3}
+  - {fileID: 6890075472662960538, guid: b3b5f54472e724c779104f3686f01413, type: 3}
+  - {fileID: 7344443144221006368, guid: 242600fdebffd435c9cb21d920aa0ab1, type: 3}
+  - {fileID: 6714984945142144674, guid: f6f6a677a0bbb402e91065de378067df, type: 3}
+  - {fileID: 9163819591627264632, guid: ebd70b24e586543fbb13744f84ab95a4, type: 3}
   startCap: {fileID: 2565406475390565912, guid: d61ffa3dc0f944171a17ee1a272e1bd5, type: 3}
   endCap: {fileID: 6994372652283867513, guid: 9f5ac72f03ae04a338153ea3d36d4a47, type: 3}
   campfire: {fileID: 5689191470066184679, guid: 7071fdfdfaa524ca1be234ac7456f865, type: 3}
@@ -63,6 +68,15 @@ MonoBehaviour:
     prefab: {fileID: 4061799378903470936, guid: 3d83b445ca49947d2b08afe80466ef2f, type: 3}
   - id: scout_prisoner
     prefab: {fileID: 4293788811397510596, guid: 805f6d712e89f4f58b730fae9284f2a7, type: 3}
+  caps:
+  - id: road_start
+    prefab: {fileID: 2565406475390565912, guid: d61ffa3dc0f944171a17ee1a272e1bd5, type: 3}
+  - id: road_end
+    prefab: {fileID: 6994372652283867513, guid: 9f5ac72f03ae04a338153ea3d36d4a47, type: 3}
+  - id: crypt_start
+    prefab: {fileID: 2452795507792420981, guid: 6f90ae7844bd3401fad676750642b6d2, type: 3}
+  - id: crypt_end
+    prefab: {fileID: 5088826280005458390, guid: bdd656edfb7fe4c28a0db010346a0a3b, type: 3}
   demoProps:
   - id: barrel_stack
     prefab: {fileID: 5136621309628842892, guid: b81027a719c15436dbd2544eb860c0ab, type: 3}

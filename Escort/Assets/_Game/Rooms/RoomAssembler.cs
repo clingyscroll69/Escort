@@ -30,6 +30,8 @@ namespace HS.Rooms
         public int ModuleChapter = 1;
         /// <summary>The Gallery: the door and the boss follow its rooms; no campfire.</summary>
         public bool Final;
+        /// <summary>Road caps (GameAssets.caps ids); null uses the Old Road's.</summary>
+        public string CapStart, CapEnd;
         public List<ChapterSlot> Slots = new List<ChapterSlot>();
 
         public static ChapterDef For(int chapter) => chapter switch
@@ -55,7 +57,7 @@ namespace HS.Rooms
             },
         };
 
-        // Chapters 3–5: their rooms come with Plans 3–5. Until then they borrow the Old Road's modules under their own light.
+        // Chapters 4–5: their rooms come with Plans 4–5. Until then they borrow the Old Road's modules under their own light.
         /// <summary>Chapter 2 "Whisperwood": attrition and ambushes — four of five forest modules, Quill's glade always.</summary>
         public static ChapterDef Whisperwood() => new ChapterDef
         {
@@ -69,10 +71,17 @@ namespace HS.Rooms
             },
         };
 
+        /// <summary>Chapter 3 "Catacombs of Ends": information, seals, social — the Prisoner's cell 2nd, the sealed vault last.</summary>
         public static ChapterDef Catacombs() => new ChapterDef
         {
-            Chapter = 3, Name = "Catacombs of Ends", Theme = "catacombs", ModuleChapter = 1,
-            Slots = { new ChapterSlot(RoomKind.TrapCorridor, RoomKind.Combat), Any(), Any(), Any() },
+            Chapter = 3, Name = "Catacombs of Ends", Theme = "catacombs", ModuleChapter = 3, CapStart = "crypt_start", CapEnd = "crypt_end",
+            Slots =
+            {
+                new ChapterSlot(RoomKind.Combat, RoomKind.TrapCorridor),
+                new ChapterSlot(RoomKind.Social),
+                new ChapterSlot(RoomKind.TrapCorridor, RoomKind.SetPiece, RoomKind.Combat),
+                new ChapterSlot(RoomKind.Seal),
+            },
         };
 
         public static ChapterDef SunkenBastion() => new ChapterDef

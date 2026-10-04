@@ -23,11 +23,15 @@ namespace HS.EditorTools
             GameObject L(string p) => AssetDatabase.LoadAssetAtPath<GameObject>(p);
             a.hero = L(GameplayPrefabBuilder.Dir + "/Callum.prefab");
             a.sidekick = L(GameplayPrefabBuilder.Dir + "/Sidekick.prefab");
-            a.roomModules = new[] { "crossroads_shrine", "toll_gate", "ruined_gatehouse", "wagon_camp" }.Concat(WhisperwoodRooms.Ids)
+            a.roomModules = new[] { "crossroads_shrine", "toll_gate", "ruined_gatehouse", "wagon_camp" }.Concat(WhisperwoodRooms.Ids).Concat(CatacombRooms.Ids)
                 .Select(id => L($"{RoomBuilder.Dir}/{id}.prefab")).Where(p => p != null).ToArray();
             a.startCap = L(RoomBuilder.Dir + "/road_cap_start.prefab");
             a.endCap = L(RoomBuilder.Dir + "/road_cap_end.prefab");
             a.campfire = L(RoomBuilder.Dir + "/campfire.prefab");
+            a.caps.Clear();
+            a.caps.Add(new GameAssets.Entry { id = "road_start", prefab = a.startCap });
+            a.caps.Add(new GameAssets.Entry { id = "road_end", prefab = a.endCap });
+            foreach (var id in CatacombRooms.Caps) a.caps.Add(new GameAssets.Entry { id = id, prefab = L($"{RoomBuilder.Dir}/{id.Replace("crypt_", "crypt_cap_")}.prefab") });
             a.boss = L(RoomBuilder.Dir + "/rigged_duel.prefab");
             a.enemies.Clear();
             foreach (var (arch, _, _) in GameplayPrefabBuilder.Enemies)

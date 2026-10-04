@@ -254,7 +254,7 @@ namespace HS.Core
             // Catacombs of Ends (chapter 3): cultists doze in the crypt, tomb robbers feign surrender, the ward wakes guardians.
             new EnemyStats { id = "cultist", displayName = "Cultist", maxHp = 75, speed = 4.3f, damage = 12, kind = DamageKind.Melee, windup = 0.5f, recovery = 0.95f, range = 1.8f, cheater = true },
             new EnemyStats { id = "tomb_robber", displayName = "Tomb Robber", maxHp = 85, speed = 4.4f, damage = 11, kind = DamageKind.Melee, windup = 0.5f, recovery = 0.95f, range = 1.8f, surrenderAtHp = 0.36f, cheapShotDamage = 64, cheater = true },
-            new EnemyStats { id = "ward_guardian", displayName = "Ward Guardian", maxHp = 190, speed = 3.4f, damage = 18, kind = DamageKind.Melee, windup = 0.75f, recovery = 1.0f, range = 2.2f, heavyDamage = 70, heavyWindup = 1.2f, heavyEvery = 3 },
+            new EnemyStats { id = "ward_guardian", displayName = "Ward Guardian", maxHp = 170, speed = 3.4f, damage = 16, kind = DamageKind.Melee, windup = 0.75f, recovery = 1.0f, range = 2.2f, heavyDamage = 56, heavyWindup = 1.2f, heavyEvery = 4 },
             new EnemyStats { id = "shield_bearer", displayName = "Shield-Bearer", maxHp = 130, speed = 3.8f, damage = 14, kind = DamageKind.Melee, windup = 0.6f, recovery = 1.0f, range = 2.0f, heavyDamage = 24, heavyWindup = 0.9f, heavyEvery = 3, shove = 3f },
             new EnemyStats { id = "alcove_archer", displayName = "Alcove Archer", maxHp = 45, speed = 3.8f, damage = 18, kind = DamageKind.Ranged, windup = 0f, recovery = 0.5f, range = 22f, ranged = true, projectileSpeed = 30f, aimTime = 1.0f, reload = 4.4f, cheater = true },
             // The rigged duel must outlast the volley signal (T+25 s) by several volleys: a durable, measured duellist.

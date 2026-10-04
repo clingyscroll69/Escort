@@ -111,6 +111,8 @@ namespace HS.Flow
             ctx.Seed = seed;
             if (Director != null) Director.Ledger.Chapter = chapter;
             Def = ChapterDef.For(chapter);
+            Chapter.StartCapPrefab = assets.Cap(Def.CapStart) ?? assets.startCap;
+            Chapter.EndCapPrefab = assets.Cap(Def.CapEnd) ?? assets.endCap;
             Chapter.Build(seed, Def);
             ChapterTheme.Apply(Def.Theme);
             Hero.Motor.Teleport(new Vector3(0f, 0.05f, -1.5f));

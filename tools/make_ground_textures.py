@@ -107,9 +107,48 @@ def bog():
     col = np.where(gloss & t, col + 0.12, col)
     save(col, 'T_Ground_Bog')
 
+def slabs(name, base, var, grout, seed, cell=128, offset=True):
+    """Stone slabs in running bond with dark grout."""
+    global rng
+    rng = np.random.default_rng(seed)
+    n = tile_noise(7)
+    fine = tile_noise(40, 2)
+    col = np.array(base) * (0.82 + 0.3 * n[..., None]) * (0.9 + 0.2 * fine[..., None])
+    tint = np.zeros((N, N, 1))
+    for r in range(0, N, cell):
+        sh = (cell // 2) if (offset and (r // cell) % 2) else 0
+        for c in range(0, N, cell):
+            v = 1 + (rng.random() - 0.5) * var
+            x0 = (c + sh) % N
+            xs = np.arange(x0, x0 + cell) % N
+            tint[r:r + cell, xs] = v
+    col = col * tint
+    g = np.zeros((N, N))
+    for r in range(0, N, cell):
+        g[r:r + 5, :] = 1
+        sh = (cell // 2) if (offset and (r // cell) % 2) else 0
+        for c in range(0, N, cell):
+            x = (c + sh) % N
+            g[r:r + cell, x:x + 5] = 1
+    col = np.where(g[..., None] > 0, np.array(grout), col)
+    save(col, name)
+
+def crypt():
+    slabs('T_Ground_CryptFloor', [0.36, 0.34, 0.33], 0.25, [0.12, 0.11, 0.11], 31)
+    slabs('T_Ground_CryptAisle', [0.5, 0.46, 0.42], 0.18, [0.2, 0.18, 0.16], 32, 64)
+    global rng
+    rng = np.random.default_rng(33)
+    n = tile_noise(6)
+    col = np.array([0.04, 0.035, 0.04]) * (0.6 + 0.8 * n[..., None])
+    specks = (rng.random((N, N)) > 0.995)[..., None]
+    col = np.where(specks, np.array([0.18, 0.16, 0.14]), col)
+    save(col, 'T_Ground_Pit')
+
 which = sys.argv[1] if len(sys.argv) > 1 else 'road'
 if which in ('all', 'road'):
     grass(); dirt(); flagstone()
 if which in ('all', 'forest'):
     forest(); forest_path(); bog()
+if which in ('all', 'crypt'):
+    crypt()
 print('ground textures written:', which)

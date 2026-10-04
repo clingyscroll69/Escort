@@ -113,5 +113,37 @@ namespace HS.Tests
             yield return h.RunAll();
             Debug.Log("[balance ch2]\n" + BalanceHarness.Summary(h.Rows));
         }
+
+        /// <summary>No soft-locks in the crypt either (seals, plates, the bridge).</summary>
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator Catacombs_Runs_Always_Finish()
+        {
+            var h = Harness(900f);
+            h.StartChapter = 3;
+            h.StopAfterChapter = 3;
+            foreach (var bot in new[] { "idle", "supportive" })
+            foreach (int seed in new[] { 1, 2, 3 })
+            {
+                var row = new BalanceHarness.Row { Seed = seed, Bot = bot };
+                yield return h.RunOne(row);
+                Debug.Log($"[harness ch3] {bot} seed {seed}: {row.Outcome} rooms {row.RoomsCleared} solo {row.SoloOk}/{row.Encounters} sim {row.SimSeconds:0}s {row.Rooms}");
+                Assert.AreNotEqual("timeout", row.Outcome, $"{bot} seed {seed} finished ({row.Rooms})");
+            }
+        }
+
+        [UnityTest]
+        [Category("QA")]
+        [Timeout(1800000)]
+        public IEnumerator Balance_Catacombs()
+        {
+            var h = Harness(900f);
+            h.StartChapter = 3;
+            h.StopAfterChapter = 3;
+            h.Seeds = new System.Collections.Generic.List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            h.Bots = new System.Collections.Generic.List<string> { "idle", "supportive" };
+            h.OutDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../docs/qa/balance/ch3"));
+            yield return h.RunAll();
+        }
     }
 }

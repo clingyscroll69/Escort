@@ -97,13 +97,21 @@ namespace HS.Tests
         /// <summary>Every Whisperwood module, staged mid-room (sim paused): docs/qa/shots/ch2_&lt;module&gt;.png.</summary>
         [UnityTest]
         [Timeout(240000)]
-        public IEnumerator Whisperwood_Rooms()
+        public IEnumerator Whisperwood_Rooms() => RoomsOf(2, new[] { 1, 2, 4 }, 5);
+
+        /// <summary>Every Catacombs module: docs/qa/shots/ch3_&lt;module&gt;.png.</summary>
+        [UnityTest]
+        [Timeout(240000)]
+        public IEnumerator Catacombs_Rooms() => RoomsOf(3, new[] { 1, 2, 3, 4, 5 }, 5);
+
+        IEnumerator RoomsOf(int chapter, int[] seeds, int expect)
         {
             var seen = new System.Collections.Generic.HashSet<string>();
-            foreach (int seed in new[] { 1, 2, 4 })
+            foreach (int seed in seeds)
             {
+                if (seen.Count >= expect) break;
 #if UNITY_EDITOR
-                UnityEditor.SessionState.SetInt(GameFlow.PlayFromChapterKey, 2);
+                UnityEditor.SessionState.SetInt(GameFlow.PlayFromChapterKey, chapter);
                 RunState.Runs = 1;
                 yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(MainScene, new LoadSceneParameters(LoadSceneMode.Single));
 #endif
@@ -113,7 +121,7 @@ namespace HS.Tests
                 {
                     flow.Chapter.TeardownChapter();
                     flow.Chapter.Seed = seed;
-                    flow.Chapter.BuildChapter(2, seed);
+                    flow.Chapter.BuildChapter(chapter, seed);
                 }
                 SimLoop.Instance.Paused = true;
                 var hero = flow.Chapter.Hero;
@@ -123,13 +131,13 @@ namespace HS.Tests
                     if (!seen.Add(room.ModuleId)) continue;
                     var z = room.transform.position.z;
                     hero.Motor.Teleport(new Vector3(0f, 0.05f, z + room.Length * 0.42f));
-                    sk.Motor.Teleport(new Vector3(-1.8f, 0.05f, z + room.Length * 0.32f));
+                    sk.Motor.Teleport(new Vector3(-1.4f, 0.05f, z + room.Length * 0.32f));
                     SimLoop.Instance.StepMany(2); // the visuals interpolate between sim ticks: let them arrive
                     yield return new WaitForSecondsRealtime(1.6f);
-                    QaCapture.Capture(Camera.main, "ch2_" + room.ModuleId, 1600, 900);
+                    QaCapture.Capture(Camera.main, $"ch{chapter}_" + room.ModuleId, 1600, 900);
                 }
             }
-            Assert.GreaterOrEqual(seen.Count, 5, "all five modules: " + string.Join(",", seen));
+            Assert.GreaterOrEqual(seen.Count, expect, "all modules: " + string.Join(",", seen));
         }
 
         /// <summary>The crypt cast under chapter 3's light (cultist, tomb robber, ward guardian, shield-bearer, the Prisoner).</summary>

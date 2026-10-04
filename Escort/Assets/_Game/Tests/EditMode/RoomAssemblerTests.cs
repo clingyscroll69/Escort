@@ -25,7 +25,16 @@ namespace HS.Tests
                 new ModuleInfo { Id = "quills_glade", Kind = RoomKind.Social, Variants = 2, Chapter = 2 },
                 new ModuleInfo { Id = "poacher_camp", Kind = RoomKind.Combat, Variants = 2, Chapter = 2 },
             }
-            : Library();
+            : moduleChapter == 3
+                ? new List<ModuleInfo>
+                {
+                    new ModuleInfo { Id = "sealed_vault", Kind = RoomKind.Seal, Variants = 2, Chapter = 3 },
+                    new ModuleInfo { Id = "dark_gallery", Kind = RoomKind.TrapCorridor, Variants = 2, Chapter = 3 },
+                    new ModuleInfo { Id = "crypt_of_sleepers", Kind = RoomKind.Combat, Variants = 2, Chapter = 3 },
+                    new ModuleInfo { Id = "prisoners_cell", Kind = RoomKind.Social, Variants = 2, Chapter = 3 },
+                    new ModuleInfo { Id = "bone_bridge", Kind = RoomKind.SetPiece, Variants = 2, Chapter = 3 },
+                }
+                : Library();
 
         [Test]
         public void Whisperwood_Always_Has_Quills_Glade_And_Four_Distinct_Rooms()
@@ -107,7 +116,7 @@ namespace HS.Tests
         {
             int differ = 0;
             for (int s = 0; s < 10; s++)
-                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(3), Library()).Signature) differ++;
+                if (RoomAssembler.Plan(s, ChapterDef.For(1), Library()).Signature != RoomAssembler.Plan(s, ChapterDef.For(4), Library()).Signature) differ++;
             Assert.GreaterOrEqual(differ, 8, "the chapter number is mixed into the seed");
         }
     }
