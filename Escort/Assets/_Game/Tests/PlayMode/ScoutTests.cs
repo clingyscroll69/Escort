@@ -121,5 +121,23 @@ namespace HS.Tests
             _quill.Report(_stones);
             Assert.AreEqual(1, _stones.IntelLevel, "and, never caught out, he reports");
         }
+            [UnityTest]
+        public IEnumerator Darian_Wren_Is_A_Rival_Hero_On_A_Scouts_Errand()
+        {
+            yield return Stage();
+            var go = HS.Rooms.CastFactory.Spawn("scout_wren", new Vector3(4f, 0.05f, 12f), Quaternion.identity, null);
+            Assert.IsNotNull(go, "Wren wears a body even before his own prefab is built");
+            var wren = go.GetComponent<Scout>();
+            yield return null;
+            Assert.AreEqual("wren", wren.ScoutId);
+            Assert.AreEqual("Darian Wren", wren.DisplayName);
+            Assert.AreEqual("Talk to Darian Wren", wren.Prompt);
+            Assert.AreEqual(1, wren.GiftRations, "a gift between colleagues");
+            _sk.Motor.Teleport(new Vector3(4f, 0.05f, 2f));
+            Loop.Step();
+            Assert.GreaterOrEqual(wren.FirstSeenAt, 0f);
+            Ctx.Events.RaisePing(new PingInfo { Point = wren.Position, Target = wren, Meaning = "mark" });
+            Assert.IsTrue(wren.Unmasked, "the same pendant, the same tell");
+        }
     }
 }

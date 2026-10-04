@@ -14,7 +14,7 @@ namespace HS.Boss
     /// <summary>
     /// The Duet Finisher (GDD §4.5a step 3). At 25% the Mirror reaches for the code (a 1.5 s tell); Callum glances at her
     /// and a Link ring closes around her for 1.0 s (Hold Please 2.0 s, Silent Partner 1.6 s) while his Judgment charges.
-    /// Her capstone inside it — with no capstone, a ping on the Mirror — is the Duet: the capstone's Duet form, then
+    /// Her capstone inside it — with none ready, a ping on the Mirror — is the Duet: the capstone's Duet form, then
     /// Judgment takes whatever the Mirror has left. A miss: its riposte (12% of his max HP and a wound), and the ring
     /// returns 10 s later. At S0 the Terms counter closes it: "No aid."
     /// </summary>
@@ -76,12 +76,13 @@ namespace HS.Boss
         EnemyAgent Mirror => _brain.Self;
         Stage Stage => _hero != null ? _hero.Stage : Stage.S0;
 
-        string CapstoneId()
+        SkillState Capstone()
         {
             var skills = _sk != null ? _sk.GetComponent<SidekickSkills>() : null;
-            var cap = skills != null ? skills.System.Capstone : null;
-            return cap != null ? cap.Id : null;
+            return skills != null ? skills.System.Capstone : null;
         }
+
+        string CapstoneId() => Capstone()?.Id;
 
         public void Tick(float dt)
         {
@@ -136,7 +137,6 @@ namespace HS.Boss
             Remaining = Window;
             Current = Step.Ring;
             _cm?.Bark(GlanceLines(Stage), 3);
-            if (_hero != null && _sk != null) _hero.Presenter?.PlayAction("guard", Window + 0.5f);
             ShowRing(true, 1f);
             HS.Audio.AudioDirector.Instance?.Play("ui_confirm", _sk != null ? _sk.Position : (Vector3?)null, 0.7f, 0.05f, 0f);
             RingOpened?.Invoke();
@@ -161,8 +161,10 @@ namespace HS.Boss
 
         void OnPing(PingInfo p)
         {
-            // With no capstone, her ping on the Mirror is the Duet.
-            if (Open && p.Target == Mirror && CapstoneId() == null) Link(null);
+            // With no capstone ready (none chosen, or still resting), her ping on the Mirror is the Duet: the ring's timing is
+            // the Mirror's, and a trick spent a minute ago must not lock the finish away.
+            var cap = Capstone();
+            if (Open && p.Target == Mirror && (cap == null || !cap.Ready)) Link(null);
         }
 
         void Link(string capstoneId)

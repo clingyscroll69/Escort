@@ -66,6 +66,17 @@ Room); Stance I; Recall and the Downed state from chapter 3 on; Splint & Stitch,
 Prisoner's cell, bone bridge) with crypt road caps; hidden plates; rune seals and iron gates (key, Read Runes, Lockpick, or
 Callum breaks the ward at a cost); the pit; the Prisoner (scout); Finisher I (Judgment); S2 Look Away and the 1 s wait on
 cheaters; the dossier scrap at the chapter 3 campfire; Read Runes, Lockpick, Map Sketch, Buckler.
+*Built (chapter 4, 2026-10-04):* the Sunken Bastion's five flooded modules (flooded gate, sluice works, hostage court,
+baiters' causeway, Wren's rampart) with bastion caps; wading water; the sluice wheel (a split threat: its crew is out of
+his reach, jam it or stop them); hostages (he won't strike through one; untie her); challenge-baiters; the nemesis squad
+(one more cheat and faster reloads per Curator Intel level); Darian Wren the scout; Strike II and Stance II; Bait &
+Switch, Smoke Bomb, Pep Talk, Shoulder Check; the capstone reveal at the last campfire (Domino Effect, Crossfire, Hold
+Please, Silent Partner), on a key of its own.
+*Built (chapter 5, 2026-10-04):* the Gallery's approach (the Hall of Exhibits, the Long Gallery: stones that never sleep
+and sweep) and its arena; the boss in four phases (the diagnosis; the rigged duel with six archers and terms by Stage;
+Ashgrave unmasked; the Mirror with Habit Breaks, the Feint/Goad/Terms counters and the Duet Finisher); S3, Fair to Cheat
+a Cheater, and Duet Windows; the ending (his "we" line, `STATUS: LISTED`, a class re-roll she may decline). See
+`docs/superpowers/plans/2026-10-04-chapter-4-sunken-bastion.md` and `docs/superpowers/plans/2026-10-04-chapter-5-gallery.md`.
 
 - **Modules per chapter:** about 5 (combat arena, trap corridor, ambush, seal or puzzle, social, set piece), plus a campfire.
 - **Hero death ends the run.** The game then offers **Restore Points** (chapter starts).

@@ -30,7 +30,7 @@
 | Goad | S0, S1 (Honor) | Each Habit Break he sees costs him Major Honor |
 | Terms | S0 (no aid) | At the Duet he refuses: "No aid." The window never opens |
 
-- **Duet Finisher:** at 25% it "reaches for the code" (1.5 s tell); then Callum glances at her and a Link ring circles her for 1.0 s (Hold Please 2.0 s, Silent Partner 1.6 s) while his Judgment charges. Her capstone inside the ring (with no capstone, a ping on the Mirror) lands the Duet: its form (Plan 4 table), then Judgment takes whatever the Mirror has left. A miss: its riposte (12% of his max HP, a wound), and the ring returns 10 s later.
+- **Duet Finisher:** at 25% it "reaches for the code" (1.5 s tell); then Callum glances at her and a Link ring circles her for 1.0 s (Hold Please 2.0 s, Silent Partner 1.6 s) while his Judgment charges. Her capstone inside the ring (with none ready — not chosen, or still resting — a ping on the Mirror) lands the Duet: its form (Plan 4 table), then Judgment takes whatever the Mirror has left. A miss: its riposte (12% of his max HP, a wound), and the ring returns 10 s later.
 - **Aftermath:** the pendant glows for the first time; his "we" line by Stage; the System window: `CLASS: CALLUM's SIDEKICK. STATUS: LISTED`, and a class re-roll she can decline.
 - **Loss:** the Curator's diagnosis by phase and cause, the Post-Mortem, Restore (before the door, or any chapter start).
 - **The approach** (2 fixed rooms, Moment budget 40): *Hall of Exhibits* (Combat: plinth stones that wake for his duels, exhibits that replay his road, gallery wardens and a marksman) and *The Long Gallery* (TrapCorridor: stones that never sleep and sweep their gaze, so unseen means smoke, angles and patience; wardens, marksmen on balconies, a steward who yields falsely).

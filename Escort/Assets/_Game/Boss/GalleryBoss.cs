@@ -53,6 +53,7 @@ namespace HS.Boss
         Vector3[] _niches;
         bool _told;
         readonly List<(float t, string who)> _recentHits = new List<(float, string)>();
+        List<string> _opening;
 
         void OnEnable() => SimLoop.Register(this);
 
@@ -221,7 +222,7 @@ namespace HS.Boss
         void TickDiagnosis()
         {
             HoldAshgrave(true);
-            var lines = CuratorDiagnosis.Opening(_hero.Stage);
+            var lines = _opening ?? (_opening = CuratorDiagnosis.Opening(_hero.Stage));
             float[] at = { 0.4f, 3.3f, 6.2f, 9.0f };
             for (int i = 0; i < lines.Count && i < at.Length; i++)
                 if (At(at[i]))

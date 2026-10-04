@@ -171,7 +171,7 @@ namespace HS.Tutorial
             L("habit_break", Tip, Hero, "mirror", "An old habit",
                 "It reeled, and it takes double while it does. Its habits are the openings: courtesy, the narrows, the Code.", priority: 70, duration: 9f),
             L("link_ring", Tip, Hero, "link", "He's looking at you",
-                "Fire your last trick ({capstone}) before the ring closes. With nothing on that key, ping it.", priority: 110, duration: 4f, expiry: 2f),
+                "Fire your last trick ({capstone}) before the ring closes. With nothing ready on that key, ping it.", priority: 110, duration: 4f, expiry: 2f),
             L("duet_window", Tip, Hero, "duet", "A hand",
                 "He asked for a hand on this one. Every blow you land on his opponent while he gathers himself goes into his.", priority: 70, duration: 8f),
 

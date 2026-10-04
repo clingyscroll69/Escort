@@ -416,6 +416,7 @@ namespace HS.Flow
                     case GalleryBoss.Phase.Unmasking: Chapter.Hud.ShowBoss(null, ""); break;
                     case GalleryBoss.Phase.Mirror:
                         Chapter.Hud.ShowBoss(Duel.Mirror, "THE MIRROR");
+                        Chapter.Camera.RemoveFocus(Duel.Ashgrave.transform);
                         Chapter.Camera.AddFocus(Duel.Mirror.transform, 0.6f, 1.6f);
                         _ctx.Get<OpportunityDirector>()?.Judge?.NewFight();
                         break;
