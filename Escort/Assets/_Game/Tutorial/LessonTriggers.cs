@@ -274,9 +274,26 @@ namespace HS.Tutorial
             }
         }
 
-        /// <summary>Hunger, snares, sleepers, scouts, the mire, being Downed (chapter 2 on).</summary>
+        /// <summary>Hunger, snares, sleepers, scouts, the mire, being Downed (chapter 2 on); seals, plates, Judgment, Look Away, the drop (chapter 3 on).</summary>
         void ScanChapter2(SidekickAgent sk, HeroAgent hero)
         {
+            foreach (var seal in SealDoor.All)
+                if (seal != null && !seal.IsOpen && (Geo.FlatDistance(seal.transform.position, sk.Position) <= 14f || Geo.FlatDistance(seal.transform.position, hero.Position) <= 10f))
+                {
+                    var sd = seal;
+                    _d.Offer("seal", () => sd == null || sd.IsOpen, () => sd != null && !sd.IsOpen ? sd.transform.position + Vector3.up * 3.4f : (Vector3?)null);
+                    break;
+                }
+            foreach (var h in HazardMarker.All)
+                if (h != null && h.Hidden && h.Revealed && h.State == HazardMarker.HazardState.Armed && Geo.FlatDistance(h.transform.position, sk.Position) <= 6f)
+                {
+                    var plate = h;
+                    _d.Offer("hidden_plate", marker: () => plate != null && plate.State == HazardMarker.HazardState.Armed ? plate.transform.position + Vector3.up * 0.6f : (Vector3?)null);
+                    break;
+                }
+            if (_cm != null && _cm.FinisherCharging) _d.Offer("finisher", spotlight: HeroSpot);
+            if (_cm != null && _cm.LookingAway) _d.Offer("look_away", spotlight: HeroSpot);
+            if (hero.Status.Has(StatusType.Stunned) && FindPit(hero.Position)) _d.Offer("pit");
             if (hero.Hunger.Hungry) _d.Offer("hunger");
             if (sk.IsDowned) _d.Offer("downed");
             if (hero.Motor.TerrainMul < 0.99f) _d.Offer("mud");
@@ -350,6 +367,13 @@ namespace HS.Tutorial
                         () => prop != null && prop.State == ArmableProp.PropState.Idle ? prop.InteractPosition + Vector3.up * 1.6f : (Vector3?)null);
                     break;
                 }
+        }
+
+        static bool FindPit(Vector3 p)
+        {
+            foreach (var z in UnityEngine.Object.FindObjectsByType<PitZone>(FindObjectsSortMode.None))
+                if (z.Contains(p)) return true;
+            return false;
         }
 
         // ---------------------------------------------------------------------------------------------- helpers

@@ -323,6 +323,12 @@ namespace HS.Tests
         /// <summary>Click the middle of a UI element through the EventSystem: whatever is drawn on top there takes it.</summary>
         static void Click(string name)
         {
+            // A card in the picker's scrolling list: scroll it into view first, as a player would.
+            if (name.StartsWith("Skill_"))
+            {
+                Object.FindAnyObjectByType<SkillPicker>()?.ScrollTo(name.Substring(6));
+                Canvas.ForceUpdateCanvases(); // the mask re-culls on the canvas update (a player's next frame)
+            }
             var target = Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None)
                 .FirstOrDefault(r => r.name == name && r.gameObject.activeInHierarchy);
             Assert.IsNotNull(target, name + " is on screen");

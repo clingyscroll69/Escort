@@ -41,7 +41,32 @@ namespace HS.UI
         float _flourishT = -1f;
         object _gate;
 
-        const float W = 1640f, H = 940f, ListW = 470f, CardH = 88f;
+        const float W = 1640f, H = 940f, ListW = 470f, CardH = 88f, ListViewH = 680f;
+        RectTransform _viewport, _scrollThumb;
+        ScrollRect _scroll;
+
+        /// <summary>Bring a card into the list's view (selection, pads, tests).</summary>
+        public void ScrollTo(string id)
+        {
+            if (_scroll == null || !_rows.ContainsKey(id)) return;
+            int index = Pool.Select(d => d.id).ToList().IndexOf(id);
+            if (index < 0) return;
+            float top = index * CardH, bottom = top + CardH, y = _list.anchoredPosition.y;
+            if (top < y) y = top;
+            else if (bottom > y + ListViewH) y = bottom - ListViewH;
+            _list.anchoredPosition = new Vector2(_list.anchoredPosition.x, Mathf.Clamp(y, 0f, Mathf.Max(0f, _list.sizeDelta.y - ListViewH)));
+            UpdateThumb();
+        }
+
+        void UpdateThumb()
+        {
+            if (_scrollThumb == null) return;
+            float range = Mathf.Max(1f, _list.sizeDelta.y - ListViewH);
+            float t = Mathf.Clamp01(_list.anchoredPosition.y / range);
+            _scrollThumb.anchoredPosition = new Vector2(0f, -t * (ListViewH - _scrollThumb.sizeDelta.y));
+        }
+
+        void LateUpdate() => UpdateThumb();
 
         sealed class Row
         {
@@ -90,7 +115,29 @@ namespace HS.UI
             _hint = UIKit.Text(_window, "Hint", "", UIKit.Sans, 19, UIKit.Dim, TextAlignmentOptions.TopLeft);
             UIKit.Place(_hint.rectTransform, new Vector2(0f, 1f), new Vector2(36f, -70f), new Vector2(W - 72f, 26f));
             // Left: one card per skill.
-            _list = UIKit.Rect(_window, "List", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(ListW, 640f), new Vector2(36f, -108f));
+            // The card list scrolls (the campaign offers far more tricks than fit): a masked viewport, wheel and pad scroll it,
+            // and selecting a card brings it into view.
+            _viewport = UIKit.Rect(_window, "ListViewport", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(ListW + 12f, ListViewH), new Vector2(30f, -108f));
+            _viewport.gameObject.AddComponent<RectMask2D>();
+            var catcher = _viewport.gameObject.AddComponent<Image>();
+            catcher.color = new Color(0f, 0f, 0f, 0.001f); // wheel events need a raycast target under the cards
+            int n = Pool.Count();
+            _list = UIKit.Rect(_viewport, "List", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(ListW, Mathf.Max(ListViewH, n * CardH)), new Vector2(6f, 0f));
+            _scroll = _viewport.gameObject.AddComponent<ScrollRect>();
+            _scroll.content = _list;
+            _scroll.viewport = _viewport;
+            _scroll.horizontal = false;
+            _scroll.vertical = true;
+            _scroll.movementType = ScrollRect.MovementType.Clamped;
+            _scroll.inertia = false;
+            _scroll.scrollSensitivity = 40f;
+            if (n * CardH > ListViewH)
+            {
+                _scrollThumb = UIKit.Image(_viewport, "Thumb", UIKit.Panel, new Color(UIKit.SystemCyan.r, UIKit.SystemCyan.g, UIKit.SystemCyan.b, 0.45f), false).rectTransform;
+                _scrollThumb.anchorMin = _scrollThumb.anchorMax = new Vector2(1f, 1f);
+                _scrollThumb.pivot = new Vector2(1f, 1f);
+                _scrollThumb.sizeDelta = new Vector2(4f, ListViewH * ListViewH / (n * CardH));
+            }
             int i = 0;
             foreach (var def in Pool) _rows[def.id] = BuildRow(def, i++);
             // Right: the selected skill in detail.
@@ -256,6 +303,7 @@ namespace HS.UI
         void ShowSkill(string id)
         {
             if (!_rows.ContainsKey(id)) return;
+            ScrollTo(id);
             _shown = id;
             _panel.Show(id, _sys);
         }

@@ -134,6 +134,21 @@ namespace HS.Tutorial
                 "He learned to come back for you. How fast, and at what cost to him, is his to decide. If nobody comes within 20 s, you come round at the last door.",
                 priority: 80, duration: 10f),
 
+            // ---- the Catacombs (chapter 3 on)
+            L("seal", Tip, Road, "skill_read_runes", "A seal",
+                "The way on is sealed. Runes can be read open, gates picked, and wardens tend to carry keys. Left alone, he'll put his shoulder to it, and the ward will answer.",
+                priority: 50, duration: 11f),
+            L("hidden_plate", Tip, Road, "wound_ankle", "In the dark",
+                "Plates are hidden in this floor. You find them up close; he never does. Sand settles on their edges, and a map shows them all.",
+                priority: 40, duration: 10f),
+            L("finisher", Tip, Hero, "judgment", "Judgment",
+                "When his opponent weakens, he gathers himself for one great blow. A hard hit while he gathers breaks it.",
+                CoachTarget.WoundChips, 45, 9f),
+            L("look_away", Tip, Hero, "look_away", "Not looking",
+                "He turned his back. For three seconds, he isn't watching anything you do.", priority: 60, duration: 8f),
+            L("pit", Tip, Road, "alert", "The drop",
+                "Whoever goes over the edge falls hard and climbs back slowly. Someone teetering can still be hauled clear.", priority: 40, duration: 9f),
+
             L("xp", Tip, Road, "check", "XP",
                 "Every room pays the same XP: for the clear, for helping, for exploring. Levels arrive at the camp.", CoachTarget.XpBar, 15, 8f, 10f),
 
