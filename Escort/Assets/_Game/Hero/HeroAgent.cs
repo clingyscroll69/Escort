@@ -32,6 +32,8 @@ namespace HS.Hero
 
         public event Action<Stage> StageApplied;
         public WoundSet Wounds { get; } = new WoundSet();
+        /// <summary>Attrition (chapters 2–4): fed by the sidekick, refilled at camp.</summary>
+        public Hunger Hunger { get; } = new Hunger();
         public int WoundCount => Wounds.Count;
         public bool HasMinorWound => Wounds.HasMinor;
         public bool TreatMinorWound() => Wounds.TreatMinor();
@@ -52,6 +54,7 @@ namespace HS.Hero
             if (Presenter == null) Presenter = GetComponentInChildren<IAgentPresenter>();
             Module = GetComponent<HeroModule>();
             Module?.Bind(this);
+            if (GetComponent<FeedInteraction>() == null) gameObject.AddComponent<FeedInteraction>();
             if (Health == null || Health.Max <= 0f) Health = new Health(260f);
             Wounds.Added += w => OnWoundsChanged(w, true);
             Wounds.Removed += w => OnWoundsChanged(w, false);
@@ -106,6 +109,7 @@ namespace HS.Hero
         {
             if (!IsAlive) return;
             TickFever(dt);
+            Hunger.Tick(dt);
             _movedThisTick = false;
             Module?.PreTick(dt);
             if (Status.Incapacitated)

@@ -228,5 +228,26 @@ namespace HS.Tests
 #endif
             HS.Presentation.ChapterTheme.ForgetSceneDefaults();
         }
+
+        [UnityTest]
+        public IEnumerator Chapter_2_Turns_Hunger_On_And_Restore_Brings_It_Back()
+        {
+            new GameObject("RunContext").AddComponent<RunContext>();
+            var flow = Flow(2);
+            yield return null;
+            var hero = flow.Chapter.Hero;
+            var sk = flow.Chapter.Sidekick;
+            Assert.IsTrue(hero.Hunger.Enabled, "hunger from chapter 2");
+            Assert.AreEqual(1, sk.Rations.Count, "she starts the chapter with one ration");
+            hero.Hunger.Restore(40f);
+            sk.Rations.Give(1);
+            var point = flow.Snapshot();
+            hero.Hunger.Restore(0f);
+            sk.Rations.Restore(0);
+            flow.Apply(point);
+            Assert.AreEqual(40f, hero.Hunger.Value, 0.01f);
+            Assert.AreEqual(2, sk.Rations.Count);
+            HS.Presentation.ChapterTheme.ForgetSceneDefaults();
+        }
     }
 }

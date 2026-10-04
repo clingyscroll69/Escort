@@ -22,6 +22,8 @@ namespace HS.Flow
             public (int relayed, int forged) Intel;
             public float HeroHp = -1f;
             public List<HS.Hero.WoundType> Wounds = new List<HS.Hero.WoundType>();
+            public float Hunger = HS.Hero.Hunger.Max;
+            public int Rations;
         }
 
         static readonly Point[] Starts = new Point[6]; // [1..5]

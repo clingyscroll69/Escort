@@ -90,6 +90,11 @@ namespace HS.Hero.Callum
             hero.MinThresholdPause = T.thresholdPause;
             hero.MaxThresholdWait = T.thresholdMaxWait;
             hero.SidekickNearRange = T.thresholdSidekickNear;
+            hero.Hunger.Changed += (hungry, starving) =>
+            {
+                if (starving) Bark(StarvingLines, 2);
+                else if (hungry) Bark(HungryLines, 1);
+            };
         }
 
         /// <summary>A new chapter (campaign): his power tier, his signature skills, the road's attrition. Starts rested.</summary>
@@ -122,7 +127,7 @@ namespace HS.Hero.Callum
         /// </summary>
         void OnRoomEntered(int room)
         {
-            if (room > _lastRoom && _lastRoom >= 0 && Hero.IsAlive) Hero.Health.Heal(Hero.Health.Max * Recovery);
+            if (room > _lastRoom && _lastRoom >= 0 && Hero.IsAlive && !Hero.Hunger.Starving) Hero.Health.Heal(Hero.Health.Max * Recovery);
             _lastRoom = Mathf.Max(_lastRoom, room);
         }
 
@@ -156,7 +161,7 @@ namespace HS.Hero.Callum
         public float WaitCap => Stage >= Stage.S1 ? T.waitUnreadyS1 : T.waitUnreadyS0;
 
         public float OutgoingDamage(float baseDamage) =>
-            baseDamage * (HonorLow ? T.honorLowDamageMul : 1f) * WoundDamageMul * Hero.DamageMultiplier;
+            baseDamage * (HonorLow ? T.honorLowDamageMul : 1f) * WoundDamageMul * Hero.DamageMultiplier * (Hero.Hunger.Starving ? Hunger.StarvingDamageMul : 1f);
 
         // --------------------------------------------------------------------------------------------- tick
 
@@ -581,6 +586,9 @@ namespace HS.Hero.Callum
         static readonly string[] DuelBoltLines = { "Hold your aim. This duel is mine.", "Lower that crossbow. He's mine to fight." };
         static readonly string[] HitYieldedLines = { "He yielded! A yield is sacred!", "You struck a man on his knees?!" };
         static readonly string[] HitFleeingLines = { "In the back, as he ran?! Never the back!", "He was running! Let him run!" };
+        static readonly string[] HungryLines = { "My stomach's louder than the bandits.", "When did we last eat? Never mind. Onward." };
+        static readonly string[] StarvingLines = { "I can't... feel my sword arm. Food. Is there any food?", "Fighting on an empty belly. Father would laugh." };
+        public static readonly string[] FedLines = { "...Thank you. Where did you even find this?", "Bread. Good. Don't tell anyone I stopped." };
         static readonly string[] HitSleepingLines = { "He was asleep! Wake a man before you fight him!", "A sleeping man? Have you no shame?" };
         static readonly string[] HitBlindedLines = { "He couldn't even see you!", "A blinded man? The Code saw that." };
         static readonly string[] HitReelingLines = { "He was reeling! Let him find his feet!", "Not while he's down! The Code forbids it." };

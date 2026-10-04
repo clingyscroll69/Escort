@@ -30,7 +30,7 @@ namespace HS.UI
         Pip[] _pips;
         Slot[] _slots;
         Verb[] _verbs;
-        TextMeshProUGUI _sneakChip, _reachChip;
+        TextMeshProUGUI _rationsChip, _sneakChip, _reachChip;
         readonly List<GameObject> _woundChips = new List<GameObject>();
         readonly List<(string id, Image frame)> _passives = new List<(string, Image)>();
         string _woundSig = "", _passiveSig = "", _rule;
@@ -166,6 +166,8 @@ namespace HS.UI
             _statusRow = At(card, "Status", new Vector2(0f, 1f), new Vector2(104f, -98f), new Vector2(400f, 26f));
             _sneakChip = UIKit.Chip(_statusRow, "Sneak", "SNEAKING", UIKit.SystemCyan, 22f);
             _reachChip = UIKit.Chip(_statusRow, "Reach", "OUT OF REACH", UIKit.Danger, 22f);
+            _rationsChip = UIKit.Chip(_statusRow, "Rations", "RATIONS 0", UIKit.Gold, 22f);
+            _rationsChip.transform.parent.gameObject.SetActive(false);
             _sneakChip.transform.parent.gameObject.SetActive(false);
             _reachChip.transform.parent.gameObject.SetActive(false);
         }
@@ -438,6 +440,8 @@ namespace HS.UI
         {
             _sb.Clear();
             if (hero.Crippled) _sb.Append("C|");
+            if (hero.Hunger.Starving) _sb.Append("S|");
+            else if (hero.Hunger.Hungry) _sb.Append("H|");
             foreach (var w in hero.Wounds.All) _sb.Append((int)w).Append('|');
             var sig = _sb.ToString();
             if (sig == _woundSig) return;
@@ -461,6 +465,8 @@ namespace HS.UI
                 _woundChips.Add(rt.gameObject);
             }
             if (hero.Crippled) Add(null, "CRIPPLED");
+            if (hero.Hunger.Starving) Add(null, "STARVING");
+            else if (hero.Hunger.Hungry) Add(null, "HUNGRY");
             foreach (var w in hero.Wounds.All) Add(WoundIcon(w), WoundName(w));
         }
 
@@ -480,6 +486,9 @@ namespace HS.UI
             bool sneaking = sk.IsSneaking, crouched = sk.Crouched;
             SetChip(_sneakChip, sneaking || crouched, sneaking ? "SNEAKING" : "CROUCHED", sneaking ? UIKit.SystemCyan : UIKit.Dim);
             SetChip(_reachChip, sk.IsAlive && !sk.InSupportRange, "OUT OF REACH", UIKit.Danger);
+            var heroAgent = ctx.Hero as HeroAgent;
+            bool showRations = sk.Rations.Count > 0 || (heroAgent != null && heroAgent.Hunger.Enabled);
+            SetChip(_rationsChip, showRations, "RATIONS " + sk.Rations.Count, sk.Rations.Count > 0 ? UIKit.Gold : UIKit.Dim);
             LayoutStatus();
             var skills = sk.GetComponent<SidekickSkills>();
             ShowSlots(skills != null ? skills.System.SlotCount : 4);
@@ -541,7 +550,7 @@ namespace HS.UI
         void LayoutStatus()
         {
             float x = 0f;
-            foreach (var chip in new[] { _sneakChip, _reachChip })
+            foreach (var chip in new[] { _sneakChip, _reachChip, _rationsChip })
             {
                 var rt = (RectTransform)chip.transform.parent;
                 if (!rt.gameObject.activeSelf) continue;

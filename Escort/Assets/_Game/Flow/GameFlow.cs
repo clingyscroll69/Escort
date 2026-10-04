@@ -182,6 +182,9 @@ namespace HS.Flow
             Chapter.BuildChapter(ch, Chapter.Seed);
             Sk.GetComponent<SidekickSkills>().System.SetChapter(ch);
             if (Hero.Module is HS.Hero.Callum.CallumModule cm) cm.ApplyChapter(ch, rules.Unlocks, rules.Recovery);
+            Hero.Hunger.Enabled = rules.Hunger;
+            Hero.Hunger.Paused = false;
+            if (rules.Hunger && Sk.Rations.Count == 0) Sk.Rations.Give(1); // the camp's leftovers
             var rooms = Chapter.Chapter.Rooms;
             Xp.BeginChapter(r => CampaignSchedule.RoomPot(ch, rooms[Mathf.Clamp(r, 0, rooms.Count - 1)].XpPot));
             AtDoor = false;
@@ -270,6 +273,7 @@ namespace HS.Flow
 
         void ToCamp()
         {
+            Hero.Hunger.Paused = true;
             SetState(State.Camp);
             SimLoop.Instance.Paused = true;
             int ch = CurrentChapter;
@@ -323,6 +327,7 @@ namespace HS.Flow
         System.Collections.IEnumerator ToDoor()
         {
             AtDoor = true;
+            Hero.Hunger.Paused = true;
             var ledger = _ctx.Get<RapportLedger>();
             Hero.ApplyStage(StageEvaluator.Evaluate(Hero.Stage, ledger != null ? ledger.CaptureRate : 0f, StageCheck.Door));
             _ctx.Events.RaiseBark("callum", DoorLines[(int)Hero.Stage], 3.6f, 3);
@@ -463,6 +468,8 @@ namespace HS.Flow
                 Intel = _ctx.Get<StoneSystem>() != null ? _ctx.Get<StoneSystem>().Intel.Snapshot() : default,
                 HeroHp = Hero.Health.Current,
                 Wounds = Hero.Wounds.Snapshot(),
+                Hunger = Hero.Hunger.Value,
+                Rations = Sk.Rations.Count,
             };
             return p;
         }
@@ -486,6 +493,8 @@ namespace HS.Flow
             if (p.Ledger != null) _ctx.Get<RapportLedger>()?.Restore(p.Ledger);
             _ctx.Get<StoneSystem>()?.Intel.Restore(p.Intel);
             Hero.Wounds.Restore(p.Wounds);
+            Hero.Hunger.Restore(p.Hunger);
+            Sk.Rations.Restore(p.Rations);
             Hero.ApplyWoundEffects();
             if (p.HeroHp > 0f) Hero.Health.SetCurrent(p.HeroHp);
         }

@@ -43,6 +43,8 @@ namespace HS.Sidekick
         public event Action Downed;
 
         public SidekickCommand LastCommand { get; private set; }
+        /// <summary>Food for the hero (chapters 2–4).</summary>
+        public Rations Rations { get; } = new Rations();
 
         SidekickTuning T => (Ctx != null ? Ctx.Tuning : Tuning.LoadDefault()).sidekick;
 

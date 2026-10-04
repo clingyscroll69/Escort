@@ -11,6 +11,8 @@ namespace HS.Rooms
     {
         public string Title = "Abandoned satchel";
         [TextArea] public string Note = "";
+        [Tooltip("Rations the sidekick finds here (a forage cache).")]
+        public int Rations;
         public bool Searched { get; private set; }
 
         void OnEnable()
@@ -34,7 +36,9 @@ namespace HS.Rooms
             Searched = true;
             var ctx = RunContext.Current;
             var room = GetComponentInParent<RoomModule>();
-            ctx?.Events.RaiseNotice($"{Title.ToUpperInvariant()}\n<size=80%>{Note}</size>");
+            int found = Rations > 0 && who is HS.Sidekick.SidekickAgent sk ? sk.Rations.Give(Rations) : 0;
+            string extra = found > 0 ? $"\n<size=80%>+{found} ration{(found > 1 ? "s" : "")}.</size>" : "";
+            ctx?.Events.RaiseNotice($"{Title.ToUpperInvariant()}\n<size=80%>{Note}</size>{extra}");
             ctx?.Events.Explored?.Invoke(room != null ? room.RoomIndex : -1, Title);
         }
     }

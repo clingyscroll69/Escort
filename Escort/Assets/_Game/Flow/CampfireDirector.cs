@@ -129,6 +129,7 @@ namespace HS.Flow
             // 4) Rest.
             var tw = hero.Wounds.All.Count > 0 ? hero.Wounds.All[0] : (WoundType?)null;
             bool treated = hero.Wounds.TreatWorst();
+            hero.Hunger.Feed();
             hero.Health.Heal(99999f);
             sk.Health.Heal(99999f);
             RestNote = treated ? "Rest: one of Callum's wounds is tended. You are both rested." : "Rest: you are both rested.";

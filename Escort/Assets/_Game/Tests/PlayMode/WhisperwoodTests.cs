@@ -143,5 +143,62 @@ namespace HS.Tests
             Assert.AreEqual(_cm.T.honorMax - _cm.T.honorLossMajor, _cm.Honor, 0.01f, "striking a sleeping man in his sight");
             Assert.IsFalse(e.Asleep, "the blow woke him");
         }
+
+        [UnityTest]
+        public IEnumerator Starving_Callum_Hits_For_80_Percent()
+        {
+            yield return MakeCallum(Vector3.zero);
+            _hero.Hunger.Enabled = true;
+            Assert.AreEqual(100f, _cm.OutgoingDamage(100f), 0.01f);
+            _hero.Hunger.Restore(0f);
+            Assert.AreEqual(80f, _cm.OutgoingDamage(100f), 0.01f);
+        }
+
+        [UnityTest]
+        public IEnumerator Feeding_Takes_A_Ration_And_Needs_A_Lull()
+        {
+            yield return MakeCallum(Vector3.zero);
+            _hero.Hunger.Enabled = true;
+            _hero.Hunger.Restore(10f);
+            var sk = SidekickTests.Spawn<SidekickAgent>(new Vector3(1.2f, 0f, 0f), 0.32f);
+            var cmd = new ScriptedCommands();
+            sk.Commands = cmd;
+            Ctx.Sidekick = sk;
+            var feed = _hero.GetComponent<FeedInteraction>();
+            Assert.IsNotNull(feed, "every hero can be fed");
+            yield return null;
+            Assert.IsFalse(feed.CanInteract(sk), "no rations");
+            sk.Rations.Give(1);
+            var bandit = SidekickTests.Spawn<EnemyAgent>(new Vector3(0f, 0f, 6f));
+            bandit.Configure("thug");
+            bandit.Status.Apply(StatusType.Stunned, 99f);
+            _cm.StartChallenge(bandit);
+            Assert.IsFalse(feed.CanInteract(sk), "not mid-duel");
+            _cm.EndDuel(DuelEndReason.Abandoned);
+            Assert.IsTrue(feed.CanInteract(sk));
+            cmd.Current = new SidekickCommand { Interact = true, Skill = -1 };
+            Loop.Step();
+            cmd.Current = new SidekickCommand { Skill = -1 };
+            Loop.StepMany(Mathf.CeilToInt((FeedInteraction.Duration + 0.2f) / SimLoop.Dt));
+            Assert.Greater(_hero.Hunger.Value, Hunger.Max - 1f, "fed (and draining again)");
+            Assert.AreEqual(0, sk.Rations.Count, "one ration spent");
+        }
+
+        [UnityTest]
+        public IEnumerator A_Forage_Cache_Gives_Rations()
+        {
+            yield return MakeCallum(new Vector3(0f, 0f, -10f));
+            var sk = SidekickTests.Spawn<SidekickAgent>(Vector3.zero, 0.32f);
+            Ctx.Sidekick = sk;
+            var go = new GameObject("Cache");
+            _extra.Add(go);
+            var cache = go.AddComponent<ExploreAnchor>();
+            cache.Title = "Mushroom patch";
+            cache.Rations = 2;
+            yield return null;
+            cache.Interact(sk);
+            Assert.AreEqual(2, sk.Rations.Count);
+            Assert.IsTrue(cache.Searched);
+        }
     }
 }
