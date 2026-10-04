@@ -38,6 +38,14 @@ MonoBehaviour:
     prefab: {fileID: 2258511670446075465, guid: 71d0f6da417684131b5af041c3cc1fdb, type: 3}
   - id: ashgrave
     prefab: {fileID: 4666745564200112433, guid: 13096d9c1738f4a068c29d6162e6d787, type: 3}
+  - id: poacher
+    prefab: {fileID: 2512845689973446312, guid: f9a40b814884942cb8823900db943d31, type: 3}
+  - id: woodsman
+    prefab: {fileID: 3864306651667042580, guid: 2b49e21f4025c476cb48ea42bd4f944b, type: 3}
+  - id: fern_ambusher
+    prefab: {fileID: 5677022914477636302, guid: cd4549ca037c14f62adead22bb98f9bf, type: 3}
+  - id: scout_quill
+    prefab: {fileID: 4061799378903470936, guid: 3d83b445ca49947d2b08afe80466ef2f, type: 3}
   demoProps:
   - id: barrel_stack
     prefab: {fileID: 5136621309628842892, guid: b81027a719c15436dbd2544eb860c0ab, type: 3}

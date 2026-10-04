@@ -20,6 +20,7 @@ namespace HS.EditorTools
             BuildSidekick("Sidekick", "Sidekick_Visual", 0.96f);
             BuildHero("Callum", "Callum_Visual", 1.06f, EnsureCallumRuleSet());
             foreach (var (arch, visual, scale) in Enemies) BuildEnemy(arch, visual, scale);
+            foreach (var (id, name, visual, scale) in Scouts) BuildScout(id, name, visual, scale);
             AssetDatabase.SaveAssets();
             HS.Agent.AgentBridge.Write("builder.json", "{\"ok\":true,\"msg\":\"gameplay prefabs\"}");
         }
@@ -60,7 +61,29 @@ namespace HS.EditorTools
             ("thug", "Thug_Visual", 1f), ("brute", "Brute_Visual", 1.14f), ("crossbowman", "Crossbowman_Visual", 1f),
             ("turncoat", "Turncoat_Visual", 0.98f), ("ambusher", "Ambusher_Visual", 0.98f), ("archer", "Archer_Visual", 1f),
             ("ashgrave", "Ashgrave_Visual", 1.09f),
+            ("poacher", "Poacher_Visual", 1f), ("woodsman", "Woodsman_Visual", 1.12f), ("fern_ambusher", "Ambusher_Visual", 0.98f),
         };
+
+        /// <summary>Curator scouts (GDD §4.3): id, display name, visual, scale.</summary>
+        public static readonly (string id, string name, string visual, float scale)[] Scouts =
+        {
+            ("quill", "Mr. Quill", "Quill_Visual", 0.97f),
+        };
+
+        public static string ScoutPrefabPath(string id) => $"{Dir}/Scout_{id}.prefab";
+
+        static void BuildScout(string id, string displayName, string visual, float scale)
+        {
+            var root = NewRoot("Scout_" + id, scale);
+            var s = root.AddComponent<HS.Curator.Scout>();
+            s.ScoutId = id;
+            s.DisplayName = displayName;
+            s.AgentId = "scout_" + id;
+            AddVisual(root, visual);
+            AddCamTarget(root, 1.2f * scale);
+            PrefabUtility.SaveAsPrefabAsset(root, ScoutPrefabPath(id));
+            Object.DestroyImmediate(root);
+        }
 
         public static string EnemyPrefabPath(string arch) => $"{Dir}/Enemy_{arch}.prefab";
 

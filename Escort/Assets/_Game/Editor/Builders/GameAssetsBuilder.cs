@@ -31,6 +31,8 @@ namespace HS.EditorTools
             a.enemies.Clear();
             foreach (var (arch, _, _) in GameplayPrefabBuilder.Enemies)
                 a.enemies.Add(new GameAssets.Entry { id = arch, prefab = L(GameplayPrefabBuilder.EnemyPrefabPath(arch)) });
+            foreach (var (id, _, _, _) in GameplayPrefabBuilder.Scouts)
+                a.enemies.Add(new GameAssets.Entry { id = "scout_" + id, prefab = L(GameplayPrefabBuilder.ScoutPrefabPath(id)) });
             EditorUtility.SetDirty(a);
             AssetDatabase.SaveAssets();
             HS.Agent.AgentBridge.Write("builder.json", "{\"ok\":true,\"msg\":\"game assets\"}");

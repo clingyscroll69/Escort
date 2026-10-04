@@ -36,6 +36,7 @@ Material:
     - _Desaturate: 0
     - _DirectStrength: 0.9
     - _Dissolve: 0
+    - _EmissionTexMul: 0
     - _FlashAmount: 0
     - _OutlineWidth: 1.5
     - _RimPower: 3.2

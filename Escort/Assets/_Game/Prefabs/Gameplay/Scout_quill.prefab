@@ -1,0 +1,191 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &623763526726194908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5082030051344742974}
+  m_Layer: 0
+  m_Name: CamTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5082030051344742974
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 623763526726194908}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.164, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3154659635849407923}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4061799378903470936
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3154659635849407923}
+  - component: {fileID: 5569925810395282337}
+  - component: {fileID: 2225533539901862956}
+  m_Layer: 0
+  m_Name: Scout_quill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3154659635849407923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4061799378903470936}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5541236091255961852}
+  - {fileID: 5082030051344742974}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!143 &5569925810395282337
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4061799378903470936}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.7266
+  m_Radius: 0.3298
+  m_SlopeLimit: 50
+  m_StepOffset: 0.35
+  m_SkinWidth: 0.04
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0.8833, z: 0}
+--- !u!114 &2225533539901862956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4061799378903470936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9777de21ef84c4d62ac6fa511261cbc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::HS.Curator.Scout
+  agentId: scout_quill
+  ScoutId: quill
+  DisplayName: Mr. Quill
+  GiftRations: 1
+--- !u!1001 &2616405414340677247
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3154659635849407923}
+    m_Modifications:
+    - target: {fileID: 7197573187393924153, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_Name
+      value: Visual
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7197573187393924153, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2297758490819893912}
+  m_SourcePrefab: {fileID: 100100000, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+--- !u!1 &5164991542679757382 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7197573187393924153, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+  m_PrefabInstance: {fileID: 2616405414340677247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2297758490819893912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5164991542679757382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f2582e173a4249698cf391fad0fdbf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::HS.Presentation.VisualInterpolator
+--- !u!4 &5541236091255961852 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7541622828820199043, guid: 21a4910c83b524c1bac7b9ff0dba128f, type: 3}
+  m_PrefabInstance: {fileID: 2616405414340677247}
+  m_PrefabAsset: {fileID: 0}

@@ -193,7 +193,7 @@ namespace HS.Core
         public float framingPadding = 1.2f;
     }
 
-    /// <summary>Enemy archetype numbers (Chapter 1 bandits + rigged-duel cast).</summary>
+    /// <summary>Enemy archetype numbers (chapter 1 bandits, Whisperwood's poachers, the rigged-duel cast).</summary>
     [Serializable]
     public class EnemyStats
     {
@@ -233,6 +233,10 @@ namespace HS.Core
             new EnemyStats { id = "turncoat", displayName = "Turncoat", maxHp = 90, speed = 4.3f, damage = 11, kind = DamageKind.Melee, windup = 0.5f, recovery = 0.95f, range = 1.8f, surrenderAtHp = 0.36f, cheapShotDamage = 66, cheater = true },
             new EnemyStats { id = "ambusher", displayName = "Hedge Ambusher", maxHp = 70, speed = 4.6f, damage = 11, kind = DamageKind.Melee, windup = 0.45f, recovery = 0.95f, range = 1.8f, startsHidden = true, ambushDamage = 48, cheater = true },
             new EnemyStats { id = "archer", displayName = "Gallery Archer", maxHp = 45, speed = 3.8f, damage = 21, kind = DamageKind.Ranged, windup = 0f, recovery = 0.5f, range = 26f, ranged = true, projectileSpeed = 30f, aimTime = 1.0f, reload = 6.0f, cheater = true },
+            // Whisperwood (chapter 2): poachers in the trees, woodsmen, ambushers in the ferns. Chapter-1 baselines; the tier scales.
+            new EnemyStats { id = "poacher", displayName = "Poacher", maxHp = 45, speed = 4.0f, damage = 14, kind = DamageKind.Ranged, windup = 0f, recovery = 0.4f, range = 18f, ranged = true, projectileSpeed = 32f, aimTime = 1.0f, reload = 3.8f, cheater = true },
+            new EnemyStats { id = "woodsman", displayName = "Woodsman", maxHp = 150, speed = 3.6f, damage = 16, kind = DamageKind.Melee, windup = 0.7f, recovery = 1.0f, range = 2.1f, heavyDamage = 60, heavyWindup = 1.15f, heavyEvery = 4 },
+            new EnemyStats { id = "fern_ambusher", displayName = "Fern Ambusher", maxHp = 60, speed = 4.6f, damage = 10, kind = DamageKind.Melee, windup = 0.45f, recovery = 0.95f, range = 1.8f, startsHidden = true, ambushDamage = 44, cheater = true },
             // The rigged duel must outlast the volley signal (T+25 s) by several volleys: a durable, measured duellist.
             new EnemyStats { id = "ashgrave", displayName = "Lord Ashgrave", maxHp = 1250, speed = 4.6f, damage = 9, kind = DamageKind.Blade, windup = 0.7f, recovery = 1.0f, range = 2.2f, heavyDamage = 26, heavyWindup = 1.1f, heavyEvery = 4 },
         };

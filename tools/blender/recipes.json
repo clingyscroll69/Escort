@@ -389,5 +389,114 @@
       "Male_Ranger_Acc_Pauldron"
     ],
     "skin_variant": "pale"
+  },
+  "Poacher": {
+    "role": "enemy",
+    "outfit": "Male_Ranger",
+    "sex": "Male",
+    "hair": [
+      "Hair_Beard"
+    ],
+    "scale": 1.0,
+    "outfit_tex": "T_Ranger_BaseColor",
+    "recolor": [
+      {
+        "hue_min": 70,
+        "hue_max": 170,
+        "to_hue": 28,
+        "to_sat": 0.55,
+        "val_mul": 0.62
+      }
+    ],
+    "hair_color": [
+      0.32,
+      0.2,
+      0.1
+    ],
+    "eye_color": [
+      0.3,
+      0.25,
+      0.15
+    ],
+    "props": {
+      "hand_r": "Crossbow"
+    },
+    "retarget_faces": [
+      {
+        "mesh": "Male_Ranger_Arms",
+        "material": "M_SkinHands",
+        "x_abs_max": 0.27,
+        "to": "M_Undershirt"
+      }
+    ],
+    "skin_variant": "tan"
+  },
+  "Woodsman": {
+    "role": "enemy",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_Buzzed",
+      "Hair_Beard"
+    ],
+    "scale": 1.12,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 92,
+        "to_sat": 0.42,
+        "val_mul": 0.58
+      }
+    ],
+    "hair_color": [
+      0.5,
+      0.32,
+      0.14
+    ],
+    "eye_color": [
+      0.25,
+      0.3,
+      0.2
+    ],
+    "props": {
+      "hand_r": "Axe"
+    },
+    "skin_variant": "medium"
+  },
+  "Quill": {
+    "role": "npc",
+    "outfit": "Male_Peasant",
+    "sex": "Male",
+    "hair": [
+      "Hair_SimpleParted",
+      "Hair_Beard"
+    ],
+    "scale": 0.97,
+    "outfit_tex": "T_Peasant_BaseColor",
+    "recolor": [
+      {
+        "sat_max": 0.35,
+        "val_min": 0.55,
+        "to_hue": 288,
+        "to_sat": 0.5,
+        "val_mul": 0.92
+      }
+    ],
+    "hair_color": [
+      0.55,
+      0.5,
+      0.46
+    ],
+    "eye_color": [
+      0.45,
+      0.4,
+      0.3
+    ],
+    "props": {
+      "chest": "Pendant"
+    },
+    "skin_variant": "fair"
   }
 }

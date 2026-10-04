@@ -9,8 +9,12 @@ import json, os, sys
 import numpy as np
 from PIL import Image
 
-ROOT = '/Users/sapnagoel/Documents/coding/Game'
+# The checkout this script lives in (works from any git worktree). The Quaternius source kits are not in git, so a
+# worktree falls back to the main checkout's copy.
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 Q = ROOT + '/ThirdParty/Quaternius'
+if not os.path.isdir(Q):
+    Q = '/Users/sapnagoel/Documents/coding/Game/ThirdParty/Quaternius'
 OUT = ROOT + '/Escort/Assets/_Game/Art/Characters/Textures'
 OUTFIT_TEX = Q + '/Outfits_Fantasy/Modular Character Outfits - Fantasy[Standard]/Textures'
 UBC_TEX = Q + '/UBC/Universal Base Characters[Standard]/Base Characters/Textures'
