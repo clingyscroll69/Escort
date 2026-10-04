@@ -78,5 +78,33 @@ namespace HS.Tests
             }
             Assert.AreEqual(0, CampaignSchedule.RoomPot(5, 100), "no levels in the Gallery");
         }
+
+        [Test]
+        public void Xp_Pots_Count_Each_Chapter_Afresh()
+        {
+            var go = new UnityEngine.GameObject("RunContext");
+            try
+            {
+                var ctx = go.AddComponent<RunContext>();
+                ctx.Init();
+                var xp = new XpTracker();
+                xp.Bind(ctx);
+                xp.BeginChapter(r => 100);
+                ctx.Events.RoomEntered(0);
+                ctx.Events.RoomCleared(0);
+                Assert.AreEqual(50, xp.Xp, "half the pot for the clear");
+                xp.BeginChapter(r => 180);
+                ctx.Events.RoomEntered(0);
+                ctx.Events.RoomCleared(0);
+                Assert.AreEqual(140, xp.Xp, "room 0 of the next chapter pays its own pot");
+                ctx.Events.Explored(0, "cache");
+                Assert.AreEqual(185, xp.Xp, "a quarter for exploring");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                if (SimLoop.Instance) UnityEngine.Object.DestroyImmediate(SimLoop.Instance.gameObject);
+            }
+        }
     }
 }
