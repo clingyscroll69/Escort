@@ -392,7 +392,13 @@ namespace HS.Tests
             Assert.AreEqual("move", flow.Tutorial.Showing, "the road starts teaching at once");
             Assert.IsTrue(TutorialProgress.IsSeen("welcome"), "after the System window's tutorial notice");
 
-            // WASD moves the sidekick (a test keyboard, so the real one can't interfere)
+            // WASD moves the sidekick (a test keyboard, so the real one can't interfere). Headless, or with the editor in the
+            // background, the app has no focus and the Input System disables a keyboard on arrival: this one ignores focus.
+            var settings = InputSystem.settings;
+            var background = settings.backgroundBehavior;
+            var editorInput = settings.editorInputBehaviorInPlayMode;
+            settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             var kb = InputSystem.AddDevice<Keyboard>();
             try
             {
@@ -407,6 +413,8 @@ namespace HS.Tests
             finally
             {
                 InputSystem.RemoveDevice(kb);
+                settings.backgroundBehavior = background;
+                settings.editorInputBehaviorInPlayMode = editorInput;
             }
         }
 
