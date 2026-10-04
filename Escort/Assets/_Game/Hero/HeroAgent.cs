@@ -166,7 +166,13 @@ namespace HS.Hero
             if (dir != Vector3.zero) Motor.FaceDirection(dir, TurnSpeed, dt);
         }
 
-        protected override float ModifyIncomingDamage(DamageInfo d) => Module != null ? Module.ModifyIncoming(d) : d.Amount;
+        protected override float ModifyIncomingDamage(DamageInfo d)
+        {
+            // Enemies hit harder each chapter (x2, matching his HP), so the danger of a blow stays the same (campaign spec §2).
+            // Hazards already scale with his max HP; fever is his own.
+            if (d.Source != null && d.Source.Faction == Faction.Hostile) d.Amount *= ChapterTier.EnemyDamageToHero(Ctx != null ? Ctx.Chapter : 1);
+            return Module != null ? Module.ModifyIncoming(d) : d.Amount;
+        }
 
         protected override void OnHurt(DamageInfo d, float applied)
         {

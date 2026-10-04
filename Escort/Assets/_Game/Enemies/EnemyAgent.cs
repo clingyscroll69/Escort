@@ -73,7 +73,7 @@ namespace HS.Enemies
             Archetype = archetype;
             var t = Ctx != null ? Ctx.Tuning : Tuning.LoadDefault();
             Stats = t.Enemy(archetype);
-            float hp = Stats.maxHp * Mathf.Pow(2f, (Ctx != null ? Ctx.Chapter : 1) - 1) / Mathf.Pow(2f, 0); // ch1 base
+            float hp = Stats.maxHp * ChapterTier.EnemyHp(Ctx != null ? Ctx.Chapter : 1);
             Health = new Health(hp);
             if (Stats.startsHidden) StartsHidden = true;
         }
@@ -209,7 +209,7 @@ namespace HS.Enemies
                 AwareOfSidekick = true;
             }
             if (State == EnemyState.Dormant) Activate();
-            return d.Amount;
+            return d.FromSidekick ? d.Amount * ChapterTier.SidekickDamage(Ctx != null ? Ctx.Chapter : 1) : d.Amount;
         }
 
         protected override void OnHurt(DamageInfo d, float applied)

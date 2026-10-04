@@ -32,6 +32,11 @@ namespace HS.Hero.Callum
         public float RiposteCooldown { get; private set; }
         public int CaughtThisFight { get; private set; }
         public float WoundDamageMul = 1f;
+        /// <summary>Signature skills unlocked so far (GDD §4.2 schedule; set per chapter by the campaign).</summary>
+        public Signature Unlocks { get; private set; } = Signature.StrikeI;
+        /// <summary>Between-room recovery, a fraction of max HP (Ch1 50%, Ch2+ 30%).</summary>
+        public float Recovery { get; private set; }
+        public float RiposteMultiplier => (Unlocks & Signature.StrikeII) != 0 ? T.riposteMultiplierII : T.riposteMultiplier;
         public bool Attacking => _atk != Atk.None;
 
         /// <summary>Witnessed dishonour: (event, witnessed by a stone rather than Callum's own eyes).</summary>
@@ -76,6 +81,7 @@ namespace HS.Hero.Callum
             base.Bind(hero);
             T = (RunContext.Current != null ? RunContext.Current.Tuning : Tuning.LoadDefault()).callum;
             Honor = T.honorMax;
+            Recovery = T.secondWind;
             int ch = RunContext.Current != null ? RunContext.Current.Chapter : 1;
             hero.SetMaxHp(T.MaxHp(ch), true);
             hero.RouteSpeed = T.routeSpeed;
@@ -84,6 +90,15 @@ namespace HS.Hero.Callum
             hero.MinThresholdPause = T.thresholdPause;
             hero.MaxThresholdWait = T.thresholdMaxWait;
             hero.SidekickNearRange = T.thresholdSidekickNear;
+        }
+
+        /// <summary>A new chapter (campaign): his power tier, his signature skills, the road's attrition. Starts rested.</summary>
+        public void ApplyChapter(int chapter, Signature unlocks, float recovery)
+        {
+            Unlocks = unlocks;
+            Recovery = recovery;
+            Hero.SetMaxHp(T.MaxHp(chapter), true);
+            _lastRoom = -1; // room indices start again at 0
         }
 
         void OnEnable()
@@ -107,7 +122,7 @@ namespace HS.Hero.Callum
         /// </summary>
         void OnRoomEntered(int room)
         {
-            if (room > _lastRoom && _lastRoom >= 0 && Hero.IsAlive) Hero.Health.Heal(Hero.Health.Max * T.secondWind);
+            if (room > _lastRoom && _lastRoom >= 0 && Hero.IsAlive) Hero.Health.Heal(Hero.Health.Max * Recovery);
             _lastRoom = Mathf.Max(_lastRoom, room);
         }
 
@@ -303,7 +318,7 @@ namespace HS.Hero.Callum
             RiposteCooldown = T.riposteCooldown;
             Challenged.Parry(0.9f, Hero);
             int ch = _ctx != null ? _ctx.Chapter : 1;
-            var d = DamageInfo.Make(Hero, Challenged, OutgoingDamage(T.Damage(ch)) * T.riposteMultiplier, DamageKind.Blade, "riposte", 0.6f);
+            var d = DamageInfo.Make(Hero, Challenged, OutgoingDamage(T.Damage(ch)) * RiposteMultiplier, DamageKind.Blade, "riposte", 0.6f);
             Hero.Presenter?.PlayAction("attack3", 0.5f);
             HS.Presentation.Vfx.Burst(HS.Presentation.VfxKind.Sparks, Hero.Position + Hero.Forward * 0.9f + Vector3.up * 1.3f);
             Challenged.TakeDamage(d);
