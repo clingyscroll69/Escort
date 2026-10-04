@@ -97,5 +97,21 @@ namespace HS.Tests
                 Assert.AreEqual(2, row.Chapter);
             }
         }
+
+        /// <summary>QA batch: chapter 2 on its own, seeds 1–10, idle (solo rate) and supportive → docs/qa/balance/ch2/.</summary>
+        [UnityTest]
+        [Category("QA")]
+        [Timeout(1800000)]
+        public IEnumerator Balance_Whisperwood()
+        {
+            var h = Harness(900f);
+            h.StartChapter = 2;
+            h.StopAfterChapter = 2;
+            h.Seeds = new System.Collections.Generic.List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            h.Bots = new System.Collections.Generic.List<string> { "idle", "supportive" };
+            h.OutDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../docs/qa/balance/ch2"));
+            yield return h.RunAll();
+            Debug.Log("[balance ch2]\n" + BalanceHarness.Summary(h.Rows));
+        }
     }
 }

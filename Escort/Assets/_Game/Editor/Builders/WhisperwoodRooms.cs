@@ -224,8 +224,9 @@ namespace HS.EditorTools
             var enc = Empty(t, "Spawns", Vector3.zero).transform;
             Spawn(enc, "fern_ambusher", new Vector3(-4.4f, 0f, 24.4f), 90f, hidden: true);
             Spawn(enc, "fern_ambusher", new Vector3(4.6f, 0f, 27.2f), -90f, hidden: true);
-            Spawn(enc, "fern_ambusher", new Vector3(-4.8f, 0f, 30.6f), 90f, hidden: true);
             Spawn(enc, "woodsman", new Vector3(0.4f, 0f, 35.2f), 180f);
+            // Variant 1: a third man in the ferns and a poacher in a stand behind them.
+            Spawn(Variant(t, 1), "fern_ambusher", new Vector3(-4.8f, 0f, 30.6f), 90f, hidden: true);
             Stand(set, "Stand_N", new Vector3(5.8f, 0f, 37.4f), 230f, "poacher", 1, t);
             Variant(t, 0);
             RoomKit.Route(t, (new Vector3(0, 0, 0.6f), false, false, ""), (new Vector3(-0.2f, 0, 12), true, true, "the hollow"),

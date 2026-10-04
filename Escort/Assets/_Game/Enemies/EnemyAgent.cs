@@ -226,6 +226,24 @@ namespace HS.Enemies
         bool KnockedByOther(StatusType s, Agent a, Agent b) =>
             Status.Has(s) && (a == null || Status.SourceOf(s) != a) && (b == null || Status.SourceOf(s) != b);
 
+        public const float SparedLeaveTime = 5f;
+        float _sparedT;
+
+        /// <summary>
+        /// Spared: he walks off the road to the nearer side and is gone — never left standing in the hero's path (a body
+        /// in the way is a soft-lock: CharacterControllers don't pass through each other).
+        /// </summary>
+        void TickSpared(float dt)
+        {
+            _sparedT += dt;
+            float side = Position.x >= 0f ? 1f : -1f;
+            var dir = new Vector3(side, 0f, 0.25f).normalized;
+            Motor.Move(dir * Mathf.Max(2.5f, Stats != null ? Stats.speed * 0.6f : 2.5f), 30f, dt);
+            Motor.FaceDirection(dir, 360f, dt);
+            Presenter?.SetLocomotion(Motor.Speed, false);
+            if (_sparedT >= SparedLeaveTime) gameObject.SetActive(false);
+        }
+
         public void Spare()
         {
             if (State == EnemyState.Surrendered) SetState(EnemyState.Spared);
@@ -302,9 +320,7 @@ namespace HS.Enemies
                     else CheckBumped();
                     return;
                 case EnemyState.Spared:
-                    // Walks off the road, out of the fight.
-                    Motor.Move(Vector3.zero, 30f, dt);
-                    Presenter?.SetLocomotion(0f, false);
+                    TickSpared(dt);
                     return;
                 case EnemyState.Surrendered:
                     TickSurrender(dt);

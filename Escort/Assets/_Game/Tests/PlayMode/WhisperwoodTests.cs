@@ -212,5 +212,22 @@ namespace HS.Tests
             Assert.IsFalse(far.Asleep, "the man he names wakes, however far");
             Assert.IsFalse(buddy.Asleep, "and the man dozing beside him");
         }
+
+        [UnityTest]
+        public IEnumerator A_Spared_Man_Walks_Off_The_Road()
+        {
+            yield return MakeCallum(new Vector3(0f, 0f, -10f));
+            var tc = SidekickTests.Spawn<EnemyAgent>(new Vector3(0.5f, 0f, 2f));
+            tc.Configure("turncoat");
+            yield return null;
+            tc.Activate();
+            tc.TakeDamage(DamageInfo.Make(_hero, tc, tc.Health.Max * 0.7f, DamageKind.Blade, "sword"));
+            Assert.AreEqual(EnemyState.Surrendered, tc.State);
+            tc.Spare();
+            Loop.StepMany(Mathf.CeilToInt(2f / SimLoop.Dt));
+            Assert.Greater(tc.Position.x, 3f, "off the road, not standing in it");
+            Loop.StepMany(Mathf.CeilToInt((EnemyAgent.SparedLeaveTime - 1.5f) / SimLoop.Dt));
+            Assert.IsFalse(tc.gameObject.activeSelf, "gone");
+        }
     }
 }
