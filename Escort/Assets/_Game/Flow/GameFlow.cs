@@ -48,6 +48,8 @@ namespace HS.Flow
         public CampfireDirector Camp { get; private set; }
         public RiggedDuelDirector Duel { get; private set; }
         public XpTracker Xp { get; private set; }
+        /// <summary>Recall (learned at the chapter 2 campfire): Downed instead of dead, two Recalls a chapter.</summary>
+        public RecallState Recall { get; private set; }
         /// <summary>The learn-as-you-go tutorial (players only: AutoPlay runs never get one).</summary>
         public HS.Tutorial.TutorialDirector Tutorial { get; private set; }
         /// <summary>Esc / Start (players only).</summary>
@@ -122,8 +124,11 @@ namespace HS.Flow
             Xp = new XpTracker();
             Xp.Bind(_ctx);
             _ctx.Register(Xp);
+            Recall = new RecallState();
+            _ctx.Register(Recall);
             _ctx.Register(this);
             Chapter.BuildRun();
+            Sk.DownedTimedOut += OnDownedTimedOut;
             PrepareChapter(point != null ? point.Chapter : Mathf.Clamp(StartChapter, 1, CampaignSchedule.Chapters));
             ScreenFade.Ensure(UIRoot.Ensure());
             if (AutoPlay)
@@ -182,6 +187,8 @@ namespace HS.Flow
             Chapter.BuildChapter(ch, Chapter.Seed);
             Sk.GetComponent<SidekickSkills>().System.SetChapter(ch);
             if (Hero.Module is HS.Hero.Callum.CallumModule cm) cm.ApplyChapter(ch, rules.Unlocks, rules.Recovery);
+            Recall.BeginChapter();
+            Sk.CanBeDowned = Recall.Learned;
             Hero.Hunger.Enabled = rules.Hunger;
             Hero.Hunger.Paused = false;
             if (rules.Hunger && Sk.Rations.Count == 0) Sk.Rations.Give(1); // the camp's leftovers
@@ -203,7 +210,31 @@ namespace HS.Flow
             Sk.SetLevel(level, true);
             Xp.Restore(XpTracker.Thresholds[Mathf.Clamp(level - 2, 0, XpTracker.Thresholds.Length - 1)]);
             Hero.ApplyStage(StartStage);
+            Recall.Learned = CurrentChapter > 2; // learned at the chapter 2 campfire
+            Sk.CanBeDowned = Recall.Learned;
             Chapter.Hud.MeetHero("CALLUM", true);
+        }
+
+        /// <summary>
+        /// Nobody came in time (GDD §4.2): she's back at the room's entrance at 30%, he takes a wound for fighting on alone,
+        /// and whatever that room still had on offer is gone.
+        /// </summary>
+        void OnDownedTimedOut()
+        {
+            if (!Sk.IsDowned || Current == State.End) return;
+            Vector3 at;
+            if (Current == State.Duel && Chapter.Chapter.Boss != null) at = Chapter.Chapter.Boss.transform.position + new Vector3(-1.8f, 0.05f, 0.4f);
+            else
+            {
+                var rooms = Chapter.Chapter.Rooms;
+                int r = Mathf.Clamp(Chapter.Chapter.RoomIndexAt(Sk.Position.z), 0, rooms.Count - 1);
+                at = rooms[r].transform.position + new Vector3(-1.6f, 0.05f, 1.2f);
+            }
+            Sk.Motor.Teleport(at);
+            Sk.Rise(0.3f);
+            if (Hero.IsAlive) Hero.Wounds.Add(WoundType.SwordArmStrain);
+            _ctx.Get<OpportunityDirector>()?.EndOfFight("you were down");
+            _ctx.Events.RaiseNotice("You come round at the last door. He fought on without you.");
         }
 
         void SetState(State s)
@@ -297,9 +328,11 @@ namespace HS.Flow
                     Transition(NextChapter);
                 };
                 var next = CampaignSchedule.For(ch + 1);
+                if (CampaignSchedule.For(ch).LearnsRecall) Recall.Learned = true;
                 Camp.Begin(Chapter.Chapter.Campfire, Hero, Sk, new CampfireDirector.Options
                 {
                     Chapter = ch, Check = CampaignSchedule.For(ch).CampCheck, Picks = picks, AutoPicks = AutoPlay, AutoPickIds = CampPicks,
+                    LearnsRecall = CampaignSchedule.For(ch).LearnsRecall,
                     ContinueLabel = $"CONTINUE  »  {next.Name.ToUpperInvariant()}",
                 });
                 SimLoop.Instance.Paused = false;
@@ -469,6 +502,7 @@ namespace HS.Flow
                 HeroHp = Hero.Health.Current,
                 Wounds = Hero.Wounds.Snapshot(),
                 Hunger = Hero.Hunger.Value,
+                RecallLearned = Recall.Learned,
                 Rations = Sk.Rations.Count,
             };
             return p;
@@ -494,6 +528,8 @@ namespace HS.Flow
             _ctx.Get<StoneSystem>()?.Intel.Restore(p.Intel);
             Hero.Wounds.Restore(p.Wounds);
             Hero.Hunger.Restore(p.Hunger);
+            Recall.Learned = p.RecallLearned;
+            Sk.CanBeDowned = Recall.Learned;
             Sk.Rations.Restore(p.Rations);
             Hero.ApplyWoundEffects();
             if (p.HeroHp > 0f) Hero.Health.SetCurrent(p.HeroHp);

@@ -9,6 +9,7 @@ namespace HS.Hero.Callum
     {
         public static void Register()
         {
+            HeroRuleFactory.Register("callum_recall", () => new RecallRule());
             HeroRuleFactory.Register("callum_fallback", () => new FallbackRule());
             HeroRuleFactory.Register("callum_wait_unready", () => new WaitUnreadyRule());
             HeroRuleFactory.Register("callum_salute", () => new SaluteRule());

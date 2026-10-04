@@ -78,6 +78,7 @@ MonoBehaviour:
   HasQuietFeet: 0
   QuietFeetRadius: 2
   QuietFeetConeMul: 0.67
+  CanBeDowned: 0
 --- !u!114 &102509478237156535
 MonoBehaviour:
   m_ObjectHideFlags: 0

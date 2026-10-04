@@ -76,6 +76,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::HS.Hero.Callum.CallumModule
   WoundDamageMul: 1
+  NoAidTerms: 0
+  OathCenter: {x: 0, y: 0, z: 0}
+  OathRadius: 0
 --- !u!114 &5392733625311769901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -95,6 +98,7 @@ MonoBehaviour:
   CombatSpeed: 5
   TurnSpeed: 540
   SpeedMultiplier: 1
+  TreatmentHold: 0
   DamageMultiplier: 1
   MinThresholdPause: 1.5
   MaxThresholdWait: 6
@@ -111,8 +115,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eac2b7a9b2bc8497ab09ec6bfb8bf5d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::HS.Presentation.WitnessConeView
-  Base: {r: 1, g: 0.96, b: 0.82, a: 0.1}
-  Alarm: {r: 1, g: 0.25, b: 0.2, a: 0.35}
+  Base: {r: 1, g: 0.95, b: 0.78, a: 0.22}
+  Emphasised: {r: 1, g: 0.93, b: 0.62, a: 0.42}
+  Alarm: {r: 1, g: 0.25, b: 0.2, a: 0.55}
+  Spotlight: 0
 --- !u!1 &3391028933072478777
 GameObject:
   m_ObjectHideFlags: 0

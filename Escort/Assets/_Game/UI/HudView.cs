@@ -30,7 +30,7 @@ namespace HS.UI
         Pip[] _pips;
         Slot[] _slots;
         Verb[] _verbs;
-        TextMeshProUGUI _rationsChip, _sneakChip, _reachChip;
+        TextMeshProUGUI _downedChip, _recallChip, _rationsChip, _sneakChip, _reachChip;
         readonly List<GameObject> _woundChips = new List<GameObject>();
         readonly List<(string id, Image frame)> _passives = new List<(string, Image)>();
         string _woundSig = "", _passiveSig = "", _rule;
@@ -168,6 +168,10 @@ namespace HS.UI
             _reachChip = UIKit.Chip(_statusRow, "Reach", "OUT OF REACH", UIKit.Danger, 22f);
             _rationsChip = UIKit.Chip(_statusRow, "Rations", "RATIONS 0", UIKit.Gold, 22f);
             _rationsChip.transform.parent.gameObject.SetActive(false);
+            _downedChip = UIKit.Chip(_statusRow, "Downed", "DOWNED", UIKit.Danger, 22f);
+            _downedChip.transform.parent.gameObject.SetActive(false);
+            _recallChip = UIKit.Chip(_statusRow, "Recall", "RECALL ×2", UIKit.SystemCyan, 22f);
+            _recallChip.transform.parent.gameObject.SetActive(false);
             _sneakChip.transform.parent.gameObject.SetActive(false);
             _reachChip.transform.parent.gameObject.SetActive(false);
         }
@@ -489,6 +493,9 @@ namespace HS.UI
             var heroAgent = ctx.Hero as HeroAgent;
             bool showRations = sk.Rations.Count > 0 || (heroAgent != null && heroAgent.Hunger.Enabled);
             SetChip(_rationsChip, showRations, "RATIONS " + sk.Rations.Count, sk.Rations.Count > 0 ? UIKit.Gold : UIKit.Dim);
+            SetChip(_downedChip, sk.IsDowned, $"DOWNED {Mathf.CeilToInt(sk.DownedRemaining)} s", UIKit.Danger);
+            var recall = ctx.Get<RecallState>();
+            SetChip(_recallChip, recall != null && recall.Learned, "RECALL ×" + (recall != null ? recall.UsesLeft : 0), recall != null && recall.UsesLeft > 0 ? UIKit.SystemCyan : UIKit.Dim);
             LayoutStatus();
             var skills = sk.GetComponent<SidekickSkills>();
             ShowSlots(skills != null ? skills.System.SlotCount : 4);
@@ -550,7 +557,7 @@ namespace HS.UI
         void LayoutStatus()
         {
             float x = 0f;
-            foreach (var chip in new[] { _sneakChip, _reachChip, _rationsChip })
+            foreach (var chip in new[] { _downedChip, _sneakChip, _reachChip, _rationsChip, _recallChip })
             {
                 var rt = (RectTransform)chip.transform.parent;
                 if (!rt.gameObject.activeSelf) continue;

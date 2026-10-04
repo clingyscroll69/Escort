@@ -91,8 +91,20 @@ namespace HS.EditorTools
             def.heroId = "callum";
             def.s0.Clear();
             def.s1.Clear();
-            foreach (var (list, wait) in new[] { (def.s0, 3f), (def.s1, 2f) })
+            def.s2.Clear();
+            def.s3.Clear();
+            // Recall (GDD §4.2 table): [channel, max hostiles near her (−1 any), wound, rise, leaves a duel, sprints].
+            var recall = new[]
             {
+                new[] { 8f, 0f, 1f, 0.3f, 0f, 0f },  // S0: only with nobody near; +1 wound
+                new[] { 5f, 2f, 1f, 0.3f, 0f, 0f },  // S1: 2 or fewer near
+                new[] { 3f, -1f, 0f, 0.3f, 1f, 0f }, // S2: breaks off combat; no wound
+                new[] { 1.5f, -1f, 0f, 0.5f, 1f, 1f }, // S3: sprints mid-fight; she rises at 50%
+            };
+            // S2/S3 keep S1's code until their own rules land (campaign plan 3); only Recall differs.
+            foreach (var (list, wait, stage) in new[] { (def.s0, 3f, 0), (def.s1, 2f, 1), (def.s2, 2f, 2), (def.s3, 2f, 3) })
+            {
+                list.Add(new RuleEntry("callum_recall", recall[stage]));
                 list.Add(new RuleEntry("callum_fallback", 3f));        // 4. fall back at 3+ engagers
                 list.Add(new RuleEntry("callum_wait_unready", wait));   // 3. wait on the Unready (S0 3 s, S1 2 s)
                 list.Add(new RuleEntry("callum_salute"));               // 2. the 1.2 s salute

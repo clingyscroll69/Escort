@@ -29,6 +29,8 @@ namespace HS.Flow
             public bool AutoPicks;
             public string[] AutoPickIds = new string[0];
             public string ContinueLabel = "CONTINUE";
+            /// <summary>Chapter 2: he learns Recall here (GDD §4.6), and says so in his own Stage's words.</summary>
+            public bool LearnsRecall;
         }
 
         public CampfireVariant Variant { get; private set; }
@@ -138,6 +140,12 @@ namespace HS.Flow
             ctx.Get<StoneSystem>()?.RelayAll();
             // 6) The scene's lines (draft copy for the owner; GDD §6.1 campfire beats).
             _lines = CampfireScenes.Lines(o.Chapter, Variant, _sawDishonour);
+            if (o.LearnsRecall)
+            {
+                var l = new System.Collections.Generic.List<string>(_lines);
+                l.Insert(l.Count - 1, CampfireScenes.RecallLine(StageAfter));
+                _lines = l.ToArray();
+            }
             // 7) Level-up picks + loadout.
             var skills = sk.GetComponent<SidekickSkills>();
             int picks = o.Picks;

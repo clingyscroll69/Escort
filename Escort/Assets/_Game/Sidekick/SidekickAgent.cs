@@ -43,6 +43,76 @@ namespace HS.Sidekick
         public event Action Downed;
 
         public SidekickCommand LastCommand { get; private set; }
+        // ------------------------------------------------------------------ Downed (after Recall is learned, GDD §4.2)
+        public const float DownedTime = 20f;
+        /// <summary>Set by the flow once he has learned Recall: 0 HP downs her instead of killing her.</summary>
+        public bool CanBeDowned;
+        public bool IsDowned { get; private set; }
+        public float DownedRemaining { get; private set; }
+        public event Action WentDown, Rose, DownedTimedOut;
+        bool _goDown;
+
+        protected override float ModifyIncomingDamage(DamageInfo d)
+        {
+            if (IsDowned) return 0f; // nobody finishes off the unlisted
+            if (CanBeDowned && d.Amount >= Health.Current)
+            {
+                _goDown = true;
+                return Mathf.Max(0f, Health.Current - 1f);
+            }
+            return d.Amount;
+        }
+
+        public override float TakeDamage(DamageInfo d)
+        {
+            float applied = base.TakeDamage(d);
+            if (_goDown)
+            {
+                _goDown = false;
+                GoDown();
+            }
+            return applied;
+        }
+
+        void GoDown()
+        {
+            if (IsDowned) return;
+            IsDowned = true;
+            DownedRemaining = DownedTime;
+            CancelChannel();
+            Crouched = false;
+            _dodgeT = 0f;
+            Health.Invulnerable = false;
+            Status.Apply(StatusType.Downed, float.PositiveInfinity, this);
+            Presenter?.PlayAction("death");
+            Downed?.Invoke();
+            WentDown?.Invoke();
+        }
+
+        /// <summary>Recalled (or back at the door): on her feet with a fraction of her HP.</summary>
+        public void Rise(float hpFraction)
+        {
+            if (!IsDowned) return;
+            IsDowned = false;
+            DownedRemaining = 0f;
+            Status.Clear(StatusType.Downed);
+            Health.SetCurrent(Mathf.Max(1f, Health.Max * hpFraction));
+            Presenter?.PlayAction("getup");
+            Rose?.Invoke();
+        }
+
+        void TickDowned(float dt)
+        {
+            Motor.Move(Vector3.zero, 60f, dt);
+            Presenter?.SetLocomotion(0f, false);
+            DownedRemaining -= dt;
+            if (DownedRemaining <= 0f)
+            {
+                DownedRemaining = 0f;
+                DownedTimedOut?.Invoke();
+            }
+        }
+
         /// <summary>Food for the hero (chapters 2–4).</summary>
         public Rations Rations { get; } = new Rations();
 
@@ -87,6 +157,12 @@ namespace HS.Sidekick
         protected override void OnSimTick(float dt)
         {
             if (!IsAlive) return;
+            if (IsDowned)
+            {
+                LastCommand = SidekickCommand.None;
+                TickDowned(dt);
+                return;
+            }
             var t = T;
             Dodge.Tick(dt);
             if (_knifeCd > 0f) _knifeCd -= dt;

@@ -78,6 +78,8 @@ MonoBehaviour:
   StartsHidden: 0
   Elevated: 0
   JoinDelay: 0
+  StartsAsleep: 0
+  Scripted: 0
   DuelOpponent: {fileID: 0}
 --- !u!1 &7991518146692235917
 GameObject:

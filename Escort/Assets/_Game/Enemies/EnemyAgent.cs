@@ -398,7 +398,7 @@ namespace HS.Enemies
             var sk = Ctx != null ? Ctx.Sidekick : null;
             Agent pick = hero != null && hero.IsAlive ? hero : null;
             // Retaliate against the sidekick briefly after being hurt by them, if they're closer.
-            if (sk != null && sk.IsAlive && AwareOfSidekick && TimeSinceSidekickHurtMe < 3.5f)
+            if (sk != null && sk.IsAlive && !(sk is HS.Sidekick.SidekickAgent down && down.IsDowned) && AwareOfSidekick && TimeSinceSidekickHurtMe < 3.5f)
             {
                 if (pick == null || Geo.FlatDistance(Position, sk.Position) < Geo.FlatDistance(Position, pick.Position) + 2f) pick = sk;
             }

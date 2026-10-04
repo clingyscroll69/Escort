@@ -346,10 +346,50 @@ def tutorial_icons():
     print('tutorial icons written to', OUT)
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Campaign icons (2026-10-04): Callum's Recall rule and the chapter 2 skills. Same style.
+def campaign_icons():
+    os.makedirs(OUT, exist_ok=True)
+    # recall: a figure lying flat, an arrow lifting it
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([40, 196, 196, 226], 15, fill=W); d.ellipse([196, 190, 236, 230], fill=W)
+    thick(d, [(128, 176), (128, 70)], 26); arrowhead(d, (128, 30), (0, -1), 48, 40)
+    finish(im, 'recall')
+    # splint & stitch: two splints bound, a stitched line
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.rounded_rectangle([70, 30, 106, 226], 14, fill=W); d.rounded_rectangle([150, 30, 186, 226], 14, fill=W)
+    for y in (70, 128, 186):
+        d.rectangle([60, y - 9, 196, y + 9], fill=W)
+    for k in range(5):
+        x = 84 + k * 22
+        d.line([(x, 96), (x + 12, 108)], fill=CLEAR, width=6)
+    finish(im, 'skill_splint_and_stitch')
+    # pull back: a curved arrow hooking backwards
+    im = canvas(); d = ImageDraw.Draw(im)
+    arc_arrow(d, [40, 40, 216, 216], 200, 20, 28, head_at_start=True)
+    d.ellipse([168, 150, 216, 198], fill=W)
+    finish(im, 'skill_pull_back')
+    # sling: two cords to a pouch with a stone, swung
+    im = canvas(); d = ImageDraw.Draw(im)
+    thick(d, [(60, 40), (118, 168)], 14); thick(d, [(196, 40), (138, 168)], 14)
+    d.ellipse([92, 150, 164, 214], fill=W); d.ellipse([110, 166, 146, 200], fill=CLEAR); d.ellipse([116, 172, 140, 196], fill=W)
+    d.ellipse([46, 26, 76, 56], fill=W); d.ellipse([180, 26, 210, 56], fill=W)
+    finish(im, 'skill_sling')
+    # read the room: an eye with three marks of intent above it
+    im = canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([28, 108, 228, 212], fill=W); d.ellipse([98, 130, 158, 190], fill=CLEAR); d.ellipse([114, 146, 142, 174], fill=W)
+    for x in (70, 128, 186):
+        d.rounded_rectangle([x - 9, 22, x + 9, 72], 8, fill=W); d.ellipse([x - 10, 78, x + 10, 98], fill=W)
+    finish(im, 'skill_read_the_room')
+    print('campaign icons written to', OUT)
+
+
 if __name__ == '__main__':
     import sys
     which = sys.argv[1] if len(sys.argv) > 1 else 'all'
     if which in ('all', 'rules'):
         icons()
+    if which in ('all', 'campaign'):
+        campaign_icons()
     if which in ('all', 'tutorial'):
         tutorial_icons()

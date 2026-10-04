@@ -48,5 +48,10 @@ namespace HS.Flow
                             : new[] { "callum|Tomorrow, the Gallery. Single combat, I expect.", "callum|Stay out of it. Whatever happens.", "callum|" + Code, "sidekick~He still thinks this is a fair fight." };
             }
         }
+
+        /// <summary>The night he learns Recall (GDD §4.2: his first reaction is an S0 or S1 line).</summary>
+        public static string RecallLine(Stage stage) => stage >= Stage.S1
+            ? "callum|If you fall out there... I'll come back for you. That's in the Code. Somewhere."
+            : "callum|If you get yourself knocked flat, I suppose I'll have to drag you up. Try not to.";
     }
 }

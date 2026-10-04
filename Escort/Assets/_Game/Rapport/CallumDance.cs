@@ -162,7 +162,7 @@ namespace HS.Rapport
         {
             var sk = Sidekick;
             bool inCombat = InDuel || _cm.Engagers > 0;
-            bool abandoned = sk != null && sk.IsAlive && _hero.IsAlive && inCombat && _hero.Health.Fraction < AbandonHp
+            bool abandoned = sk != null && sk.IsAlive && !sk.IsDowned && _hero.IsAlive && inCombat && _hero.Health.Fraction < AbandonHp
                              && Geo.FlatDistance(sk.Position, _hero.Position) > AbandonRange;
             _abandonT = abandoned ? _abandonT + dt : 0f;
             if (!_abandonDone && _abandonT >= AbandonGrace)
