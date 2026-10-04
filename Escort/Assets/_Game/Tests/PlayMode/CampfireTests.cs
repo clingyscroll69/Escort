@@ -217,5 +217,21 @@ namespace HS.Tests
                 }
             }
         }
+
+        [UnityTest]
+        public IEnumerator Chapter_3_Campfire_Reads_The_Dossier_Scrap()
+        {
+            var (hero, sk, room) = Stage();
+            yield return null;
+            var dossier = new HS.Curator.Dossier();
+            Ctx.Register(dossier);
+            var dir = OpportunityDirector.Create(Ctx, hero);
+            _extra.Add(dir.gameObject);
+            var c = new GameObject("Campfire").AddComponent<CampfireDirector>();
+            _extra.Add(c.gameObject);
+            c.AutoSceneSeconds = 0.05f;
+            c.Begin(room, hero, sk, new CampfireDirector.Options { Chapter = 3, Check = StageCheck.Chapter3, AutoPicks = true, ReadsDossier = true });
+            CollectionAssert.Contains(dossier.Fragments, HS.Curator.Dossier.CallumScrap);
+        }
     }
 }

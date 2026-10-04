@@ -22,6 +22,41 @@ namespace HS.Curator
         [Tooltip("What he offers the sidekick, once (a ration for the road).")]
         public int GiftRations = 1;
 
+        /// <summary>What each scout says and offers (draft copy). Quill trades; the Prisoner begs to be freed.</summary>
+        public sealed class Script
+        {
+            public string Prompt, Gift, GiftFull, Greet, Callum, Shrug, UnmaskPing, UnmaskRead;
+            public bool LeavesWhenHelped;
+        }
+
+        public static readonly System.Collections.Generic.Dictionary<string, Script> Scripts = new System.Collections.Generic.Dictionary<string, Script>
+        {
+            ["quill"] = new Script
+            {
+                Prompt = "Talk to Mr. Quill", Gift = "For the road, friend. On the house. ...What's your name again?", GiftFull = "Pack's full? Next time, then.",
+                Greet = "And to you, Sir Knight. Such a famous face!", Callum = "Good day, merchant. Safe roads to you.",
+                Shrug = "Pointing is rude, friend. Rations? Rope? No?",
+                UnmaskPing = "That's— no. No, I have places to be.", UnmaskRead = "Wh— you're not supposed to— I have to go.",
+            },
+            ["prisoner"] = new Script
+            {
+                Prompt = "Free the prisoner", Gift = "Free! Bless you both. I'll... I'll find my own way out.", GiftFull = "Free! Bless you.",
+                Greet = "Please — they left me here to die. The key, the chain, anything!", Callum = "Free that man! No one deserves to rot in chains.",
+                Shrug = "Don't point, just help me! Please!",
+                UnmaskPing = "You— how did you— never mind the chains.", UnmaskRead = "Clever. Too clever. I'll be going.",
+                LeavesWhenHelped = true,
+            },
+            ["wren"] = new Script
+            {
+                Prompt = "Talk to Darian Wren", Gift = "A gift between colleagues. Mind you put it to good use.", GiftFull = "Travel light, do you? Admirable.",
+                Greet = "Callum the Honorable! The stories don't do you justice. Shall we clear this rampart together?", Callum = "Sir Darian. I fight alone, but you're welcome to watch.",
+                Shrug = "Pointing at a hero? Bold.",
+                UnmaskPing = "Ah. Well. It seems my audience is over.", UnmaskRead = "You see more than you let on. Good day.",
+            },
+        };
+
+        Script Lines => Scripts.TryGetValue(ScoutId, out var sc) ? sc : Scripts["quill"];
+
         public float FirstSeenAt { get; private set; } = -1f;
         public bool Unmasked { get; private set; }
         public bool Reported { get; private set; }
@@ -77,6 +112,18 @@ namespace HS.Curator
                 TickFlee(dt);
                 return;
             }
+            if (_leaveT > 0f)
+            {
+                // Freed: off he goes (and, unless he was caught out, his report still goes with him).
+                _fleeT = _leaveT;
+                _leaveT = 0f;
+                _leaving = true;
+            }
+            if (_leaving)
+            {
+                TickFlee(dt);
+                return;
+            }
             Motor.Move(Vector3.zero, 30f, dt);
             Presenter?.SetLocomotion(0f, false);
             var sk = Sk;
@@ -92,8 +139,8 @@ namespace HS.Curator
             if (!_greeted && hero != null && hero.IsAlive && Geo.FlatDistance(hero.Position, Position) <= GreetRange)
             {
                 _greeted = true;
-                _ctx.Events.RaiseBark("callum", "Good day, merchant. Safe roads to you.", 2.6f, 1);
-                Say("And to you, Sir Knight. Such a famous face!", 0);
+                _ctx.Events.RaiseBark("callum", Lines.Callum, 2.6f, 1);
+                Say(Lines.Greet, 0);
             }
             var read = ReadTheRoom.Get(_ctx);
             if (read != null && read.Covers(_ctx, Position)) Unmask("read");
@@ -117,7 +164,7 @@ namespace HS.Curator
             else if (!_shrugged)
             {
                 _shrugged = true;
-                Say("Pointing is rude, friend. Rations? Rope? No?", 1);
+                Say(Lines.Shrug, 1);
             }
         }
 
@@ -132,10 +179,13 @@ namespace HS.Curator
             var dossier = _ctx?.Get<Dossier>();
             string fragment = Dossier.ScoutFragments.TryGetValue(ScoutId, out var f) ? f : null;
             dossier?.Add(fragment);
-            Say(how == "read" ? "Wh— you're not supposed to— I have to go." : "That's— no. No, I have places to be.", 2);
+            Say(how == "read" ? Lines.UnmaskRead : Lines.UnmaskPing, 2);
             _ctx?.Events.RaiseNotice($"{DisplayName.ToUpperInvariant()} BOLTED. HIS PENDANT WAS DULL GREY, LIKE A DEAD STONE.\n<size=80%>A page fell from his coat: {fragment}</size>");
             Presenter?.SetFlag("combat", false);
         }
+
+        float _leaveT;
+        bool _leaving;
 
         void TickFlee(float dt)
         {
@@ -159,7 +209,7 @@ namespace HS.Curator
 
         // ------------------------------------------------------------------ IInteractable: his gift
         public Vector3 InteractPosition => Position;
-        public string Prompt => "Talk to " + DisplayName;
+        public string Prompt => Lines.Prompt;
         public float InteractDuration => 0f;
         public bool CanInteract(Agent who) => !Unmasked && !Gave && who is SidekickAgent;
 
@@ -168,8 +218,9 @@ namespace HS.Curator
             if (!CanInteract(who)) return;
             Gave = true;
             int got = GiftRations > 0 && who is SidekickAgent sk ? sk.Rations.Give(GiftRations) : 0;
-            Say(got > 0 ? "For the road, friend. On the house. ...What's your name again?" : "Pack's full? Next time, then.", 1);
+            Say(got > 0 || GiftRations <= 0 ? Lines.Gift : Lines.GiftFull, 1);
             if (got > 0) _ctx?.Events.RaiseNotice($"{DisplayName.ToUpperInvariant()}: +{got} ration.");
+            if (Lines.LeavesWhenHelped) _leaveT = FleeTime;
         }
 
         public override bool IsHostileTo(Agent other) => false;

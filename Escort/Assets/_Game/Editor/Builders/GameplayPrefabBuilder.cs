@@ -68,6 +68,7 @@ namespace HS.EditorTools
         public static readonly (string id, string name, string visual, float scale)[] Scouts =
         {
             ("quill", "Mr. Quill", "Quill_Visual", 0.97f),
+            ("prisoner", "the Prisoner", "Prisoner_Visual", 0.95f),
         };
 
         public static string ScoutPrefabPath(string id) => $"{Dir}/Scout_{id}.prefab";
@@ -78,6 +79,7 @@ namespace HS.EditorTools
             var s = root.AddComponent<HS.Curator.Scout>();
             s.ScoutId = id;
             s.DisplayName = displayName;
+            s.GiftRations = id == "quill" ? 1 : 0;
             s.AgentId = "scout_" + id;
             AddVisual(root, visual);
             AddCamTarget(root, 1.2f * scale);

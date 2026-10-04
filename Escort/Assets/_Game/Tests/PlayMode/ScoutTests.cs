@@ -105,5 +105,21 @@ namespace HS.Tests
             Assert.AreEqual(1, _sk.Rations.Count);
             Assert.IsFalse(_quill.CanInteract(_sk), "once");
         }
+
+        [UnityTest]
+        public IEnumerator The_Prisoner_Freed_Walks_Off_And_Still_Reports()
+        {
+            yield return Stage();
+            _quill.ScoutId = "prisoner";
+            _quill.DisplayName = "the Prisoner";
+            _quill.GiftRations = 0;
+            Assert.AreEqual("Free the prisoner", _quill.Prompt);
+            _quill.Interact(_sk);
+            Assert.AreEqual(0, _sk.Rations.Count);
+            Seconds(Scout.FleeTime + 0.3f);
+            Assert.IsFalse(_quill.gameObject.activeSelf, "freed, he's gone");
+            _quill.Report(_stones);
+            Assert.AreEqual(1, _stones.IntelLevel, "and, never caught out, he reports");
+        }
     }
 }

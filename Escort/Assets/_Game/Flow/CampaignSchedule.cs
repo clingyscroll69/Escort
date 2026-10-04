@@ -16,6 +16,8 @@ namespace HS.Flow
         /// <summary>False for the Gallery: it ends at the door, not a campfire.</summary>
         public bool HasCamp = true;
         public bool LearnsRecall, CapstoneReveal, Hunger;
+        /// <summary>The dossier scrap is found and read at this chapter's campfire (GDD §8: end of chapter 3).</summary>
+        public bool DossierScrap;
         /// <summary>Between-room recovery, a fraction of his max HP (wounds stay).</summary>
         public float Recovery;
         /// <summary>Multiplier on each room module's XP pot.</summary>
@@ -39,7 +41,7 @@ namespace HS.Flow
         {
             new ChapterRules { Chapter = 1, Name = "The Old Road", Slots = 4, Unlocks = Ch1, Recovery = 0.5f, XpFactor = 1.0f },
             new ChapterRules { Chapter = 2, Name = "Whisperwood", Slots = 5, Unlocks = Ch2, CampCheck = StageCheck.Chapter2, LearnsRecall = true, Hunger = true, Recovery = 0.3f, XpFactor = 1.8f },
-            new ChapterRules { Chapter = 3, Name = "Catacombs of Ends", Slots = 6, Unlocks = Ch3, CampCheck = StageCheck.Chapter3, Hunger = true, Recovery = 0.3f, XpFactor = 2.4f },
+            new ChapterRules { Chapter = 3, Name = "Catacombs of Ends", Slots = 6, Unlocks = Ch3, CampCheck = StageCheck.Chapter3, DossierScrap = true, Hunger = true, Recovery = 0.3f, XpFactor = 2.4f },
             new ChapterRules { Chapter = 4, Name = "The Sunken Bastion", Slots = 6, Unlocks = Ch4, CapstoneReveal = true, Hunger = true, Recovery = 0.3f, XpFactor = 4.7f },
             new ChapterRules { Chapter = 5, Name = "The Gallery", Slots = 6, Unlocks = Ch5, HasCamp = false, Recovery = 0.3f, XpFactor = 0f },
         };

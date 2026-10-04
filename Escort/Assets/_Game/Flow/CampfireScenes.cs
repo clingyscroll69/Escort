@@ -53,5 +53,12 @@ namespace HS.Flow
         public static string RecallLine(Stage stage) => stage >= Stage.S1
             ? "callum|If you fall out there... I'll come back for you. That's in the Code. Somewhere."
             : "callum|If you get yourself knocked flat, I suppose I'll have to drag you up. Try not to.";
+
+        /// <summary>He hears what the Curator wrote about him (GDD §11.3.4 foreshadowing ladder: the chapter 3 dossier).</summary>
+        public static string DossierLine(Stage stage) => stage >= Stage.S2
+            ? "callum|They've written me down like a ledger entry. ...You're not in it. Good."
+            : stage == Stage.S1
+                ? "callum|\"Will keep a bargain after it is broken.\" ...Is that so terrible a thing?"
+                : "callum|Someone has been watching me. Let them. I have nothing to hide.";
     }
 }

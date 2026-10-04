@@ -17,6 +17,9 @@ namespace HS.Curator
             ["wren"] = "\"...accepts help only from those who ask nothing. Offer him nothing, and he is yours.\"",
         };
 
+        /// <summary>GDD §8, found at the end of chapter 3 (draft copy for the owner).</summary>
+        public const string CallumScrap = "SUBJECT: CALLUM, called 'the Honorable'. Observed: salutes before striking. Waits for the fallen to rise. Conclusion: will keep a bargain after it is broken.";
+
         public bool Add(string fragment)
         {
             if (string.IsNullOrEmpty(fragment) || Fragments.Contains(fragment)) return false;

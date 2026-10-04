@@ -32,6 +32,8 @@ namespace HS.Flow
             public string ContinueLabel = "CONTINUE";
             /// <summary>Chapter 2: he learns Recall here (GDD §4.6), and says so in his own Stage's words.</summary>
             public bool LearnsRecall;
+            /// <summary>Chapter 3: the dossier scrap is read by the fire.</summary>
+            public bool ReadsDossier;
         }
 
         public CampfireVariant Variant { get; private set; }
@@ -144,6 +146,14 @@ namespace HS.Flow
             foreach (var scout in HS.Curator.Scout.All.ToArray()) scout.Report(stones);
             // 6) The scene's lines (draft copy for the owner; GDD §6.1 campfire beats).
             _lines = CampfireScenes.Lines(o.Chapter, Variant, _sawDishonour);
+            if (o.ReadsDossier)
+            {
+                ctx.Get<HS.Curator.Dossier>()?.Add(HS.Curator.Dossier.CallumScrap);
+                ctx.Events.RaiseNotice("A PAGE FROM THE VAULT, IN A COLLECTOR'S HAND:\n<size=80%>" + HS.Curator.Dossier.CallumScrap + "</size>");
+                var l = new System.Collections.Generic.List<string>(_lines);
+                l.Insert(Mathf.Min(1, l.Count), CampfireScenes.DossierLine(StageAfter));
+                _lines = l.ToArray();
+            }
             if (o.LearnsRecall)
             {
                 var l = new System.Collections.Generic.List<string>(_lines);

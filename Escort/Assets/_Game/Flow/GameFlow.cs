@@ -337,6 +337,7 @@ namespace HS.Flow
                 {
                     Chapter = ch, Check = CampaignSchedule.For(ch).CampCheck, Picks = picks, AutoPicks = AutoPlay, AutoPickIds = CampPicks,
                     LearnsRecall = CampaignSchedule.For(ch).LearnsRecall,
+                    ReadsDossier = CampaignSchedule.For(ch).DossierScrap,
                     ContinueLabel = $"CONTINUE  »  {next.Name.ToUpperInvariant()}",
                 });
                 SimLoop.Instance.Paused = false;
