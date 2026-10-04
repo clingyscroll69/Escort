@@ -165,5 +165,57 @@ namespace HS.Tests
             Assert.AreEqual(4f, ledger.Earned, 1e-3f);
             CollectionAssert.AreEqual(new[] { WoundType.Fever }, hero.Wounds.All);
         }
+
+        CampfireDirector CampAt(HeroAgent hero, SidekickAgent sk, RoomModule room, int chapter, float earned, float offered)
+        {
+            var dir = OpportunityDirector.Create(Ctx, hero);
+            _extra.Add(dir.gameObject);
+            dir.Ledger.Chapter = chapter;
+            for (int i = 0; i < offered; i++)
+            {
+                var m = dir.Ledger.Offer("unseen_assist", 1f);
+                if (i < earned) dir.Ledger.Capture(m);
+            }
+            var c = new GameObject("Campfire").AddComponent<CampfireDirector>();
+            _extra.Add(c.gameObject);
+            c.AutoSceneSeconds = 0.05f;
+            var rules = CampaignSchedule.For(chapter);
+            c.Begin(room, hero, sk, new CampfireDirector.Options { Chapter = chapter, Check = rules.CampCheck, AutoPicks = true });
+            return c;
+        }
+
+        [UnityTest]
+        public IEnumerator Chapter_1_Has_No_Check_Chapter_3_Allows_S2()
+        {
+            var (hero, sk, room) = Stage();
+            yield return null;
+            var c1 = CampAt(hero, sk, room, 1, 9f, 10f);
+            Assert.AreEqual(HS.Core.Stage.S0, hero.Stage, "no Stage check at the end of chapter 1");
+            Assert.AreEqual(CampfireVariant.Neutral, c1.Variant);
+            TearDown();
+            SetUp();
+            (hero, sk, room) = Stage();
+            yield return null;
+            hero.ApplyStage(HS.Core.Stage.S1);
+            var c3 = CampAt(hero, sk, room, 3, 6f, 10f);
+            Assert.AreEqual(HS.Core.Stage.S2, hero.Stage, "60% at the chapter 3 check: S2");
+            Assert.AreEqual(CampfireVariant.Warm, c3.Variant);
+        }
+
+        [Test]
+        public void Every_Chapter_And_Variant_Has_Lines_Without_Spoilers()
+        {
+            foreach (int ch in new[] { 1, 2, 3, 4 })
+            foreach (CampfireVariant v in System.Enum.GetValues(typeof(CampfireVariant)))
+            {
+                var lines = CampfireScenes.Lines(ch, v, false);
+                Assert.GreaterOrEqual(lines.Length, 3, $"ch{ch} {v}");
+                foreach (var l in lines)
+                {
+                    Assert.IsTrue(l.Contains("~") || l.Contains("|"), l);
+                    foreach (var banned in new[] { "Rapport", "Stage", "Moment", "points" }) StringAssert.DoesNotContain(banned, l);
+                }
+            }
+        }
     }
 }

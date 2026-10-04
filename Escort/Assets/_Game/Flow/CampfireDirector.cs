@@ -13,14 +13,26 @@ using UnityEngine;
 namespace HS.Flow
 {
     /// <summary>
-    /// The campfire (GDD §4.6 / slice: "one campfire scene in two variants"). On arrival the hidden Stage check runs
-    /// (the slice's check acts like the Ch2 one: max S1) and the scene shows it: cold (S0) — he sits apart, back to you,
-    /// a small fire, he recites the Code at you; warm (S1) — a bigger fire, he faces you, and notices. Rest treats his
-    /// worst wound and heals you both; stones relay their clips; level-up picks and the loadout; then a Restore Point.
+    /// The campfire at the end of chapters 1–4 (GDD §4.6). On arrival the chapter's hidden Stage check runs, if it has one
+    /// (end of Ch2: max S1; end of Ch3: max S2), and the scene shows where he stands: cold — he sits apart, back to you, a
+    /// small fire; neutral — by the fire, facing it; warm — a bigger fire, he faces you, and notices. Rest treats his worst
+    /// wound and heals you both; stones relay their clips; level-up picks and the loadout; then the next chapter.
     /// </summary>
     public sealed class CampfireDirector : MonoBehaviour
     {
-        public bool Warm { get; private set; }
+        public sealed class Options
+        {
+            public int Chapter = 2;
+            /// <summary>The hidden Stage check this campfire runs (null: none).</summary>
+            public StageCheck? Check = StageCheck.Chapter2;
+            public int Picks;
+            public bool AutoPicks;
+            public string[] AutoPickIds = new string[0];
+            public string ContinueLabel = "CONTINUE";
+        }
+
+        public CampfireVariant Variant { get; private set; }
+        public bool Warm => Variant == CampfireVariant.Warm;
         public Stage StageAfter { get; private set; }
         public string RestNote { get; private set; }
         public SkillPicker Picker { get; private set; }
@@ -46,6 +58,7 @@ namespace HS.Flow
         SidekickSkills _skills;
         RectTransform _skipChip;
         bool _sawDishonour;
+        Options _options;
         string[] _lines;
 
         static Transform Find(Transform root, string name)
@@ -54,27 +67,37 @@ namespace HS.Flow
             return null;
         }
 
-        public void Begin(RoomModule camp, HeroAgent hero, SidekickAgent sk, int picks, bool autoPicks, string[] autoPickIds)
+        /// <summary>The slice's call: its check acts as the chapter 2 one (max S1).</summary>
+        public void Begin(RoomModule camp, HeroAgent hero, SidekickAgent sk, int picks, bool autoPicks, string[] autoPickIds) =>
+            Begin(camp, hero, sk, new Options { Chapter = 2, Check = StageCheck.Chapter2, Picks = picks, AutoPicks = autoPicks, AutoPickIds = autoPickIds ?? new string[0] });
+
+        public void Begin(RoomModule camp, HeroAgent hero, SidekickAgent sk, Options o)
         {
             var ctx = RunContext.Current;
             _hero = hero;
             _sk = sk;
+            _options = o;
             var ledger = ctx.Get<RapportLedger>();
-            // 1) The hidden Stage check.
-            float rate = ledger != null ? ledger.CaptureRate : 0f;
-            StageAfter = StageEvaluator.Evaluate(hero.Stage, rate, StageCheck.Chapter2);
-            hero.ApplyStage(StageAfter);
-            Warm = StageAfter >= Stage.S1;
+            // 1) The hidden Stage check (only the chapters that have one: GDD §4.4, end of Ch2 and Ch3).
+            if (o.Check.HasValue)
+            {
+                float rate = ledger != null ? ledger.CaptureRate : 0f;
+                hero.ApplyStage(StageEvaluator.Evaluate(hero.Stage, rate, o.Check.Value));
+            }
+            StageAfter = hero.Stage;
+            bool penalised = ledger != null && ledger.RawPenaltiesIn(o.Chapter) > 0f;
+            Variant = CampfireScenes.VariantFor(o.Chapter, StageAfter, penalised);
             var cm = hero.Module as CallumModule;
             _sawDishonour = cm != null && cm.Honor < cm.T.honorMax;
-            // 2) Places: warm — by the fire, facing you; cold — apart, facing the dark.
+            // 2) Places: warm — by the fire, facing you; neutral — by the fire, facing it; cold — apart, facing the dark.
             var heroSeat = Find(camp.transform, "HeroSeat");
             var skSeat = Find(camp.transform, "SidekickSeat");
             var fire = Find(camp.transform, "Fire");
-            var heroPos = Warm ? heroSeat.position : heroSeat.position + (heroSeat.position - fire.position).normalized * 2.6f;
+            var heroPos = Variant == CampfireVariant.Cold ? heroSeat.position + (heroSeat.position - fire.position).normalized * 2.6f : heroSeat.position;
             hero.Route.SetNodes(new System.Collections.Generic.List<HS.Hero.RouteNode>());
             hero.Motor.Teleport(heroPos + Vector3.up * 0.05f);
-            var face = Warm ? Geo.DirTo(heroPos, skSeat.position) : Geo.DirTo(fire.position, heroPos);
+            var face = Variant == CampfireVariant.Warm ? Geo.DirTo(heroPos, skSeat.position)
+                : Variant == CampfireVariant.Neutral ? Geo.DirTo(heroPos, fire.position) : Geo.DirTo(fire.position, heroPos);
             hero.Motor.FaceInstant(face);
             sk.Motor.Teleport(skSeat.position + Vector3.up * 0.05f);
             sk.Motor.FaceInstant(Geo.DirTo(skSeat.position, fire.position));
@@ -92,15 +115,17 @@ namespace HS.Flow
                 _fire = fire;
             }
             // 3) The fire.
-            _flame = HS.Presentation.Vfx.FireAt(fire, Warm ? 1.25f : 0.7f);
+            float fireScale = Variant == CampfireVariant.Warm ? 1.25f : Variant == CampfireVariant.Neutral ? 1f : 0.7f;
+            float warmth = (fireScale - 0.7f) / 0.55f;
+            _flame = HS.Presentation.Vfx.FireAt(fire, fireScale);
             var lgo = new GameObject("FireLight");
             lgo.transform.SetParent(fire, false);
             lgo.transform.localPosition = Vector3.up * 0.6f;
             _light = lgo.AddComponent<Light>();
             _light.type = LightType.Point;
             _light.color = new Color(1f, 0.62f, 0.3f);
-            _light.range = Warm ? 9f : 5f;
-            _light.intensity = Warm ? 3.2f : 1.4f;
+            _light.range = 5f + 4f * warmth;
+            _light.intensity = 1.4f + 1.8f * warmth;
             // 4) Rest.
             var tw = hero.Wounds.All.Count > 0 ? hero.Wounds.All[0] : (WoundType?)null;
             bool treated = hero.Wounds.TreatWorst();
@@ -110,18 +135,15 @@ namespace HS.Flow
             ctx.Events.RaiseNotice(RestNote);
             // 5) Stones relay what they saw.
             ctx.Get<StoneSystem>()?.RelayAll();
-            // 6) The scene's lines (draft copy for the owner; GDD Ch1 beat: he recites the Code).
-            _lines = Warm
-                ? new[] { "callum|Sit. The fire's big enough for two.", "callum|\"Strike the ready. Spare the yielded. Never the back.\" My father's words. Tonight they feel lighter.",
-                          "callum|You were... useful today. I noticed.", "sidekick~Was that a compliment?" }
-                : new[] { "callum|We camp here. I'll take the first watch.", "callum|\"Strike the ready. Spare the yielded. Never the back.\" The Code. Learn it.",
-                          _sawDishonour ? "callum|And keep your sand in your pockets." : "callum|Fortune favoured us today.", "sidekick~He hasn't looked at me once." };
+            // 6) The scene's lines (draft copy for the owner; GDD §6.1 campfire beats).
+            _lines = CampfireScenes.Lines(o.Chapter, Variant, _sawDishonour);
             // 7) Level-up picks + loadout.
             var skills = sk.GetComponent<SidekickSkills>();
-            if (autoPicks || UIRoot.Instance == null)
+            int picks = o.Picks;
+            if (o.AutoPicks || UIRoot.Instance == null)
             {
                 skills.System.AtCamp = true;
-                foreach (var id in autoPickIds) if (picks > 0 && skills.Learn(id)) picks--;
+                foreach (var id in o.AutoPickIds) if (picks > 0 && skills.Learn(id)) picks--;
                 skills.System.AtCamp = false;
                 Invoke(nameof(Finish), AutoSceneSeconds); // bots still sit through the scene (QA watches it)
             }
@@ -157,7 +179,7 @@ namespace HS.Flow
             if (_lines != null) _line = _lines.Length; // the rest of the scene stays unsaid
             if (_skipChip != null) Destroy(_skipChip.gameObject);
             if (_skills == null || UIRoot.Instance == null) return;
-            Picker = SkillPicker.Show(UIRoot.Instance, _skills.System, _pendingPicks, "» CAMP  ·  LEVEL UP", true, "CONTINUE  »  THE RIGGED DUEL");
+            Picker = SkillPicker.Show(UIRoot.Instance, _skills.System, _pendingPicks, "» CAMP  ·  LEVEL UP", true, _options.ContinueLabel);
             Picker.Done += Finish;
         }
 
