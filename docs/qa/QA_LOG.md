@@ -587,3 +587,35 @@ wasn't merged yet (Editor.log: `main`'s stack lines, no `[Tutorial]` line). Two 
    Remember Lessons Between Plays switches the editor to the build's behaviour.
 The opening test now also checks that a first-time player's road starts teaching (the System window's notice, then "move").
 EditMode 94/94; PlayMode 103/107 headless (the same 4 as above).
+
+## Campaign spine (2026-10-04, plan 1 of 6)
+Design: `docs/superpowers/specs/2026-10-04-callum-campaign-design.md`; plan: `docs/superpowers/plans/2026-10-04-campaign-spine.md`.
+Branch `claude/callum-campaign`.
+
+**What changed**
+- The run is now a campaign: opening → chapters 1–4, each ending at its own campfire → chapter 5 (the Gallery) → the
+  door → the boss. Chapters are rebuilt in place (`ChapterBootstrap.BuildRun` once, `BuildChapter`/`TeardownChapter`
+  per chapter); the pair, the ledger, the stones, the HUD and the camera live for the whole run.
+- `CampaignSchedule` (per chapter: name, slots 4/5/6/6/6, signature unlocks, which campfire runs which Stage check,
+  between-room recovery 50% → 30%, XP factor) and `ChapterTier` (Callum ×2.5 damage / ×2 HP per chapter; enemies ×2.5 HP
+  and ×2 damage to him; the sidekick ×2.5 damage). Strike II (Riposte 3×) from chapter 4.
+- Campfires: chapter 1 has no check (cold if he caught you, neutral otherwise); chapter 2 checks to max S1, chapter 3 to
+  max S2; cold/neutral/warm scenes per chapter (`CampfireScenes`, draft copy). The door runs the last check (max S3,
+  +1 at most) with Callum's line for his Stage.
+- Restore Points: every chapter start reached, plus "before the door". Restoring to chapter N forgets later points.
+- The skill bar shows 4, 5, then 6 slots (keys 5–6, D-pad ←/→).
+- `Tools/HS/Play from chapter/2–5` starts a run at that chapter with the kit a thorough player would have.
+- The harness runs chapter ranges (`"chapters":"1"` or `"2-4"` in harness_args.json); its tests measure chapter 1.
+
+**Temporary (later plans):** chapters 2–5 use the Old Road's four modules under their own light; the boss is still the
+slice's rigged duel (3 archers, no Mirror); hunger, Recall, S2/S3 rules, scouts and the new skills are not in yet.
+
+**Visual QA** (`CATEGORY=QA tools/unity-tests.sh PlayMode CampaignQaCaptures` → `docs/qa/shots/campaign_ch1..5.png`):
+chapter 1 unchanged; Whisperwood greener with a closer haze; Catacombs dark (raised once: the sidekick was hard to see at
+0.38 sun); Bastion cold blue; Gallery bright. 5- and 6-slot bars lay out with the verbs and passives moved outward.
+
+**Tests:** EditMode 103/103. PlayMode 118/123; the 5 failures were all failing on `main` before this work (camera
+framing at 25 m, harness determinism hash, the opening's keyboard check, and two Honor tests that look stale after
+"judge only his duel and the helpless"). `HitFeedbackTests` failed once in a full run and passed in the next two runs
+(timing-dependent, not caused by this work: it passes after `CampaignTests` too).
+

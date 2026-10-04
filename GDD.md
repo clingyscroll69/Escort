@@ -54,6 +54,12 @@ A run is one campaign: **5 chapters, about 45–55 minutes**, ending in the boss
 
 "Hero can solo" means the fraction of encounters the hero clears with at most one serious wound while the sidekick does nothing. It is measured by the balance harness (11.4).
 
+*Built (campaign spine, 2026-10-04):* the run loops all five chapters for Callum: power tiers (enemies scale so hits-to-kill
+stay constant), slots 4/5/6, XP pots per chapter (levels 3/6/9/13 by the end of chapters 1–4), the Stage checks at the
+Ch2/Ch3 campfires and at the Gallery door, and Restore Points at every chapter start reached and before the door. The rigged
+duel moved from the end of chapter 1 to the Gallery. Chapters 2–5 use the Old Road's rooms under their own light until
+their modules land. See `docs/superpowers/specs/2026-10-04-callum-campaign-design.md`.
+
 - **Modules per chapter:** about 5 (combat arena, trap corridor, ambush, seal or puzzle, social, set piece), plus a campfire.
 - **Hero death ends the run.** The game then offers **Restore Points** (chapter starts).
 - **Sidekick death (decided).** Until chapter 2 is cleared, the sidekick's HP reaching 0 **ends the run by design** (red glyphs: "SIDEKICK: DECEASED. NO RECALL AVAILABLE."), then the Restore Point menu. After chapter 2 the hero learns **Recall** (see 4.2) and death becomes recoverable.
