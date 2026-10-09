@@ -56,7 +56,7 @@ namespace HS.EditorTools
             R("field_kitchen", "Field Kitchen", SkillFamily.Provisioner, SkillType.Active, "At camp: cook meals from foraged ingredients for run-long buffs."),
             R("repair_kit", "Repair Kit", SkillFamily.Provisioner, SkillType.Active, "Fix gear and bridges."),
             R("spare_sword", "Spare Sword", SkillFamily.Provisioner, SkillType.Active, "Hand the hero a slashing, piercing or blunt weapon for 20 s (soft bonuses, never immunity)."),
-            R("smoke_bomb", "Smoke Bomb", SkillFamily.Provisioner, SkillType.Active, "Throw smoke up to 8 m away: a cloud 3 m across (rank 2: 3.6 m) for 6 s (rank 2: 8 s). Nobody sees through it, not the hero, not a chronicle stone, not a shooter, and anyone inside loses track of you. Cooldown 20 s (rank 2: 16 s).", true, new[] { 20f, 16f }, new[] { 6f, 8f }, new[] { 3f, 3.6f }),
+            R("smoke_bomb", "Smoke Bomb", SkillFamily.Provisioner, SkillType.Active, "Throw smoke up to 8 m away: a cloud 6 m across (rank 2: 7.2 m) for 6 s (rank 2: 8 s). Nobody sees through it, not the hero, not a chronicle stone, not a shooter, and anyone inside loses track of you. Cooldown 20 s (rank 2: 16 s).", true, new[] { 20f, 16f }, new[] { 6f, 8f }, new[] { 3f, 3.6f }),
             R("heavy_pack", "Heavy Pack", SkillFamily.Provisioner, SkillType.Passive, "+2 item capacity."),
             R("splint_and_stitch", "Splint & Stitch", SkillFamily.Provisioner, SkillType.Active, "A 6 s channel beside the hero (rank 2: 4.5 s) that treats one serious wound: cracked ribs, fever or a concussion. Supplies for 2 a chapter (rank 2: 3). Cooldown 30 s (rank 2: 24 s).", true, new[] { 30f, 24f }, new[] { 6f, 4.5f }, new[] { 2f, 3f }),
             // Scholar

@@ -746,3 +746,16 @@ Phase 3 wins S3 ≈ 75%, S2 ≈ 60%, S1 ≈ 35%); visual QA of the new rooms and
   sabotage, no Honor cost.
 - *Not yet run:* compile-checked only. New tests: `SidekickTests.Contact_Needs_The_Same_Level_As_A_Man_On_A_Perch`,
   `RapportTests.Pulling_Him_Clear_Of_A_False_Surrender_Averts_The_Cheat`.
+
+## Polish: the last skill demos and the chapter 4–5 captures (2026-10-09)
+- *Demos:* every implemented skill now has its live demo in the picker (`SkillDemos.Road.cs`: Splint & Stitch, Pull Back,
+  Sling, Read the Room, Read Runes, Lockpick, Map Sketch, Buckler; `SkillDemos.Bastion.cs`: Bait & Switch, Smoke Bomb,
+  Pep Talk, Shoulder Check, Domino Effect, Crossfire, Hold Please, Silent Partner). Numbers come from the skill data at
+  the shown rank; each also shows how his code reads it. `SkillDemos.Pending` is gone, so `SkillDemoTests` plays all of
+  them at both ranks. Every demo has 3–5 captions (no hidden-stat words, checked by script) and runs 8–16 s.
+- *Fixed:* Smoke Bomb's description said "a cloud 3 m across"; the cloud's radius is 3 m (rank 2: 3.6 m), as its guide
+  card already said. Now "6 m across (rank 2: 7.2 m)".
+- *Captures* (`CampaignQaCaptures`, category QA): `Bastion_Rooms`, `Gallery_Rooms`, `Bastion_Cast`, `Gallery_Cast` (the
+  cast spawned through `CastFactory`, so aliases wear their bodies), and `Gallery_Boss_Phases` (from the door at S3 with
+  Hold Please: `boss_0_diagnosis` … `boss_5_ending`). The room captures need the chapter 4–5 modules built first.
+- *Not yet run:* compile-checked only.

@@ -12,7 +12,7 @@ namespace HS.Tutorial.Demo
     /// Callum's code reads the trick (in his sight or out of it). Draft captions for the owner to rewrite.
     /// Stage coordinates: x across (−7..7), y away from the camera (−4..5).
     /// </summary>
-    public static class SkillDemos
+    public static partial class SkillDemos
     {
         static readonly Dictionary<string, Func<DemoContext, DemoScript>> Builders = new Dictionary<string, Func<DemoContext, DemoScript>>
         {
@@ -22,18 +22,27 @@ namespace HS.Tutorial.Demo
             { "crossbow", Crossbow },
             { "bandage", Bandage },
             { "cover_story", CoverStory },
+            // The road (chapters 2–3): SkillDemos.Road.cs
+            { "splint_and_stitch", SplintAndStitch },
+            { "pull_back", PullBack },
+            { "sling", Sling },
+            { "read_the_room", ReadTheRoom },
+            { "read_runes", ReadRunes },
+            { "lockpick", Lockpick },
+            { "map_sketch", MapSketch },
+            { "buckler", Buckler },
+            // The Bastion (chapter 4) and the capstones: SkillDemos.Bastion.cs
+            { "bait_and_switch", BaitAndSwitch },
+            { "smoke_bomb", SmokeBomb },
+            { "pep_talk", PepTalk },
+            { "shoulder_check", ShoulderCheck },
+            { "domino_effect", DominoEffect },
+            { "crossfire", Crossfire },
+            { "hold_please", HoldPlease },
+            { "silent_partner", SilentPartner },
         };
 
         public static bool Has(string skillId) => skillId != null && Builders.ContainsKey(skillId);
-
-        /// <summary>Implemented skills whose live demo comes with the campaign's polish pass (plan 6); until then the
-        /// picker goes straight to their end card (numbers and how Callum reads them).</summary>
-        public static readonly HashSet<string> Pending = new HashSet<string>
-        {
-            "splint_and_stitch", "pull_back", "sling", "read_the_room", "read_runes", "lockpick", "map_sketch", "buckler",
-            "bait_and_switch", "smoke_bomb", "pep_talk", "shoulder_check",
-            "domino_effect", "crossfire", "hold_please", "silent_partner",
-        };
 
         public static DemoScript Build(string skillId, DemoContext c) => Has(skillId) ? Builders[skillId](c) : null;
 

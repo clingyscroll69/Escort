@@ -226,6 +226,21 @@ namespace HS.Tutorial.Demo
             return go;
         }
 
+        /// <summary>A plain block standing on the floor (a seal, a gate, a hidden plate), in a flat colour.</summary>
+        public GameObject Block(string id, Vector2 at, Vector3 size, Color color, float lift = 0f)
+        {
+            var go = Missile(id, PrimitiveType.Cube, size, color);
+            go.transform.position = Stage.World(at) + Vector3.up * (size.y * 0.5f + lift);
+            return go;
+        }
+
+        /// <summary>Take a puppet off the floor (a decoy gone, a scout fled).</summary>
+        public void Hide(string id)
+        {
+            var p = this[id];
+            if (p != null && p.Root != null) p.Root.gameObject.SetActive(false);
+        }
+
         public static void Sound(string key, float volume = 0.5f) => HS.Audio.AudioDirector.Instance?.Play(key, null, volume, 0.02f, 0.04f);
     }
 

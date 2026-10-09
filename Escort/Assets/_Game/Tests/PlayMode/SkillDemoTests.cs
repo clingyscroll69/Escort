@@ -82,7 +82,6 @@ namespace HS.Tests
             vp.ManualClock = true;
             foreach (var def in SkillCatalog.Load().Implemented)
             {
-                if (SkillDemos.Pending.Contains(def.id)) continue; // demo comes in the polish pass; the end card stands in
                 Assert.IsTrue(SkillDemos.Has(def.id), def.id + " has a demo");
                 vp.Play(def.id, rank);
                 var captions = new HashSet<string>();

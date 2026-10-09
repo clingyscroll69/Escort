@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Smoke Bomb
   family: 2
   type: 0
-  uses: 'Throw smoke up to 8 m away: a cloud 3 m across (rank 2: 3.6 m) for 6 s (rank 2: 8 s). Nobody sees through it, not the hero, not a chronicle stone, not a shooter, and anyone inside loses track of you. Cooldown 20 s (rank 2: 16 s).'
+  uses: 'Throw smoke up to 8 m away: a cloud 6 m across (rank 2: 7.2 m) for 6 s (rank 2: 8 s). Nobody sees through it, not the hero, not a chronicle stone, not a shooter, and anyone inside loses track of you. Cooldown 20 s (rank 2: 16 s).'
   icon: smoke_bomb
   implemented: 1
   capstone: 0
