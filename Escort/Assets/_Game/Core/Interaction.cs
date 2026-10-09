@@ -110,20 +110,20 @@ namespace HS.Core
         /// </summary>
         public static bool CanTouch(Agent a, Agent b)
         {
-            Span(a, out float a0, out float a1);
-            Span(b, out float b0, out float b1);
+            BodySpan(a, out float a0, out float a1);
+            BodySpan(b, out float b0, out float b1);
             return a0 - ArmReach <= b1 && b0 <= a1 + ArmReach;
         }
 
         /// <summary>Can this body put a hand on that point (its height within head to feet, plus an arm's length)?</summary>
         public static bool CanReach(Agent who, Vector3 point)
         {
-            Span(who, out float bottom, out float top);
+            BodySpan(who, out float bottom, out float top);
             return point.y >= bottom - ArmReach && point.y <= top + ArmReach;
         }
 
         /// <summary>Bottom and top of a body in world height (its CharacterController; 1.8 m from the feet without one).</summary>
-        static void Span(Agent x, out float bottom, out float top)
+        public static void BodySpan(Agent x, out float bottom, out float top)
         {
             var cc = x.Controller;
             float s = x.transform.lossyScale.y;

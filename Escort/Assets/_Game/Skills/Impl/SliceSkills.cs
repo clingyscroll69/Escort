@@ -7,7 +7,8 @@ using UnityEngine;
 
 namespace HS.Skills.Impl
 {
-    /// <summary>Pocket Sand (Fixer): thrown cloud, blinds 3/4 s, reveals hidden things. Dirty trick if witnessed.</summary>
+    /// <summary>Pocket Sand (Fixer): thrown cloud, blinds 3/4 s, reveals hidden things. Dirty trick if witnessed. Thrown in
+    /// three dimensions (<see cref="Throws"/>): up or down a level when nothing solid is in the way.</summary>
     public sealed class PocketSandSkill : ISkillBehaviour
     {
         public const float Radius = 2.3f;
@@ -24,23 +25,21 @@ namespace HS.Skills.Impl
             var user = c.User;
             var run = c.Run;
             float range = s.Def.B(s.Rank);
-            var aim = c.AimPoint;
-            if (Geo.FlatDistance(user.Position, aim) > range) aim = user.Position + Geo.DirTo(user.Position, aim) * range;
-            aim.y = user.Position.y;
-            var dir = Geo.DirTo(user.Position, aim);
+            // Aimed at someone (a hidden one too: sand flushes him out), it goes for his face; else for the spot.
+            var point = Throws.Landing(user, c.AimPoint, range, a => a.Faction == Faction.Hostile);
+            var dir = Geo.DirTo(user.Position, point);
             if (dir != Vector3.zero) user.Motor.FaceInstant(dir);
             user.Presenter?.PlayAction("throw", 0.6f);
             float blind = s.Def.A(s.Rank);
-            var point = aim;
             run?.Timers.After(0.3f, () => Cloud(run, user, point, blind));
             return true;
         }
 
         void Cloud(RunContext run, Agent user, Vector3 point, float blind)
         {
-            Vfx.Burst(VfxKind.Sand, point + Vector3.up * 0.4f);
-            HS.Rooms.HazardMarker.RevealAround(point, Radius); // sand settles on a hidden plate's edges
-            AgentRegistry.InRadius(point, Radius, _scratch, a => a != user);
+            Vfx.Burst(VfxKind.Sand, point);
+            HS.Rooms.HazardMarker.RevealAround(Solid.FloorUnder(point), Radius); // sand settles on a hidden plate's edges
+            Throws.Caught(point, Radius, _scratch, a => a != user);
             Agent firstHostile = null;
             foreach (var a in _scratch)
             {

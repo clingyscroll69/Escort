@@ -109,7 +109,7 @@ namespace HS.Bots
             bool spendable = canCover || _caughtThisRoom == 0 || _hero.Health.Fraction < 0.4f;
             var tc = FindEnemy(e => e.State == EnemyState.Surrendered && e.Stats != null && e.Stats.cheapShotDamage > 0f, _hero.Position, 20f);
             if (tc != null && BotUtil.Ready(self, "pocket_sand") && (spendable || !BotUtil.Watched(_hero, tc.Position, self.Position)))
-                return Geo.FlatDistance(self.Position, tc.Position) <= 7.5f ? Use(self, "pocket_sand", tc.Position, "sand the false surrender") : Go(self, tc.Position, "close on the false surrender");
+                return Geo.FlatDistance(self.Position, tc.Position) <= 7.5f && ClearThrow(self, tc) ? Use(self, "pocket_sand", tc.Position, "sand the false surrender") : Go(self, tc.Position, "close on the false surrender", stop: 2.5f);
             // 3) A hedge ambush ahead of him: flush it out first.
             // 3) A hedge ambush ahead: scout it while he's still far off (unseen), or flush it late if it must be done.
             var amb = FindEnemy(e => e.IsHidden && !e.Scripted && !(e.IsRanged && e.Elevated) && e.Position.z > _hero.Position.z - 2f, _hero.Position, 26f);
@@ -118,7 +118,10 @@ namespace HS.Bots
                 bool unseenNow = !BotUtil.Watched(_hero, amb.Position, self.Position);
                 bool urgent = Geo.FlatDistance(_hero.Position, amb.Position) < 9f;
                 if (unseenNow || (urgent && spendable))
-                    return Geo.FlatDistance(self.Position, amb.Position) <= 7.5f ? Use(self, "pocket_sand", amb.Position, "flush the ambush") : Go(self, amb.Position, "scout the ambush", stop: 6.5f);
+                {
+                    bool clear = ClearThrow(self, amb);
+                    return Geo.FlatDistance(self.Position, amb.Position) <= 7.5f && clear ? Use(self, "pocket_sand", amb.Position, "flush the ambush") : Go(self, amb.Position, "scout the ambush", stop: clear ? 6.5f : 2.5f);
+                }
             }
             // 4) Bandage him when he's hurt and nobody is on him.
             // Safe = nobody on him and no shooter with a line on him (he holds still for the dressing).
@@ -210,6 +213,10 @@ namespace HS.Bots
             var follow = Go(self, BotUtil.BehindHim(_hero, 6.5f, 2.5f), "follow", careful: true, stop: 1.2f);
             return Sneak(self, follow, inFight);
         }
+
+        /// <summary>Would a throw at him get there (nothing solid between her hand and his chest)?</summary>
+        static bool ClearThrow(SidekickAgent self, Agent target) =>
+            !Solid.Between(HS.Skills.Impl.Throws.Hand(self), target.Position + Vector3.up * HS.Skills.Impl.Throws.ChestHeight);
 
         SidekickCommand Ping(Vector3 at, string why)
         {

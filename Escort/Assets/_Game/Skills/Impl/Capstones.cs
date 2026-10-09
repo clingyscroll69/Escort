@@ -120,10 +120,18 @@ namespace HS.Skills.Impl
             user.Motor.FaceInstant(dir);
             user.Presenter?.PlayAction("shoot", 0.5f);
             var run = c.Run;
+            // Aimed at someone (even up on a perch), the volley goes for him in 3D, as the crossbow's bolt does.
+            var marked = AgentRegistry.Nearest(c.AimPoint, Throws.MarkRadius, a => a is EnemyAgent e && e.IsAlive && !e.IsHidden);
+            var aimDir = dir;
+            if (marked != null)
+            {
+                var to = marked.Position + Vector3.up * 1.05f - (user.Position + Vector3.up * 1.25f);
+                if (to.sqrMagnitude > 0.25f) aimDir = to.normalized;
+            }
             for (int k = 0; k < 3; k++)
             {
                 float spread = (k - 1) * 6f;
-                var shotDir = Quaternion.Euler(0f, spread, 0f) * dir;
+                var shotDir = Quaternion.Euler(0f, spread, 0f) * aimDir;
                 run?.Timers.After(0.1f + 0.12f * k, () =>
                 {
                     if (!user.IsAlive) return;

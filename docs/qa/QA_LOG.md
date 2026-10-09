@@ -759,3 +759,20 @@ Phase 3 wins S3 ≈ 75%, S2 ≈ 60%, S1 ≈ 35%); visual QA of the new rooms and
   cast spawned through `CastFactory`, so aliases wear their bodies), and `Gallery_Boss_Phases` (from the door at S3 with
   Hold Please: `boss_0_diagnosis` … `boss_5_ending`). The room captures need the chapter 4–5 modules built first.
 - *Not yet run:* compile-checked only.
+
+## Follow-up: throws in three dimensions (owner feedback, 2026-10-09)
+- *Rule* (`Skills/Impl/Throws.cs`, `Core/Solid.cs`): a throw flies from her hand (1.4 m) to what she aims at: someone
+  within 1.6 m of the aim means his chest, up or down a level; otherwise the aimed spot at her height. Its range is the
+  straight line from her hand (it falls short along that line), and the first solid surface stops it. A burst reaches a
+  body within its radius in 3D with nothing solid between. People never block a throw or a burst.
+- *Applied to:* Pocket Sand (the cloud bursts where the throw ends; hidden plates are found on the floor under it), Smoke
+  Bomb (the cloud stands on the floor beneath the landing: on a deck if thrown at a man on one), Bait & Switch (the decoy
+  stands on the floor where the throw comes down), Crossfire (the volley aims at a marked man in 3D, as the crossbow and the
+  sling already did). Bolts and sling stones were already 3D and stopped by geometry (`ProjectileSystem`).
+- *Smoke is a column now* (`SmokeCloud`: 3 m tall on its floor): a sight line through it is blocked; one over or under it
+  (perch to perch above a ground cloud, floor to floor under a cloud on a deck) is not. Exact test: the line clipped to the
+  column's height, then judged on the ground plane.
+- *Bot:* the supportive bot only throws sand when nothing solid stands between her hand and the target; otherwise it closes in.
+- *Tests:* `ThrowTests` (sand from under a deck and from the side; 3D range; a wall shelters the man behind it; smoke as a
+  column; smoke thrown at a perched man stands on his deck; Crossfire up to a perch). Their geometry was checked with a
+  port of the maths; compile-checked only.

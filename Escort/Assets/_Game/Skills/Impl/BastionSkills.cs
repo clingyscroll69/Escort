@@ -23,9 +23,9 @@ namespace HS.Skills.Impl
         public bool Execute(in SkillUseContext c, SkillState s)
         {
             var user = c.User;
-            var at = c.AimPoint;
-            if (Geo.FlatDistance(user.Position, at) > Reach) at = user.Position + Geo.DirTo(user.Position, at) * Reach;
-            at.y = user.Position.y;
+            // Thrown at a spot, never at someone: it stands on the floor where the throw comes down (Throws: 3D reach,
+            // stopped by the first solid thing).
+            var at = Solid.FloorUnder(Throws.Landing(user, c.AimPoint, Reach, null));
             var dir = Geo.DirTo(user.Position, at);
             if (dir != Vector3.zero) user.Motor.FaceInstant(dir);
             user.Presenter?.PlayAction("throw", 0.6f);
@@ -35,8 +35,8 @@ namespace HS.Skills.Impl
         }
     }
 
-    /// <summary>Smoke Bomb (Provisioner): a cloud at the aim point (up to 8 m) for A s, radius B m. Nobody sees through it —
-    /// not him, not a stone, not a shooter — and anyone in it loses track of you. Above board.</summary>
+    /// <summary>Smoke Bomb (Provisioner): a cloud where the throw lands (up to 8 m in 3D) for A s, radius B m. Nobody sees
+    /// through it — not him, not a stone, not a shooter — and anyone it reaches loses track of you. Above board.</summary>
     public sealed class SmokeBombSkill : ISkillBehaviour
     {
         public const float Reach = 8f;
@@ -52,18 +52,16 @@ namespace HS.Skills.Impl
         {
             var user = c.User;
             var run = c.Run;
-            var at = c.AimPoint;
-            if (Geo.FlatDistance(user.Position, at) > Reach) at = user.Position + Geo.DirTo(user.Position, at) * Reach;
-            at.y = user.Position.y;
-            var dir = Geo.DirTo(user.Position, at);
+            // Thrown in 3D (Throws): at someone, it bursts at his chest; the cloud then stands on the floor beneath.
+            var point = Throws.Landing(user, c.AimPoint, Reach, a => a is EnemyAgent);
+            var dir = Geo.DirTo(user.Position, point);
             if (dir != Vector3.zero) user.Motor.FaceInstant(dir);
             user.Presenter?.PlayAction("throw", 0.6f);
             float seconds = s.Def.A(s.Rank), radius = s.Def.B(s.Rank);
-            var point = at;
             run?.Timers.After(0.3f, () =>
             {
-                SmokeCloud.Release(point, radius, seconds, run);
-                AgentRegistry.InRadius(point, radius + 0.5f, _scratch, a => a is EnemyAgent);
+                SmokeCloud.Release(Solid.FloorUnder(point), radius, seconds, run);
+                Throws.Caught(point, radius + 0.5f, _scratch, a => a is EnemyAgent);
                 foreach (var a in _scratch) ((EnemyAgent)a).LoseSidekick();
             });
             return true;
